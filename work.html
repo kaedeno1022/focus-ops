@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>NTE Task Tracker</title>
+
+<style>
+
+:root{
+  --bg:#070b16;
+  --card:#111827;
+  --line:#24314d;
+
+  --text:#edf2ff;
+  --sub:#94a3b8;
+
+  --neon:#00e5ff;
+  --purple:#8b5cf6;
+
+  --high:#ef4444;
+  --mid:#facc15;
+  --low:#38bdf8;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  padding:20px;
+
+  background:
+    radial-gradient(circle at top left,#162042 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#24114d 0%,transparent 30%),
+    var(--bg);
+
+  color:var(--text);
+  font-family:sans-serif;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+}
+
+.title{
+  font-size:34px;
+  font-weight:bold;
+  margin-bottom:6px;
+  text-shadow:0 0 12px var(--neon);
+}
+
+.subtitle{
+  color:var(--sub);
+  margin-bottom:20px;
+}
+
+.topbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+button{
+  border:none;
+  border-radius:12px;
+  padding:12px 16px;
+  cursor:pointer;
+  font-weight:bold;
+  color:white;
+  transition:.2s;
+}
+
+button:hover{
+  transform:translateY(-1px);
+}
+
+.btn-main{
+  background:linear-gradient(90deg,var(--neon),var(--purple));
+}
+
+.btn-danger{
+  background:linear-gradient(90deg,#ef4444,#dc2626);
+}
+
+.toggle-btn.active{
+  outline:2px solid white;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:rgba(17,24,39,.92);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:20px;
+
+  box-shadow:
+    0 0 14px rgba(0,229,255,.1),
+    inset 0 0 20px rgba(255,255,255,.02);
+}
+
+.card h2{
+  margin-top:0;
+}
+
+.progress-wrap{
+  margin-bottom:18px;
+}
+
+.progress-top{
+  display:flex;
+  justify-content:space-between;
+  color:var(--sub);
+  font-size:13px;
+  margin-bottom:8px;
+}
+
+.progress{
+  height:10px;
+  background:#0f172a;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  height:100%;
+  width:0%;
+  transition:.3s;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--neon),
+      var(--purple)
+    );
+
+  box-shadow:0 0 10px var(--neon);
+}
+
+.category{
+  margin-bottom:24px;
+}
+
+.category-header{
+  padding:12px;
+  border-radius:12px;
+  background:#172036;
+  margin-bottom:10px;
+  font-weight:bold;
+}
+
+.task{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:10px;
+
+  background:#111827;
+  border:1px solid #1f2b46;
+
+  transition:.2s;
+}
+
+.task:hover{
+  border-color:rgba(0,229,255,.4);
+}
+
+.task.done{
+  opacity:.55;
+}
+
+.task.done .task-title{
+  text-decoration:line-through;
+}
+
+.task input{
+  width:20px;
+  height:20px;
+}
+
+.priority{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+}
+
+.high{
+  background:var(--high);
+  box-shadow:0 0 10px var(--high);
+}
+
+.mid{
+  background:var(--mid);
+  box-shadow:0 0 10px var(--mid);
+}
+
+.low{
+  background:var(--low);
+  box-shadow:0 0 10px var(--low);
+}
+
+.task-title{
+  flex:1;
+  font-weight:bold;
+}
+
+.hidden{
+  display:none;
+}
+
+.info{
+  margin-top:20px;
+  color:var(--sub);
+  font-size:13px;
+  line-height:1.7;
+}
+
+@media (max-width:700px){
+
+  body{
+    padding:14px;
+  }
+
+  .title{
+    font-size:26px;
+  }
+
+  .card{
+    padding:16px;
+    border-radius:18px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .topbar{
+    flex-direction:column;
+  }
+
+  button{
+    width:100%;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="title">
+    NTE TASK TRACKER
+  </div>
+
+  <div class="subtitle">
+    Neverness to Everness デイリー管理
+  </div>
+
+  <div class="topbar">
+
+    <button
+      id="minimumBtn"
+      class="btn-main toggle-btn"
+      onclick="toggleMinimumMode()"
+    >
+      最低限モード OFF
+    </button>
+
+    <button
+      class="btn-main"
+      onclick="resetCategory('daily')"
+    >
+      デイリーリセット
+    </button>
+
+    <button
+      class="btn-main"
+      onclick="resetCategory('weekly')"
+    >
+      ウィークリーリセット
+    </button>
+
+    <button
+      class="btn-main"
+      onclick="resetCategory('season')"
+    >
+      シーズンリセット
+    </button>
+
+    <button
+      class="btn-danger"
+      onclick="resetAll()"
+    >
+      全リセット
+    </button>
+
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+
+      <h2>デイリー</h2>
+
+      <div class="progress-wrap">
+
+        <div class="progress-top">
+          <span id="dailyRemain"></span>
+          <span id="dailyProgress"></span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" id="dailyBar"></div>
+        </div>
+
+      </div>
+
+      <div id="dailyContainer"></div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>ウィークリー</h2>
+
+      <div class="progress-wrap">
+
+        <div class="progress-top">
+          <span id="weeklyRemain"></span>
+          <span id="weeklyProgress"></span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" id="weeklyBar"></div>
+        </div>
+
+      </div>
+
+      <div id="weeklyContainer"></div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>シーズン / 隔週</h2>
+
+      <div class="progress-wrap">
+
+        <div class="progress-top">
+          <span id="seasonRemain"></span>
+          <span id="seasonProgress"></span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" id="seasonBar"></div>
+        </div>
+
+      </div>
+
+      <div id="seasonContainer"></div>
+
+    </div>
+
+  </div>
+
+  <div class="info">
+    赤 = 高優先度 / 黄 = 中優先度 / 青 = 低優先度<br>
+    LocalStorage保存対応
+  </div>
+
+</div>
+
+<script>
+
+const STORAGE_KEYS = {
+  CHECKED: "nte_checked",
+  MINIMUM: "nte_minimum"
+};
+
+const DATA = {
+
+  daily: [
+    {
+      category: "必須",
+      tasks: [
+        ["本性ピクセル消費", "high"],
+        ["デイリークエスト", "high"],
+        ["ナクペイダの泉", "high"],
+        ["カフェ収益回収", "high"],
+        ["特別配達", "high"],
+        ["ハンター褒章", "high"]
+      ]
+    },
+    {
+      category: "余裕あれば",
+      tasks: [
+        ["魔女の家（占い）", "mid"],
+        ["祈願", "mid"],
+        ["キャラ好感度", "mid"],
+        ["家具回収", "mid"],
+        ["ちぃちゃんファンス", "mid"],
+        ["シティ配送", "mid"]
+      ]
+    },
+    {
+      category: "確認系",
+      tasks: [
+        ["イベント確認", "low"],
+        ["バトルパス確認", "low"]
+      ]
+    }
+  ],
+
+  weekly: [
+    {
+      category: "必須",
+      tasks: [
+        ["異象巡礼（週ボス）", "high"],
+        ["シティスタミナ消費", "high"],
+        ["貪欲の領域（マモン）", "high"],
+        ["オークション確認", "high"],
+        ["金庫回収", "high"]
+      ]
+    }
+  ],
+
+  season: [
+    {
+      category: "シーズン / 隔週",
+      tasks: [
+        ["にくきゅう大強盗", "mid"],
+        ["軌道外領域", "mid"]
+      ]
+    }
+  ]
+
+};
+
+let checkedState =
+  JSON.parse(
+    localStorage.getItem(STORAGE_KEYS.CHECKED)
+  ) || {};
+
+let minimumMode =
+  JSON.parse(
+    localStorage.getItem(STORAGE_KEYS.MINIMUM)
+  ) || false;
+
+function saveState(){
+
+  localStorage.setItem(
+    STORAGE_KEYS.CHECKED,
+    JSON.stringify(checkedState)
+  );
+
+  localStorage.setItem(
+    STORAGE_KEYS.MINIMUM,
+    JSON.stringify(minimumMode)
+  );
+}
+
+function createKey(type, category, title){
+  return `${type}_${category}_${title}`;
+}
+
+function createTaskElement(type, category, title, priority){
+
+  const key =
+    createKey(type, category, title);
+
+  const checked =
+    checkedState[key] || false;
+
+  const task =
+    document.createElement("div");
+
+  task.className =
+    `task ${checked ? "done" : ""}`;
+
+  task.innerHTML = `
+    <input
+      type="checkbox"
+      ${checked ? "checked" : ""}
+    >
+
+    <div class="priority ${priority}"></div>
+
+    <div class="task-title">
+      ${title}
+    </div>
+  `;
+
+  const checkbox =
+    task.querySelector("input");
+
+  checkbox.addEventListener("change", () => {
+
+    checkedState[key] =
+      checkbox.checked;
+
+    saveState();
+    renderAll();
+  });
+
+  return {
+    element: task,
+    checked
+  };
+}
+
+function renderSection(type){
+
+  const container =
+    document.getElementById(`${type}Container`);
+
+  container.innerHTML = "";
+
+  let total = 0;
+  let done = 0;
+
+  DATA[type].forEach(group => {
+
+    if(
+      minimumMode &&
+      group.category !== "必須"
+    ){
+      return;
+    }
+
+    const section =
+      document.createElement("div");
+
+    section.className = "category";
+
+    const header =
+      document.createElement("div");
+
+    header.className = "category-header";
+    header.textContent = group.category;
+
+    section.appendChild(header);
+
+    group.tasks.forEach(([title, priority]) => {
+
+      total++;
+
+      const task =
+        createTaskElement(
+          type,
+          group.category,
+          title,
+          priority
+        );
+
+      if(task.checked){
+        done++;
+      }
+
+      section.appendChild(task.element);
+
+    });
+
+    container.appendChild(section);
+
+  });
+
+  updateProgress(type, total, done);
+}
+
+function updateProgress(type, total, done){
+
+  const remain = total - done;
+
+  const percent =
+    total === 0
+      ? 0
+      : Math.round((done / total) * 100);
+
+  document.getElementById(`${type}Remain`)
+    .textContent =
+      `残り ${remain}`;
+
+  document.getElementById(`${type}Progress`)
+    .textContent =
+      `${done}/${total} (${percent}%)`;
+
+  document.getElementById(`${type}Bar`)
+    .style.width =
+      `${percent}%`;
+}
+
+function renderAll(){
+
+  renderSection("daily");
+  renderSection("weekly");
+  renderSection("season");
+}
+
+function toggleMinimumMode(){
+
+  minimumMode = !minimumMode;
+
+  const btn =
+    document.getElementById("minimumBtn");
+
+  btn.textContent =
+    minimumMode
+      ? "最低限モード ON"
+      : "最低限モード OFF";
+
+  btn.classList.toggle("active");
+
+  saveState();
+  renderAll();
+}
+
+function resetCategory(type){
+
+  const labels = {
+    daily: "デイリー",
+    weekly: "ウィークリー",
+    season: "シーズン"
+  };
+
+  if(
+    !confirm(`${labels[type]}をリセットしますか？`)
+  ){
+    return;
+  }
+
+  Object.keys(checkedState).forEach(key => {
+
+    if(key.startsWith(`${type}_`)){
+      checkedState[key] = false;
+    }
+
+  });
+
+  saveState();
+  renderAll();
+}
+
+function resetAll(){
+
+  if(
+    !confirm("全チェックをリセットしますか？")
+  ){
+    return;
+  }
+
+  checkedState = {};
+
+  saveState();
+  renderAll();
+}
+
+if(minimumMode){
+
+  const btn =
+    document.getElementById("minimumBtn");
+
+  btn.textContent =
+    "最低限モード ON";
+
+  btn.classList.add("active");
+}
+
+renderAll();
+
+</script>
+
+</body>
+</html>
