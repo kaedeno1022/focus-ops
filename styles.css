@@ -1,0 +1,432 @@
+/* ============================================================================
+   CSS Variables (カラーパレット)
+   ============================================================================ */
+:root {
+  /* 背景色 */
+  --bg: #070b16;
+  --card: #111827;
+  --line: #24314d;
+
+  /* テキスト色 */
+  --text: #edf2ff;
+  --sub: #94a3b8;
+
+  /* アクセント色 */
+  --neon: #00e5ff;
+  --purple: #8b5cf6;
+
+  /* 優先度色 */
+  --high: #ef4444;
+  --mid: #facc15;
+  --low: #38bdf8;
+}
+
+/* ============================================================================
+   リセット & 基本スタイル
+   ============================================================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+
+  background:
+    radial-gradient(circle at top left, #162042 0%, transparent 30%),
+    radial-gradient(circle at bottom right, #24114d 0%, transparent 30%),
+    var(--bg);
+
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   レイアウト
+   ============================================================================ */
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+/* ============================================================================
+   ヘッダー & タイトル
+   ============================================================================ */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: bold;
+  margin: 0 0 6px 0;
+  text-shadow: 0 0 12px var(--neon);
+}
+
+.subtitle {
+  color: var(--sub);
+  margin: 0;
+}
+
+/* モバイルアクション（デイリーリセット + メニュー） */
+.mobile-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 表示切り替えクラス */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: inline-block;
+}
+
+/* ハンバーガーメニューボタン */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  flex-shrink: 0;
+}
+
+.hamburger-icon {
+  width: 100%;
+  height: 3px;
+  background: var(--neon);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 6px var(--neon);
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* メニューオーバーレイ */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu-overlay.active {
+  opacity: 1;
+}
+
+/* ============================================================================
+   トップバー（ボタン群）
+   ============================================================================ */
+.topbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* ============================================================================
+   ボタン
+   ============================================================================ */
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  transition: transform 0.2s ease;
+  font-size: 14px;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.btn-main {
+  background: linear-gradient(90deg, var(--neon), var(--purple));
+}
+
+.btn-danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.toggle-btn.active {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   カード
+   ============================================================================ */
+.card {
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 20px;
+
+  box-shadow:
+    0 0 14px rgba(0, 229, 255, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* ============================================================================
+   進捗バー
+   ============================================================================ */
+.progress-wrap {
+  margin-bottom: 18px;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  color: var(--sub);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.progress {
+  height: 10px;
+  background: #0f172a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+
+  background: linear-gradient(90deg, var(--neon), var(--purple));
+  box-shadow: 0 0 10px var(--neon);
+}
+
+/* ============================================================================
+   カテゴリー & タスク
+   ============================================================================ */
+.category {
+  margin-bottom: 24px;
+}
+
+.category-header {
+  padding: 12px;
+  border-radius: 12px;
+  background: #172036;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+
+  background: #111827;
+  border: 1px solid #1f2b46;
+
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.task:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: #151d2e;
+}
+
+.task.done {
+  opacity: 0.55;
+}
+
+.task.done .task-title {
+  text-decoration: line-through;
+}
+
+.task input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task label {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 優先度インジケーター */
+.priority {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.high {
+  background: var(--high);
+  box-shadow: 0 0 10px var(--high);
+}
+
+.mid {
+  background: var(--mid);
+  box-shadow: 0 0 10px var(--mid);
+}
+
+.low {
+  background: var(--low);
+  box-shadow: 0 0 10px var(--low);
+}
+
+.task-title {
+  font-weight: bold;
+}
+
+/* ============================================================================
+   フッター
+   ============================================================================ */
+.info {
+  margin-top: 20px;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ============================================================================
+   ユーティリティクラス
+   ============================================================================ */
+.hidden {
+  display: none;
+}
+
+/* ============================================================================
+   レスポンシブ対応
+   ============================================================================ */
+@media (max-width: 700px) {
+  body {
+    padding: 14px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 表示切り替え */
+  .mobile-only {
+    display: inline-block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  /* ハンバーガーメニュー表示 */
+  .menu-toggle {
+    display: flex;
+  }
+
+  .menu-overlay.active {
+    display: block;
+  }
+
+  /* デイリーリセットボタン（モバイル専用） */
+  #dailyResetBtnMobile {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  /* スライドメニュー */
+  .topbar {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 320px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a2234 0%, #0d1117 100%);
+    border-left: 1px solid var(--line);
+    flex-direction: column;
+    padding: 80px 20px 20px;
+    margin: 0;
+    z-index: 1000;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .topbar.active {
+    right: 0;
+  }
+
+  .topbar button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .topbar button:last-child {
+    margin-bottom: 0;
+  }
+}
