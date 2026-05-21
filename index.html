@@ -9,6 +9,9 @@
 </head>
 
 <body>
+  <!-- スクリーンリーダー用ライブリージョン -->
+  <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
   <div class="container">
     <header>
       <div class="header-content">
@@ -87,7 +90,7 @@
 
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <main class="grid">
+    <main class="grid" aria-label="タスクリスト">
       <section class="card" aria-labelledby="daily-title">
         <h2 id="daily-title">デイリー</h2>
 
