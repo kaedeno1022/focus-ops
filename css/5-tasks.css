@@ -1,0 +1,141 @@
+/* ============================================================================
+   カテゴリー & タスク
+   ============================================================================ */
+.category {
+  margin-bottom: 24px;
+}
+
+.category-header {
+  padding: 12px;
+  border-radius: 12px;
+  background: #172036;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.task {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+
+  background: #111827;
+  border: 1px solid #1f2b46;
+
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.task:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: #151d2e;
+}
+
+.task.done {
+  opacity: 0.55;
+}
+
+.task.done .task-title {
+  text-decoration: line-through;
+}
+
+.task input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.task label,
+.task-label {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  min-height: 24px;
+}
+
+/* 優先度インジケーター */
+.priority {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 高優先度: 円形 */
+.high {
+  background: var(--high);
+  box-shadow: 0 0 10px var(--high);
+  border-radius: 50%;
+}
+
+/* 中優先度: 三角形（clip-pathで実装） */
+.mid {
+  background: var(--mid);
+  box-shadow: 0 0 10px var(--mid);
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+/* 低優先度: 四角形 */
+.low {
+  background: var(--low);
+  box-shadow: 0 0 10px var(--low);
+  border-radius: 0;
+}
+
+.task-title {
+  font-weight: bold;
+}
+
+/* タスクのレイアウト調整 */
+.task > input[type="checkbox"] {
+  margin-top: 4px;
+}
+
+.task > label {
+  flex: 1;
+  cursor: pointer;
+}
+
+/* コメント表示（読み取り専用） */
+.task > .comment-display {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid var(--purple);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ============================================================================
+   フッター
+   ============================================================================ */
+.info {
+  margin-top: 20px;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ============================================================================
+   ユーティリティクラス
+   ============================================================================ */
+.hidden {
+  display: none;
+}

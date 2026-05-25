@@ -1,0 +1,115 @@
+/* ============================================================================
+   レイアウト
+   ============================================================================ */
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+/* ============================================================================
+   ヘッダー & タイトル
+   ============================================================================ */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: bold;
+  margin: 0 0 6px 0;
+  text-shadow: 0 0 12px var(--neon);
+}
+
+.subtitle {
+  color: var(--sub);
+  margin: 0;
+}
+
+/* モバイルアクション（デイリーリセット + メニュー） */
+.mobile-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 表示切り替えクラス */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: inline-block;
+}
+
+/* ハンバーガーメニューボタン */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  flex-shrink: 0;
+}
+
+.hamburger-icon {
+  width: 100%;
+  height: 3px;
+  background: var(--neon);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 6px var(--neon);
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.active .hamburger-icon:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* メニューオーバーレイ */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu-overlay.active {
+  opacity: 1;
+}
+
+/* ============================================================================
+   トップバー（ボタン群）
+   ============================================================================ */
+.topbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}

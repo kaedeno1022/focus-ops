@@ -70,20 +70,132 @@ https://kaedeno1022.github.io/nte/
   - アニメーション
 - **JavaScript (ES6+)**:
   - Vanilla JavaScript（フレームワーク不使用）
-  - モジュール化された関数設計
+  - モジュール化設計（10ファイルに分割）
   - LocalStorage API
   - DOM操作
   - イベント駆動アーキテクチャ
+  - 関数型プログラミング
 
 ## 📂 プロジェクト構造
 
 ```
 .
-├── index.html    # メインHTML
-├── script.js     # アプリケーションロジック
-├── styles.css    # スタイルシート
-└── README.md     # このファイル
+├── index.html          # メインHTML
+├── css/                # スタイルシート（機能別に分割）
+│   ├── 1-variables.css   # CSS変数・カラーパレット
+│   ├── 2-base.css        # リセット・基本スタイル・アクセシビリティ
+│   ├── 3-layout.css      # レイアウト・ヘッダー・トップバー
+│   ├── 4-components.css  # ボタン・カード・進捗バー
+│   ├── 5-tasks.css       # タスク要素・カテゴリー・フッター
+│   ├── 6-modals.css      # 設定モーダル・Cookie同意バナー
+│   └── 7-responsive.css  # レスポンシブ対応
+├── js/                 # JavaScriptモジュール（機能別に分割）
+│   ├── constants.js      # 定数・タスクデータ定義
+│   ├── storage.js        # LocalStorage操作
+│   ├── state.js          # 状態管理
+│   ├── utils.js          # ユーティリティ関数
+│   ├── taskRenderer.js   # タスク要素生成・レンダリング
+│   ├── menuHandlers.js   # メニュー操作・リセット機能
+│   ├── settings.js       # 設定モーダル・タスク管理
+│   ├── cookieConsent.js  # Cookie同意・プライバシーポリシー
+│   ├── eventHandlers.js  # イベントリスナー設定
+│   └── main.js           # アプリケーション初期化
+└── README.md           # このファイル
 ```
+
+### CSSファイルの役割
+
+#### **1-variables.css** (~23行)
+- CSS変数（カラーパレット）
+- 背景色、テキスト色、アクセント色、優先度色
+
+#### **2-base.css** (~95行)
+- リセット・基本スタイル
+- アクセシビリティ（フォーカス表示）
+- スクリーンリーダー対応
+- アニメーション無効化対応
+
+#### **3-layout.css** (~120行)
+- レイアウト（container、grid）
+- ヘッダー・タイトル
+- ハンバーガーメニュー
+- トップバー
+
+#### **4-components.css** (~100行)
+- ボタンスタイル
+- カードデザイン
+- 進捗バー
+
+#### **5-tasks.css** (~140行)
+- タスク要素
+- カテゴリーヘッダー
+- 優先度インジケーター
+- コメント表示
+- フッター
+
+#### **6-modals.css** (~440行)
+- 設定モーダル
+- タブUI
+- フォーム
+- Cookie同意バナー
+- プライバシーポリシー
+
+#### **7-responsive.css** (~180行)
+- タブレット対応
+- モバイル対応
+- スライドメニュー
+- レスポンシブレイアウト
+
+### 各ファイルの役割（JavaScript）
+
+#### **constants.js** (~110行)
+- LocalStorageキー定義
+- タスクデータ構造（DATA）
+- カテゴリーラベル、定数
+
+#### **storage.js** (~60行)
+- LocalStorageからの読み込み
+- LocalStorageへの保存
+- データサイズチェック
+
+#### **state.js** (~30行)
+- グローバル状態変数の定義
+- checkedState, minimumMode, taskVisibility, customTasks等
+
+#### **utils.js** (~200行)
+- スクリーンリーダー通知
+- フォーカストラップ
+- タスクキー生成
+- 全タスクデータ取得
+- 優先度変換
+
+#### **taskRenderer.js** (~250行)
+- タスク要素の生成
+- セクションレンダリング
+- 進捗バー更新
+
+#### **menuHandlers.js** (~220行)
+- メニュー開閉
+- 最低限モード切替
+- 各種リセット機能
+
+#### **settings.js** (~480行)
+- 設定モーダル操作
+- 表示設定レンダリング
+- カスタムタスク管理
+- タスク編集フォーム
+
+#### **cookieConsent.js** (~110行)
+- Cookie同意バナー
+- プライバシーポリシーモーダル
+
+#### **eventHandlers.js** (~170行)
+- 全イベントリスナーの設定
+
+#### **main.js** (~30行)
+- アプリケーション初期化
+- DOMContentLoaded処理
+
 
 ## 🎨 優先度システム
 
