@@ -7,7 +7,8 @@ const STORAGE_KEYS = {
   CHECKED: 'nte_checked',
   MINIMUM: 'nte_minimum',
   VISIBILITY: 'nte_visibility',
-  CUSTOM_TASKS: 'nte_custom_tasks'
+  CUSTOM_TASKS: 'nte_custom_tasks',
+  COMMENTS: 'nte_comments'
 };
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
@@ -123,6 +124,9 @@ let customTasks = loadFromStorage(STORAGE_KEYS.CUSTOM_TASKS) || {
   season: []
 };
 
+/** タスクコメント */
+let taskComments = loadFromStorage(STORAGE_KEYS.COMMENTS) || {};
+
 // ============================================================================
 // ユーティリティ関数
 // ============================================================================
@@ -159,10 +163,13 @@ function saveState() {
       announceToScreenReader('データ容量が上限に近づいています');
     }
     
+    const commentsData = JSON.stringify(taskComments);
+    
     localStorage.setItem(STORAGE_KEYS.CHECKED, checkedData);
     localStorage.setItem(STORAGE_KEYS.MINIMUM, minimumData);
     localStorage.setItem(STORAGE_KEYS.VISIBILITY, visibilityData);
     localStorage.setItem(STORAGE_KEYS.CUSTOM_TASKS, customData);
+    localStorage.setItem(STORAGE_KEYS.COMMENTS, commentsData);
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     
@@ -363,6 +370,91 @@ function createTaskElement(type, category, title, priority) {
   label.appendChild(priorityDiv);
   label.appendChild(titleDiv);
   task.appendChild(label);
+
+  // コメントボタンとコメント領域を追加
+  const commentBtn = document.createElement('button');
+  commentBtn.className = 'comment-btn';
+  commentBtn.textContent = '💬';
+  commentBtn.type = 'button';
+  commentBtn.setAttribute('aria-label', 'コメントを追加・編集');
+  commentBtn.title = 'コメントを追加・編集';
+
+  const commentSection = document.createElement('div');
+  commentSection.className = 'comment-section';
+  commentSection.style.display = 'none';
+
+  const commentTextarea = document.createElement('textarea');
+  commentTextarea.className = 'comment-input';
+  commentTextarea.placeholder = 'コメントを入力...';
+  commentTextarea.value = taskComments[key] || '';
+  commentTextarea.setAttribute('aria-label', `${title}のコメント`);
+
+  const commentActions = document.createElement('div');
+  commentActions.className = 'comment-actions';
+
+  const saveCommentBtn = document.createElement('button');
+  saveCommentBtn.className = 'btn-main btn-small';
+  saveCommentBtn.textContent = '保存';
+  saveCommentBtn.type = 'button';
+
+  const cancelCommentBtn = document.createElement('button');
+  cancelCommentBtn.className = 'btn-secondary btn-small';
+  cancelCommentBtn.textContent = 'キャンセル';
+  cancelCommentBtn.type = 'button';
+
+  commentActions.appendChild(saveCommentBtn);
+  commentActions.appendChild(cancelCommentBtn);
+  commentSection.appendChild(commentTextarea);
+  commentSection.appendChild(commentActions);
+
+  const commentDisplay = document.createElement('div');
+  commentDisplay.className = 'comment-display';
+  if (taskComments[key]) {
+    commentDisplay.textContent = taskComments[key];
+    commentDisplay.style.display = 'block';
+    commentBtn.classList.add('has-comment');
+  } else {
+    commentDisplay.style.display = 'none';
+  }
+
+  task.appendChild(commentBtn);
+  task.appendChild(commentDisplay);
+  task.appendChild(commentSection);
+
+  // コメントボタンのクリックイベント
+  commentBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = commentSection.style.display !== 'none';
+    commentSection.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+      commentTextarea.focus();
+    }
+  });
+
+  // コメント保存
+  saveCommentBtn.addEventListener('click', () => {
+    const comment = commentTextarea.value.trim();
+    if (comment) {
+      taskComments[key] = comment;
+      commentDisplay.textContent = comment;
+      commentDisplay.style.display = 'block';
+      commentBtn.classList.add('has-comment');
+      announceToScreenReader('コメントを保存しました');
+    } else {
+      delete taskComments[key];
+      commentDisplay.style.display = 'none';
+      commentBtn.classList.remove('has-comment');
+      announceToScreenReader('コメントを削除しました');
+    }
+    commentSection.style.display = 'none';
+    saveState();
+  });
+
+  // キャンセル
+  cancelCommentBtn.addEventListener('click', () => {
+    commentTextarea.value = taskComments[key] || '';
+    commentSection.style.display = 'none';
+  });
 
   checkbox.addEventListener('change', () => {
     checkedState[key] = checkbox.checked;
@@ -832,9 +924,13 @@ function renderCustomTaskList() {
       
       const category = getCategoryFromPriority(task.priority);
       
+      const key = createKey(type, category, task.title);
+      const comment = taskComments[key] || '';
+      
       info.innerHTML = `
         <strong>${task.title}</strong><br>
         <small>${typeLabel} / ${category} / 優先度: ${priorityLabel}</small>
+        ${comment ? `<br><small style="color: var(--purple); margin-top: 4px; display: block;">💬 ${comment}</small>` : ''}
       `;
       
       const deleteBtn = document.createElement('button');
@@ -845,6 +941,14 @@ function renderCustomTaskList() {
       deleteBtn.addEventListener('click', () => {
         if (confirm(`「${task.title}」を削除しますか？`)) {
           customTasks[type].splice(index, 1);
+          
+          // コメントも削除
+          const category = getCategoryFromPriority(task.priority);
+          const key = createKey(type, category, task.title);
+          if (taskComments[key]) {
+            delete taskComments[key];
+          }
+          
           saveState();
           renderCustomTaskList();
           renderAll();
@@ -874,6 +978,7 @@ function addCustomTask(e) {
   const type = form.taskType.value;
   const title = form.taskTitle.value.trim();
   const priority = form.taskPriority.value;
+  const comment = form.taskComment.value.trim();
   
   if (!title) {
     alert('タスク名を入力してください。');
@@ -912,13 +1017,20 @@ function addCustomTask(e) {
     priority
   });
   
+  // コメントがある場合は保存
+  if (comment) {
+    const key = createKey(type, category, title);
+    taskComments[key] = comment;
+  }
+  
   saveState();
   form.reset();
   renderCustomTaskList();
   renderAll();
   
   const categoryLabel = getCategoryFromPriority(priority);
-  announceToScreenReader(`${title}を${categoryLabel}に追加しました`);
+  const commentInfo = comment ? 'とコメント' : '';
+  announceToScreenReader(`${title}を${categoryLabel}に追加しました${commentInfo}`);
 }
 
 // ============================================================================
