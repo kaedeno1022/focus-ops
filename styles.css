@@ -656,6 +656,12 @@ button:active {
   min-width: 200px;
 }
 
+.button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* 設定セクション */
 .settings-section {
   margin-bottom: 30px;
@@ -703,6 +709,10 @@ button:active {
   flex: 1;
   margin: 0;
   font-size: 14px;
+}
+
+.visibility-item .btn-small {
+  margin-left: 8px;
 }
 
 /* カスタムタスクフォーム */
@@ -809,6 +819,30 @@ button:active {
   font-size: 14px;
 }
 
+/* 編集通知 */
+.edit-notice {
+  background: var(--purple);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  display: none;
+}
+
+/* 編集キャンセルボタン */
+.cancel-edit-btn {
+  display: none;
+  margin-left: 8px;
+}
+
+/* タスクコメント表示 */
+.task-comment-small {
+  color: var(--purple);
+  margin-top: 4px;
+  display: block;
+}
+
 /* モバイル対応（モーダル） */
 @media (max-width: 700px) {
   .modal {
@@ -912,6 +946,7 @@ button:active {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
   z-index: 10000;
   animation: slideUp 0.3s ease-out;
+  display: none;
 }
 
 @keyframes slideUp {

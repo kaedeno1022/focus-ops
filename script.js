@@ -980,7 +980,6 @@ function renderVisibilitySettings() {
         editBtn.className = 'btn-main btn-small';
         editBtn.textContent = '編集';
         editBtn.type = 'button';
-        editBtn.style.marginLeft = '8px';
         
         // タスクがカスタムかデフォルトかを判定
         const isCustomTask = customTasks[type]?.some(t => 
@@ -1005,8 +1004,8 @@ function renderVisibilitySettings() {
         
         editBtn.addEventListener('click', () => {
           if (originalInfo) {
-            // デフォルトタスクの場合、元の情報を使って開く
-            openTaskEditFormWithOriginal(type, originalInfo.originalCategory, originalInfo.originalTitle, originalInfo.originalPriority, title, priority, false);
+            // デフォルトタスクの場合、元の情報を渡して開く
+            openTaskEditForm(type, group.category, title, priority, false, originalInfo);
           } else {
             // カスタムタスクの場合
             openTaskEditForm(type, group.category, title, priority, true);
@@ -1065,12 +1064,11 @@ function renderCustomTaskList() {
       info.innerHTML = `
         <strong>${task.title}</strong><br>
         <small>${typeLabel} / ${category} / 優先度: ${priorityLabel}</small>
-        ${comment ? `<br><small style="color: var(--purple); margin-top: 4px; display: block;">💬 ${comment}</small>` : ''}
+        ${comment ? `<br><small class="task-comment-small">💬 ${comment}</small>` : ''}
       `;
       
       const buttonGroup = document.createElement('div');
-      buttonGroup.style.display = 'flex';
-      buttonGroup.style.gap = '8px';
+      buttonGroup.className = 'button-group';
       
       // 編集ボタン
       const editBtn = document.createElement('button');
@@ -1201,102 +1199,35 @@ function addCustomTask(e) {
  * @param {string} title - タスクタイトル
  * @param {string} priority - 優先度
  * @param {boolean} isCustomTask - カスタムタスクかどうか
+ * @param {Object} [originalInfo] - デフォルトタスクの元の情報（編集済みデフォルトタスクの場合）
  */
-function openTaskEditForm(type, category, title, priority, isCustomTask) {
+function openTaskEditForm(type, category, title, priority, isCustomTask, originalInfo = null) {
   const form = getElement('addTaskForm');
   if (!form) return;
 
   // 編集中のタスク情報を保存
+  // originalInfoがある場合（編集済みデフォルトタスク）は元の情報を使用
+  const editCategory = originalInfo ? originalInfo.originalCategory : category;
+  const editTitle = originalInfo ? originalInfo.originalTitle : title;
+  const editPriority = originalInfo ? originalInfo.originalPriority : priority;
+  
   editingTask = {
     type,
-    category,
-    title,
-    priority,
+    category: editCategory,
+    title: editTitle,
+    priority: editPriority,
     isCustomTask,
-    originalKey: createKey(type, category, title)
+    originalKey: createKey(type, editCategory, editTitle)
   };
 
-  // フォームに既存の値を設定
+  // フォームに現在の値を設定
   form.taskType.value = type;
   form.taskTitle.value = title;
   form.taskPriority.value = priority;
   
-  // コメントも取得
-  const key = createKey(type, category, title);
-  form.taskComment.value = taskComments[key] || '';
-
-  // 送信ボタンのテキストを変更
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (submitBtn) {
-    submitBtn.textContent = 'タスクを更新';
-    submitBtn.dataset.editMode = 'true';
-  }
-
-  // フォームの上にメッセージを表示
-  let editNotice = form.querySelector('.edit-notice');
-  if (!editNotice) {
-    editNotice = document.createElement('div');
-    editNotice.className = 'edit-notice';
-    editNotice.style.cssText = 'background: var(--purple); color: var(--white); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 0.9rem;';
-    form.insertBefore(editNotice, form.firstChild);
-  }
-  editNotice.textContent = `編集モード: ${title}`;
-  editNotice.style.display = 'block';
-
-  // キャンセルボタンを追加（まだなければ）
-  let cancelBtn = form.querySelector('.cancel-edit-btn');
-  if (!cancelBtn) {
-    cancelBtn = document.createElement('button');
-    cancelBtn.type = 'button';
-    cancelBtn.className = 'btn-secondary cancel-edit-btn';
-    cancelBtn.textContent = '編集をキャンセル';
-    cancelBtn.style.marginLeft = '8px';
-    submitBtn.insertAdjacentElement('afterend', cancelBtn);
-
-    cancelBtn.addEventListener('click', cancelTaskEdit);
-  }
-  cancelBtn.style.display = 'inline-block';
-
-  // 設定モーダルを開いてカスタムタスクタブに切り替え
-  openSettingsModal();
-  switchTab('custom');
-
-  // タイトル入力欄にフォーカス
-  setTimeout(() => form.taskTitle.focus(), 100);
-}
-
-/**
- * タスク編集フォームを開く（元の情報と編集済みの情報を両方指定）
- * @param {string} type - タスクタイプ
- * @param {string} originalCategory - 元のカテゴリー名
- * @param {string} originalTitle - 元のタスクタイトル
- * @param {string} originalPriority - 元の優先度
- * @param {string} currentTitle - 現在のタスクタイトル
- * @param {string} currentPriority - 現在の優先度
- * @param {boolean} isCustomTask - カスタムタスクかどうか
- */
-function openTaskEditFormWithOriginal(type, originalCategory, originalTitle, originalPriority, currentTitle, currentPriority, isCustomTask) {
-  const form = getElement('addTaskForm');
-  if (!form) return;
-
-  // 編集中のタスク情報を保存（元の情報を使用）
-  editingTask = {
-    type,
-    category: originalCategory,
-    title: originalTitle,
-    priority: originalPriority,
-    isCustomTask,
-    originalKey: createKey(type, originalCategory, originalTitle)
-  };
-
-  // フォームには現在の値（編集済み）を設定
-  form.taskType.value = type;
-  form.taskTitle.value = currentTitle;
-  form.taskPriority.value = currentPriority;
-  
-  // コメントも取得（現在のキーで）
-  const currentCategory = getCategoryFromPriority(currentPriority);
-  const currentKey = createKey(type, currentCategory, currentTitle);
+  // コメントを取得（現在のキーで）
+  const currentCategory = getCategoryFromPriority(priority);
+  const currentKey = createKey(type, currentCategory, title);
   form.taskComment.value = taskComments[currentKey] || '';
 
   // 送信ボタンのテキストを変更
@@ -1311,10 +1242,9 @@ function openTaskEditFormWithOriginal(type, originalCategory, originalTitle, ori
   if (!editNotice) {
     editNotice = document.createElement('div');
     editNotice.className = 'edit-notice';
-    editNotice.style.cssText = 'background: var(--purple); color: var(--white); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 0.9rem;';
     form.insertBefore(editNotice, form.firstChild);
   }
-  editNotice.textContent = `編集モード: ${currentTitle}`;
+  editNotice.textContent = `編集モード: ${title}`;
   editNotice.style.display = 'block';
 
   // キャンセルボタンを追加（まだなければ）
@@ -1324,7 +1254,6 @@ function openTaskEditFormWithOriginal(type, originalCategory, originalTitle, ori
     cancelBtn.type = 'button';
     cancelBtn.className = 'btn-secondary cancel-edit-btn';
     cancelBtn.textContent = '編集をキャンセル';
-    cancelBtn.style.marginLeft = '8px';
     submitBtn.insertAdjacentElement('afterend', cancelBtn);
 
     cancelBtn.addEventListener('click', cancelTaskEdit);
