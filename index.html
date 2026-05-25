@@ -44,6 +44,14 @@
 
     <nav class="topbar" id="topbar" role="navigation" aria-label="タスク管理操作">
       <button
+        id="settingsBtn"
+        class="btn-main"
+        type="button"
+      >
+        ⚙ 設定
+      </button>
+
+      <button
         id="minimumBtn"
         class="btn-main toggle-btn"
         type="button"
@@ -147,6 +155,80 @@
       赤 = 高優先度 / 黄 = 中優先度 / 青 = 低優先度<br>
       LocalStorage保存対応
     </footer>
+  </div>
+
+  <!-- 設定モーダル -->
+  <div id="settingsModal" class="modal" role="dialog" aria-labelledby="settingsModalTitle" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="settingsModalTitle">タスク設定</h2>
+        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="閉じる">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tabs">
+          <button id="visibilityTab" class="tab-btn active" type="button">表示設定</button>
+          <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
+        </div>
+
+        <!-- 表示設定タブ -->
+        <div id="visibilityPanel" class="tab-panel active">
+          <p class="panel-description">各タスクの表示/非表示を設定できます。</p>
+          
+          <div class="settings-section">
+            <h3>デイリー</h3>
+            <div id="dailyVisibilitySettings" class="task-list"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>ウィークリー</h3>
+            <div id="weeklyVisibilitySettings" class="task-list"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>シーズン / 隔週</h3>
+            <div id="seasonVisibilitySettings" class="task-list"></div>
+          </div>
+        </div>
+
+        <!-- カスタムタスクタブ -->
+        <div id="customTaskPanel" class="tab-panel">
+          <p class="panel-description">独自のタスクを追加できます。</p>
+          
+          <form id="addTaskForm" class="add-task-form">
+            <div class="form-group">
+              <label for="taskType">カテゴリ</label>
+              <select id="taskType" required>
+                <option value="daily">デイリー</option>
+                <option value="weekly">ウィークリー</option>
+                <option value="season">シーズン / 隔週</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="taskTitle">タスク名</label>
+              <input type="text" id="taskTitle" placeholder="例: 新しいタスク" required>
+            </div>
+
+            <div class="form-group">
+              <label for="taskPriority">優先度（自動でサブカテゴリ分けされます）</label>
+              <select id="taskPriority" required>
+                <option value="high">高（必須）- 赤</option>
+                <option value="mid">中（余裕あれば）- 黄</option>
+                <option value="low">低（確認系）- 青</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-main">タスクを追加</button>
+          </form>
+
+          <div class="settings-section">
+            <h3>追加済みカスタムタスク</h3>
+            <div id="customTaskList" class="custom-task-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="./script.js?v=1.0.0"></script>

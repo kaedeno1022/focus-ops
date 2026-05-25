@@ -5,7 +5,9 @@
 /** LocalStorageのキー */
 const STORAGE_KEYS = {
   CHECKED: 'nte_checked',
-  MINIMUM: 'nte_minimum'
+  MINIMUM: 'nte_minimum',
+  VISIBILITY: 'nte_visibility',
+  CUSTOM_TASKS: 'nte_custom_tasks'
 };
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
@@ -111,24 +113,19 @@ let checkedState = loadFromStorage(STORAGE_KEYS.CHECKED) || {};
 /** 最低限モード */
 let minimumMode = loadFromStorage(STORAGE_KEYS.MINIMUM) || false;
 
+/** タスク表示設定 */
+let taskVisibility = loadFromStorage(STORAGE_KEYS.VISIBILITY) || {};
+
+/** カスタムタスク */
+let customTasks = loadFromStorage(STORAGE_KEYS.CUSTOM_TASKS) || {
+  daily: [],
+  weekly: [],
+  season: []
+};
+
 // ============================================================================
 // ユーティリティ関数
 // ============================================================================
-
-/**
- * LocalStorageからデータを読み込む
- * @param {string} key - ストレージキー
- * @returns {any} パース済みのデータ
- */
-function loadFromStorage(key) {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  } catch (error) {
-    console.error(`Failed to load ${key} from localStorage:`, error);
-    return null;
-  }
-}
 
 /**
  * LocalStorageからデータを読み込む
@@ -152,9 +149,11 @@ function saveState() {
   try {
     const checkedData = JSON.stringify(checkedState);
     const minimumData = JSON.stringify(minimumMode);
+    const visibilityData = JSON.stringify(taskVisibility);
+    const customData = JSON.stringify(customTasks);
     
     // データサイズチェック
-    const totalSize = new Blob([checkedData, minimumData]).size;
+    const totalSize = new Blob([checkedData, minimumData, visibilityData, customData]).size;
     if (totalSize > MAX_STORAGE_SIZE) {
       console.warn('Storage size limit approaching. Consider data cleanup.');
       announceToScreenReader('データ容量が上限に近づいています');
@@ -162,6 +161,8 @@ function saveState() {
     
     localStorage.setItem(STORAGE_KEYS.CHECKED, checkedData);
     localStorage.setItem(STORAGE_KEYS.MINIMUM, minimumData);
+    localStorage.setItem(STORAGE_KEYS.VISIBILITY, visibilityData);
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_TASKS, customData);
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     
@@ -229,6 +230,70 @@ function trapFocus(container) {
  */
 function createKey(type, category, title) {
   return `${type}_${category}_${title}`;
+}
+
+/**
+ * タスクが表示されるべきか判定
+ * @param {string} key - タスクキー
+ * @returns {boolean} 表示するか
+ */
+function isTaskVisible(key) {
+  // デフォルトは表示
+  return taskVisibility[key] !== false;
+}
+
+/**
+ * 優先度からカテゴリ名を取得
+ * @param {string} priority - 優先度 (high/mid/low)
+ * @returns {string} カテゴリ名
+ */
+function getCategoryFromPriority(priority) {
+  const categoryMap = {
+    high: '必須',
+    mid: '余裕あれば',
+    low: '確認系'
+  };
+  return categoryMap[priority] || '必須';
+}
+
+/**
+ * 全タスクデータを取得（デフォルト + カスタム）
+ * @param {string} type - タスクタイプ
+ * @returns {Array} タスクデータ配列
+ */
+function getAllTasks(type) {
+  const defaultTasks = DATA[type] || [];
+  const custom = customTasks[type] || [];
+  
+  // カスタムタスクを優先度に基づいてカテゴリごとにグループ化
+  const customGrouped = {};
+  custom.forEach(task => {
+    const category = getCategoryFromPriority(task.priority);
+    if (!customGrouped[category]) {
+      customGrouped[category] = [];
+    }
+    customGrouped[category].push([task.title, task.priority]);
+  });
+  
+  // デフォルトタスクをディープコピー（元のDATAを変更しないため）
+  const result = defaultTasks.map(group => ({
+    category: group.category,
+    tasks: [...group.tasks]
+  }));
+  
+  Object.keys(customGrouped).forEach(category => {
+    const existingCategory = result.find(g => g.category === category);
+    if (existingCategory) {
+      existingCategory.tasks.push(...customGrouped[category]);
+    } else {
+      result.push({
+        category: category,
+        tasks: customGrouped[category]
+      });
+    }
+  });
+  
+  return result;
 }
 
 /**
@@ -329,7 +394,7 @@ function updateProgressOnly() {
     let total = 0;
     let done = 0;
     
-    const categories = DATA[type];
+    const categories = getAllTasks(type);
     if (!categories) return;
     
     categories.forEach(group => {
@@ -339,9 +404,15 @@ function updateProgressOnly() {
       }
       
       group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        
+        // 表示設定をチェック
+        if (!isTaskVisible(key)) {
+          return;
+        }
+        
         total++;
         
-        const key = createKey(type, group.category, title);
         if (checkedState[key]) {
           done++;
         }
@@ -369,7 +440,7 @@ function renderSection(type) {
   let total = 0;
   let done = 0;
 
-  const categories = DATA[type];
+  const categories = getAllTasks(type);
   if (!categories) {
     console.error(`No data found for type: ${type}`);
     return;
@@ -392,7 +463,17 @@ function renderSection(type) {
 
     section.appendChild(header);
 
+    let visibleTasksInCategory = 0;
+
     group.tasks.forEach(([title, priority]) => {
+      const key = createKey(type, group.category, title);
+      
+      // 表示設定をチェック
+      if (!isTaskVisible(key)) {
+        return;
+      }
+      
+      visibleTasksInCategory++;
       total++;
 
       const task = createTaskElement(type, group.category, title, priority);
@@ -404,7 +485,10 @@ function renderSection(type) {
       section.appendChild(task.element);
     });
 
-    container.appendChild(section);
+    // カテゴリに表示可能なタスクがある場合のみ追加
+    if (visibleTasksInCategory > 0) {
+      container.appendChild(section);
+    }
   });
 
   updateProgress(type, total, done);
@@ -601,6 +685,243 @@ function resetAll() {
 }
 
 // ============================================================================
+// 設定モーダル機能
+// ============================================================================
+
+/**
+ * 設定モーダルを開く
+ */
+function openSettingsModal() {
+  const modal = getElement('settingsModal');
+  if (!modal) return;
+  
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  // フォーカスをモーダル内に移動
+  setTimeout(() => {
+    const closeBtn = getElement('closeSettingsBtn');
+    if (closeBtn) closeBtn.focus();
+  }, 100);
+  
+  renderVisibilitySettings();
+  renderCustomTaskList();
+  closeMenu();
+}
+
+/**
+ * 設定モーダルを閉じる
+ */
+function closeSettingsModal() {
+  const modal = getElement('settingsModal');
+  if (!modal) return;
+  
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+/**
+ * タブを切り替える
+ * @param {string} tabName - タブ名 ('visibility' or 'custom')
+ */
+function switchTab(tabName) {
+  const visibilityTab = getElement('visibilityTab');
+  const customTaskTab = getElement('customTaskTab');
+  const visibilityPanel = getElement('visibilityPanel');
+  const customTaskPanel = getElement('customTaskPanel');
+  
+  if (tabName === 'visibility') {
+    visibilityTab?.classList.add('active');
+    customTaskTab?.classList.remove('active');
+    visibilityPanel?.classList.add('active');
+    customTaskPanel?.classList.remove('active');
+  } else {
+    visibilityTab?.classList.remove('active');
+    customTaskTab?.classList.add('active');
+    visibilityPanel?.classList.remove('active');
+    customTaskPanel?.classList.add('active');
+  }
+}
+
+/**
+ * 表示設定をレンダリング
+ */
+function renderVisibilitySettings() {
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const container = getElement(`${type}VisibilitySettings`);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // 重複を防ぐため、既に表示したタスクキーを記録
+    const displayedKeys = new Set();
+    
+    const categories = getAllTasks(type);
+    categories.forEach(group => {
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        
+        // 既に表示済みの場合はスキップ
+        if (displayedKeys.has(key)) {
+          return;
+        }
+        displayedKeys.add(key);
+        
+        const visible = isTaskVisible(key);
+        
+        const item = document.createElement('div');
+        item.className = 'visibility-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = visible;
+        checkbox.id = `vis_${key}`;
+        
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = `[${group.category}] ${title}`;
+        
+        checkbox.addEventListener('change', () => {
+          taskVisibility[key] = checkbox.checked;
+          saveState();
+          renderAll();
+        });
+        
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        container.appendChild(item);
+      });
+    });
+  });
+}
+
+/**
+ * カスタムタスクリストをレンダリング
+ */
+function renderCustomTaskList() {
+  const container = getElement('customTaskList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  let hasCustomTasks = false;
+  
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const tasks = customTasks[type] || [];
+    
+    tasks.forEach((task, index) => {
+      hasCustomTasks = true;
+      
+      const item = document.createElement('div');
+      item.className = 'custom-task-item';
+      
+      const info = document.createElement('div');
+      info.className = 'task-info';
+      
+      const typeLabel = {
+        daily: 'デイリー',
+        weekly: 'ウィークリー',
+        season: 'シーズン'
+      }[type];
+      
+      const priorityLabel = {
+        high: '高',
+        mid: '中',
+        low: '低'
+      }[task.priority];
+      
+      const category = getCategoryFromPriority(task.priority);
+      
+      info.innerHTML = `
+        <strong>${task.title}</strong><br>
+        <small>${typeLabel} / ${category} / 優先度: ${priorityLabel}</small>
+      `;
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-danger btn-small';
+      deleteBtn.textContent = '削除';
+      deleteBtn.type = 'button';
+      
+      deleteBtn.addEventListener('click', () => {
+        if (confirm(`「${task.title}」を削除しますか？`)) {
+          customTasks[type].splice(index, 1);
+          saveState();
+          renderCustomTaskList();
+          renderAll();
+          announceToScreenReader(`${task.title}を削除しました`);
+        }
+      });
+      
+      item.appendChild(info);
+      item.appendChild(deleteBtn);
+      container.appendChild(item);
+    });
+  });
+  
+  if (!hasCustomTasks) {
+    container.innerHTML = '<p class="empty-message">カスタムタスクはまだ追加されていません。</p>';
+  }
+}
+
+/**
+ * カスタムタスクを追加
+ * @param {Event} e - フォームイベント
+ */
+function addCustomTask(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const type = form.taskType.value;
+  const title = form.taskTitle.value.trim();
+  const priority = form.taskPriority.value;
+  
+  if (!title) {
+    alert('タスク名を入力してください。');
+    return;
+  }
+  
+  // 優先度に基づいてカテゴリを自動設定
+  const category = getCategoryFromPriority(priority);
+  
+  // 重複チェック
+  const key = createKey(type, category, title);
+  const allTasks = getAllTasks(type);
+  let isDuplicate = false;
+  
+  allTasks.forEach(group => {
+    group.tasks.forEach(([taskTitle]) => {
+      const existingKey = createKey(type, group.category, taskTitle);
+      if (existingKey === key) {
+        isDuplicate = true;
+      }
+    });
+  });
+  
+  if (isDuplicate) {
+    alert('同じ名前のタスクが既に存在します。');
+    return;
+  }
+  
+  // カスタムタスクを追加
+  if (!customTasks[type]) {
+    customTasks[type] = [];
+  }
+  
+  customTasks[type].push({
+    title,
+    priority
+  });
+  
+  saveState();
+  form.reset();
+  renderCustomTaskList();
+  renderAll();
+  
+  const categoryLabel = getCategoryFromPriority(priority);
+  announceToScreenReader(`${title}を${categoryLabel}に追加しました`);
+}
+
+// ============================================================================
 // 初期化
 // ============================================================================
 
@@ -608,6 +929,45 @@ function resetAll() {
  * イベントリスナーを設定
  */
 function setupEventListeners() {
+  // 設定ボタン
+  const settingsBtn = getElement('settingsBtn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', openSettingsModal);
+  }
+  
+  // 設定モーダル閉じるボタン
+  const closeSettingsBtn = getElement('closeSettingsBtn');
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener('click', closeSettingsModal);
+  }
+  
+  // モーダル外クリックで閉じる
+  const settingsModal = getElement('settingsModal');
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        closeSettingsModal();
+      }
+    });
+  }
+  
+  // タブ切り替え
+  const visibilityTab = getElement('visibilityTab');
+  if (visibilityTab) {
+    visibilityTab.addEventListener('click', () => switchTab('visibility'));
+  }
+  
+  const customTaskTab = getElement('customTaskTab');
+  if (customTaskTab) {
+    customTaskTab.addEventListener('click', () => switchTab('custom'));
+  }
+  
+  // カスタムタスク追加フォーム
+  const addTaskForm = getElement('addTaskForm');
+  if (addTaskForm) {
+    addTaskForm.addEventListener('submit', addCustomTask);
+  }
+
   // ハンバーガーメニュー
   const menuToggleBtn = getElement('menuToggleBtn');
   if (menuToggleBtn) {
@@ -624,6 +984,7 @@ function setupEventListeners() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeMenu();
+      closeSettingsModal();
     }
   });
 

@@ -505,3 +505,314 @@ button:active {
     margin-bottom: 0;
   }
 }
+
+/* ============================================================================
+   設定モーダル
+   ============================================================================ */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: linear-gradient(180deg, #1a2234 0%, #111827 100%);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  color: var(--sub);
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  transform: none;
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* タブ */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--line);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  color: var(--sub);
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  transform: none;
+}
+
+.tab-btn.active {
+  color: var(--neon);
+  border-bottom-color: var(--neon);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.panel-description {
+  color: var(--sub);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* 設定セクション */
+.settings-section {
+  margin-bottom: 30px;
+}
+
+.settings-section h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  color: var(--neon);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.visibility-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+}
+
+.visibility-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.visibility-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.visibility-item label {
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* カスタムタスクフォーム */
+.add-task-form {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-of-type {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  background: #0d1117;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--neon);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.2);
+}
+
+.form-group input::placeholder {
+  color: var(--sub);
+  opacity: 0.6;
+}
+
+/* カスタムタスクリスト */
+.custom-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-info strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.task-info small {
+  color: var(--sub);
+  font-size: 13px;
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.empty-message {
+  color: var(--sub);
+  text-align: center;
+  padding: 30px;
+  font-size: 14px;
+}
+
+/* モバイル対応（モーダル） */
+@media (max-width: 700px) {
+  .modal {
+    padding: 10px;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 0;
+    border-bottom: none;
+  }
+
+  .tab-btn {
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    text-align: left;
+  }
+
+  .tab-btn.active {
+    background: rgba(0, 229, 255, 0.1);
+  }
+
+  .add-task-form {
+    padding: 16px;
+  }
+
+  .custom-task-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-small {
+    width: 100%;
+  }
+}
