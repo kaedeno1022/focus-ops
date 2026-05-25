@@ -29,3 +29,63 @@ let editingTask = null;
 
 /** フォーカストラップのクリーンアップ関数 */
 let cleanupFocusTrap = null;
+
+// ============================================================================
+// システムステータス管理
+// ============================================================================
+
+/**
+ * 総合進捗率を計算
+ * @returns {number} 0-100の進捗率
+ */
+function calculateOverallCompletion() {
+  let totalTasks = 0;
+  let completedTasks = 0;
+
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const categories = getAllTasks(type);
+    if (!categories) return;
+
+    categories.forEach(group => {
+      if (minimumMode && group.category !== REQUIRED_CATEGORY) {
+        return;
+      }
+
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        
+        if (!isTaskVisible(key)) {
+          return;
+        }
+
+        totalTasks++;
+        if (checkedState[key]) {
+          completedTasks++;
+        }
+      });
+    });
+  });
+
+  return totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+}
+
+/**
+ * システムステータスを更新
+ */
+function updateSystemStatus() {
+  // Last Sync時刻を更新
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const lastSyncElement = document.getElementById('lastSyncTime');
+  if (lastSyncElement) {
+    lastSyncElement.textContent = `Today ${hours}:${minutes}`;
+  }
+
+  // 総合進捗率を更新
+  const completion = calculateOverallCompletion();
+  const completionElement = document.getElementById('overallCompletion');
+  if (completionElement) {
+    completionElement.textContent = `${completion}%`;
+  }
+}

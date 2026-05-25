@@ -128,6 +128,7 @@ function renderVisibilitySettings() {
           taskVisibility[key] = checkbox.checked;
           saveState();
           renderAll();
+          updateSystemStatus();
         });
         
         // 編集ボタンを追加
@@ -167,8 +168,13 @@ function renderVisibilitySettings() {
           }
         });
         
-        item.appendChild(checkbox);
-        item.appendChild(label);
+        // 2行レイアウト: 1行目にチェックボックス+ラベル、2行目に編集ボタン
+        const header = document.createElement('div');
+        header.className = 'visibility-item-header';
+        header.appendChild(checkbox);
+        header.appendChild(label);
+        
+        item.appendChild(header);
         item.appendChild(editBtn);
         container.appendChild(item);
       });
@@ -255,6 +261,7 @@ function renderCustomTaskList() {
           saveState();
           renderCustomTaskList();
           renderAll();
+          updateSystemStatus();
           announceToScreenReader(`${task.title}を削除しました`);
         }
       });
@@ -341,6 +348,7 @@ function addCustomTask(e) {
   form.reset();
   renderCustomTaskList();
   renderAll();
+  updateSystemStatus();
   
   const categoryLabel = getCategoryFromPriority(priority);
   const commentInfo = comment ? 'とコメント' : '';
@@ -572,6 +580,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   saveState();
   renderCustomTaskList();
   renderAll();
+  updateSystemStatus();
   renderVisibilitySettings();
 
   announceToScreenReader(`${newTitle}を更新しました`);

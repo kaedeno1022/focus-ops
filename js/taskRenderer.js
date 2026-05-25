@@ -80,6 +80,9 @@ function createTaskElement(type, category, title, priority) {
     
     // 進捗バーのみ更新（全体の再レンダリングを避ける）
     updateProgressOnly();
+    
+    // システムステータス更新
+    updateSystemStatus();
   });
 
   return {

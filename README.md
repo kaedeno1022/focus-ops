@@ -82,13 +82,13 @@ https://kaedeno1022.github.io/nte/
 .
 ├── index.html          # メインHTML
 ├── css/                # スタイルシート（機能別に分割）
-│   ├── 1-variables.css   # CSS変数・カラーパレット
-│   ├── 2-base.css        # リセット・基本スタイル・アクセシビリティ
-│   ├── 3-layout.css      # レイアウト・ヘッダー・トップバー
-│   ├── 4-components.css  # ボタン・カード・進捗バー
-│   ├── 5-tasks.css       # タスク要素・カテゴリー・フッター
-│   ├── 6-modals.css      # 設定モーダル・Cookie同意バナー
-│   └── 7-responsive.css  # レスポンシブ対応
+│   ├── variables.css     # CSS変数・カラーパレット
+│   ├── base.css          # リセット・基本スタイル・アクセシビリティ
+│   ├── layout.css        # レイアウト・ヘッダー・トップバー
+│   ├── components.css    # ボタン・カード・進捗バー
+│   ├── tasks.css         # タスク要素・カテゴリー・フッター
+│   ├── modals.css        # 設定モーダル・Cookie同意バナー
+│   └── responsive.css    # レスポンシブ対応
 ├── js/                 # JavaScriptモジュール（機能別に分割）
 │   ├── constants.js      # 定数・タスクデータ定義
 │   ├── storage.js        # LocalStorage操作
@@ -105,42 +105,42 @@ https://kaedeno1022.github.io/nte/
 
 ### CSSファイルの役割
 
-#### **1-variables.css** (~23行)
+#### **variables.css** (~23行)
 - CSS変数（カラーパレット）
 - 背景色、テキスト色、アクセント色、優先度色
 
-#### **2-base.css** (~95行)
+#### **base.css** (~95行)
 - リセット・基本スタイル
 - アクセシビリティ（フォーカス表示）
 - スクリーンリーダー対応
 - アニメーション無効化対応
 
-#### **3-layout.css** (~120行)
+#### **layout.css** (~120行)
 - レイアウト（container、grid）
 - ヘッダー・タイトル
 - ハンバーガーメニュー
 - トップバー
 
-#### **4-components.css** (~100行)
+#### **components.css** (~100行)
 - ボタンスタイル
 - カードデザイン
 - 進捗バー
 
-#### **5-tasks.css** (~140行)
+#### **tasks.css** (~140行)
 - タスク要素
 - カテゴリーヘッダー
 - 優先度インジケーター
 - コメント表示
 - フッター
 
-#### **6-modals.css** (~440行)
+#### **modals.css** (~440行)
 - 設定モーダル
 - タブUI
 - フォーム
 - Cookie同意バナー
 - プライバシーポリシー
 
-#### **7-responsive.css** (~180行)
+#### **responsive.css** (~180行)
 - タブレット対応
 - モバイル対応
 - スライドメニュー

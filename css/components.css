@@ -14,18 +14,71 @@ button {
 
 button:hover {
   transform: translateY(-1px);
+  filter: brightness(1.2);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
 }
 
 button:active {
   transform: translateY(0);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
 }
 
 .btn-main {
   background: linear-gradient(90deg, var(--neon), var(--purple));
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-main::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.btn-main:hover::before {
+  transform: translateX(100%);
 }
 
 .btn-danger {
   background: linear-gradient(90deg, #ef4444, #dc2626);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-danger::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.btn-danger:hover {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 0 40px rgba(220, 38, 38, 0.4);
+}
+
+.btn-danger:hover::before {
+  transform: translateX(100%);
 }
 
 .btn-secondary {
@@ -36,10 +89,12 @@ button:active {
 
 .btn-secondary:hover {
   background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 15px rgba(34, 211, 238, 0.1);
 }
 
 .btn-secondary:active {
   background: rgba(34, 211, 238, 0.2);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
 }
 
 .toggle-btn.active {

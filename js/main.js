@@ -21,6 +21,9 @@ function init() {
 
   setupEventListeners();
   renderAll();
+  
+  // システムステータスを初期化
+  updateSystemStatus();
 }
 
 // DOMの準備完了後に初期化

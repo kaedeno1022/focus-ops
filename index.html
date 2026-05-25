@@ -17,13 +17,13 @@
   </script>
   
   <!-- CSS Modules -->
-  <link rel="stylesheet" href="./css/1-variables.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/2-base.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/3-layout.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/4-components.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/5-tasks.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/6-modals.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/7-responsive.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/variables.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/base.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/layout.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/components.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/tasks.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/modals.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/responsive.css?v=1.0.0">
   
   <!-- JavaScript Modules -->
   <script defer src="./js/constants.js?v=1.0.0"></script>
@@ -47,6 +47,7 @@
       <div class="header-content">
         <div>
           <h1 class="title">NTE TASK TRACKER</h1>
+          <p class="subtitle">Daily Companion Tool</p>
         </div>
         <div class="mobile-actions">
           <button
@@ -127,6 +128,20 @@
     </nav>
 
     <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- システムステータス -->
+    <section class="system-status" aria-label="システムステータス">
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">LAST SYNC</div>
+          <div class="status-value" id="lastSyncTime">--:--</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">OVERALL COMPLETION</div>
+          <div class="status-value" id="overallCompletion">0%</div>
+        </div>
+      </div>
+    </section>
 
     <main class="grid" aria-label="タスクリスト">
       <section class="card" aria-labelledby="daily-title">

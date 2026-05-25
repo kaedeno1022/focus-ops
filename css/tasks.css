@@ -50,6 +50,7 @@
   cursor: pointer;
   flex-shrink: 0;
   margin: 0;
+  accent-color: var(--neon);
 }
 
 .task label,
