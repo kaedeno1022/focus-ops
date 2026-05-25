@@ -173,7 +173,10 @@
 
         <!-- 表示設定タブ -->
         <div id="visibilityPanel" class="tab-panel active">
-          <p class="panel-description">各タスクの表示/非表示を設定できます。</p>
+          <div class="panel-header">
+            <p class="panel-description">各タスクの表示/非表示を設定できます。</p>
+            <button id="resetVisibilityBtn" class="btn-main btn-small" type="button">表示設定をリセット</button>
+          </div>
           
           <div class="settings-section">
             <h3>デイリー</h3>
@@ -193,7 +196,10 @@
 
         <!-- カスタムタスクタブ -->
         <div id="customTaskPanel" class="tab-panel">
-          <p class="panel-description">独自のタスクを追加できます。</p>
+          <div class="panel-header">
+            <p class="panel-description">独自のタスクを追加できます。</p>
+            <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全カスタムタスクを削除</button>
+          </div>
           
           <form id="addTaskForm" class="add-task-form">
             <div class="form-group">

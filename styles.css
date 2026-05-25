@@ -625,10 +625,21 @@ button:active {
   display: block;
 }
 
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
 .panel-description {
   color: var(--sub);
-  margin-bottom: 20px;
+  margin: 0;
   font-size: 14px;
+  flex: 1;
+  min-width: 200px;
 }
 
 /* 設定セクション */

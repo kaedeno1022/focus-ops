@@ -776,6 +776,59 @@ function resetAll() {
   closeMenu(); // モバイルでメニューを閉じる
 }
 
+/**
+ * 表示設定をリセット（全タスクを表示状態に戻す）
+ */
+function resetVisibility() {
+  if (!confirm('全てのタスクを表示状態に戻しますか？')) {
+    return;
+  }
+
+  taskVisibility = {};
+  
+  // スクリーンリーダーへの通知
+  announceToScreenReader('表示設定をリセットしました');
+
+  saveState();
+  renderAll();
+  renderVisibilitySettings();
+}
+
+/**
+ * カスタムタスクを全削除
+ */
+function resetCustomTasks() {
+  if (!confirm('全てのカスタムタスクを削除しますか？\nこの操作は元に戻せません。')) {
+    return;
+  }
+
+  // カスタムタスクのチェック状態も削除
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const tasks = customTasks[type] || [];
+    tasks.forEach(task => {
+      const category = getCategoryFromPriority(task.priority);
+      const key = createKey(type, category, task.title);
+      delete checkedState[key];
+      delete taskComments[key];
+      delete taskVisibility[key];
+    });
+  });
+
+  // カスタムタスクをクリア
+  customTasks = {
+    daily: [],
+    weekly: [],
+    season: []
+  };
+  
+  // スクリーンリーダーへの通知
+  announceToScreenReader('カスタムタスクを全て削除しました');
+
+  saveState();
+  renderAll();
+  renderCustomTaskList();
+}
+
 // ============================================================================
 // 設定モーダル機能
 // ============================================================================
@@ -1085,6 +1138,18 @@ function setupEventListeners() {
   const addTaskForm = getElement('addTaskForm');
   if (addTaskForm) {
     addTaskForm.addEventListener('submit', addCustomTask);
+  }
+
+  // 表示設定リセットボタン
+  const resetVisibilityBtn = getElement('resetVisibilityBtn');
+  if (resetVisibilityBtn) {
+    resetVisibilityBtn.addEventListener('click', resetVisibility);
+  }
+
+  // カスタムタスクリセットボタン
+  const resetCustomTasksBtn = getElement('resetCustomTasksBtn');
+  if (resetCustomTasksBtn) {
+    resetCustomTasksBtn.addEventListener('click', resetCustomTasks);
   }
 
   // ハンバーガーメニュー
