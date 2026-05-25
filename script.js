@@ -788,7 +788,11 @@ function openSettingsModal() {
   if (!modal) return;
   
   modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  
+  // スクロールバーの幅を計算してレイアウトシフトを防止
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.body.style.paddingRight = `${scrollbarWidth}px`;
+  document.body.classList.add('no-scroll');
   
   // フォーカスをモーダル内に移動
   setTimeout(() => {
@@ -809,7 +813,10 @@ function closeSettingsModal() {
   if (!modal) return;
   
   modal.style.display = 'none';
-  document.body.style.overflow = '';
+  
+  // スクロール防止とパディングを解除
+  document.body.classList.remove('no-scroll');
+  document.body.style.paddingRight = '';
 }
 
 /**
