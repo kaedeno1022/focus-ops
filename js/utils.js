@@ -18,6 +18,36 @@ function announceToScreenReader(message) {
 }
 
 /**
+ * トーストメッセージを表示
+ * @param {string} message - 表示するメッセージ
+ * @param {string} [type='success'] - トーストタイプ ('success' | 'error' | 'info')
+ * @param {number} [duration=3000] - 表示時間（ミリ秒）
+ */
+function showToast(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  
+  // トースト要素を作成
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  
+  // コンテナに追加
+  container.appendChild(toast);
+  
+  // 指定時間後にフェードアウトして削除
+  setTimeout(() => {
+    toast.classList.add('toast-hiding');
+    setTimeout(() => {
+      toast.remove();
+    }, 300); // アニメーション時間
+  }, duration);
+  
+  // スクリーンリーダーにも通知
+  announceToScreenReader(message);
+}
+
+/**
  * フォーカストラップの実装
  * @param {HTMLElement} container - フォーカスを閉じ込める要素
  */

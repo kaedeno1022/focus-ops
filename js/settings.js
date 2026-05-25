@@ -262,7 +262,8 @@ function renderCustomTaskList() {
           renderCustomTaskList();
           renderAll();
           updateSystemStatus();
-          announceToScreenReader(`${task.title}を削除しました`);
+          // トーストメッセージを表示
+          showToast(`${task.title}を削除しました`, 'success');
         }
       });
       
@@ -351,8 +352,8 @@ function addCustomTask(e) {
   updateSystemStatus();
   
   const categoryLabel = getCategoryFromPriority(priority);
-  const commentInfo = comment ? 'とコメント' : '';
-  announceToScreenReader(`${title}を${categoryLabel}に追加しました${commentInfo}`);
+  // トーストメッセージを表示
+  showToast(`${title}を${categoryLabel}に追加しました`, 'success');
 }
 
 /**
@@ -583,5 +584,6 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   updateSystemStatus();
   renderVisibilitySettings();
 
-  announceToScreenReader(`${newTitle}を更新しました`);
+  // トーストメッセージを表示
+  showToast(`${newTitle}を更新しました`, 'success');
 }

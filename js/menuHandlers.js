@@ -117,8 +117,8 @@ function resetCategory(type) {
     }
   });
   
-  // スクリーンリーダーへの通知
-  announceToScreenReader(`${label}タスクをリセットしました`);
+  // トーストメッセージを表示
+  showToast(`${label}タスクをリセットしました`, 'success');
 
   saveState();
   renderAll();
@@ -136,8 +136,8 @@ function resetAll() {
 
   checkedState = {};
   
-  // スクリーンリーダーへの通知
-  announceToScreenReader('全てのタスクをリセットしました');
+  // トーストメッセージを表示
+  showToast('全てのタスクをリセットしました', 'success');
 
   saveState();
   renderAll();
@@ -155,8 +155,8 @@ function resetVisibility() {
 
   taskVisibility = {};
   
-  // スクリーンリーダーへの通知
-  announceToScreenReader('表示設定をリセットしました');
+  // トーストメッセージを表示
+  showToast('表示設定をリセットしました', 'success');
 
   saveState();
   renderAll();
@@ -191,8 +191,8 @@ function resetCustomTasks() {
     season: []
   };
   
-  // スクリーンリーダーへの通知
-  announceToScreenReader('カスタムタスクを全て削除しました');
+  // トーストメッセージを表示
+  showToast('カスタムタスクを全て削除しました', 'success');
 
   saveState();
   renderAll();
@@ -227,11 +227,12 @@ function resetEditedDefaultTasks() {
   // 編集されたデフォルトタスクをクリア
   editedDefaultTasks = {};
   
-  // スクリーンリーダーへの通知
-  announceToScreenReader('デフォルトタスクの編集を全てリセットしました');
+  // トーストメッセージを表示
+  showToast('デフォルトタスクの編集を全てリセットしました', 'success');
 
   saveState();
   renderAll();
   updateSystemStatus();
   renderCustomTaskList();
+  renderVisibilitySettings();
 }
