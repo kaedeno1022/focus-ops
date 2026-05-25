@@ -9,7 +9,8 @@ const STORAGE_KEYS = {
   VISIBILITY: 'nte_visibility',
   CUSTOM_TASKS: 'nte_custom_tasks',
   COMMENTS: 'nte_comments',
-  EDITED_DEFAULT_TASKS: 'nte_edited_default_tasks'
+  EDITED_DEFAULT_TASKS: 'nte_edited_default_tasks',
+  COOKIE_CONSENT: 'nte_cookie_consent'
 };
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
@@ -1574,6 +1575,7 @@ function setupEventListeners() {
     if (e.key === 'Escape') {
       closeMenu();
       closeSettingsModal();
+      closePrivacyModal();
     }
   });
 
@@ -1610,6 +1612,37 @@ function setupEventListeners() {
     resetAllBtn.addEventListener('click', resetAll);
   }
 
+  // Cookie同意バナー
+  const acceptCookies = getElement('acceptCookies');
+  if (acceptCookies) {
+    acceptCookies.addEventListener('click', handleAcceptCookies);
+  }
+
+  const declineCookies = getElement('declineCookies');
+  if (declineCookies) {
+    declineCookies.addEventListener('click', handleDeclineCookies);
+  }
+
+  // プライバシーポリシー
+  const privacyPolicyBtn = getElement('privacyPolicyBtn');
+  if (privacyPolicyBtn) {
+    privacyPolicyBtn.addEventListener('click', openPrivacyModal);
+  }
+
+  const closePrivacyBtn = getElement('closePrivacyBtn');
+  if (closePrivacyBtn) {
+    closePrivacyBtn.addEventListener('click', closePrivacyModal);
+  }
+
+  const privacyModal = getElement('privacyModal');
+  if (privacyModal) {
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        closePrivacyModal();
+      }
+    });
+  }
+
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -1622,10 +1655,115 @@ function setupEventListeners() {
   });
 }
 
+// ============================================================================
+// Cookie同意とプライバシーポリシー
+// ============================================================================
+
+/**
+ * Cookie同意バナーを表示
+ */
+function showCookieConsent() {
+  const banner = getElement('cookieConsent');
+  if (banner) {
+    banner.style.display = 'block';
+  }
+}
+
+/**
+ * Cookie同意バナーを非表示
+ */
+function hideCookieConsent() {
+  const banner = getElement('cookieConsent');
+  if (banner) {
+    banner.style.display = 'none';
+  }
+}
+
+/**
+ * Cookie同意を処理
+ */
+function handleAcceptCookies() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.COOKIE_CONSENT, 'accepted');
+    hideCookieConsent();
+    // GA4は既に有効なので、ここでは特に何もしない
+  } catch (error) {
+    console.error('Cookie同意の保存に失敗:', error);
+  }
+}
+
+/**
+ * Cookie拒否を処理
+ */
+function handleDeclineCookies() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.COOKIE_CONSENT, 'declined');
+    hideCookieConsent();
+    // GA4を無効化
+    if (typeof window.gtag === 'function') {
+      window['ga-disable-G-WPV9BG4YSJ'] = true;
+    }
+  } catch (error) {
+    console.error('Cookie拒否の保存に失敗:', error);
+  }
+}
+
+/**
+ * Cookie同意状態をチェックして初期化
+ */
+function initCookieConsent() {
+  try {
+    const consent = localStorage.getItem(STORAGE_KEYS.COOKIE_CONSENT);
+    
+    if (!consent) {
+      // 同意状態が保存されていない場合、バナーを表示
+      showCookieConsent();
+    } else if (consent === 'declined') {
+      // 拒否されている場合、GA4を無効化
+      if (typeof window.gtag === 'function') {
+        window['ga-disable-G-WPV9BG4YSJ'] = true;
+      }
+    }
+  } catch (error) {
+    console.error('Cookie同意状態の確認に失敗:', error);
+    showCookieConsent();
+  }
+}
+
+/**
+ * プライバシーポリシーモーダルを開く
+ */
+function openPrivacyModal() {
+  const modal = getElement('privacyModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.classList.add('no-scroll');
+    
+    // モーダル内の最初のフォーカス可能な要素にフォーカス
+    const closeBtn = getElement('closePrivacyBtn');
+    if (closeBtn) {
+      setTimeout(() => closeBtn.focus(), 100);
+    }
+  }
+}
+
+/**
+ * プライバシーポリシーモーダルを閉じる
+ */
+function closePrivacyModal() {
+  const modal = getElement('privacyModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.classList.remove('no-scroll');
+  }
+}
+
 /**
  * アプリケーションを初期化
  */
 function init() {
+  // Cookie同意を初期化
+  initCookieConsent();
   // 最低限モードが有効な場合、UIを更新
   if (minimumMode) {
     const btn = getElement('minimumBtn');

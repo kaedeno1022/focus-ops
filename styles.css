@@ -897,3 +897,144 @@ button:active {
     padding: 8px 10px;
   }
 }
+
+/* ============================================================================
+   Cookie同意バナー
+   ============================================================================ */
+.cookie-consent {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-top: 2px solid var(--neon);
+  padding: 20px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cookie-consent-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cookie-consent h3 {
+  margin: 0 0 10px 0;
+  color: var(--neon);
+  font-size: 18px;
+}
+
+.cookie-consent p {
+  margin: 0 0 16px 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--sub);
+}
+
+/* フッターリンク */
+.footer-links {
+  margin-top: 10px;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  color: var(--neon);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
+}
+
+.footer-link:hover {
+  opacity: 0.8;
+}
+
+/* プライバシーポリシーモーダル */
+.privacy-content h3 {
+  color: var(--neon);
+  font-size: 16px;
+  margin: 20px 0 10px 0;
+}
+
+.privacy-content h3:first-child {
+  margin-top: 0;
+}
+
+.privacy-content p {
+  margin: 10px 0;
+  line-height: 1.8;
+}
+
+.privacy-content ul {
+  margin: 10px 0;
+  padding-left: 24px;
+  line-height: 1.8;
+}
+
+.privacy-content a {
+  color: var(--neon);
+  text-decoration: underline;
+}
+
+.privacy-content a:hover {
+  opacity: 0.8;
+}
+
+/* モバイル対応（Cookie同意バナー） */
+@media (max-width: 700px) {
+  .cookie-consent {
+    padding: 16px;
+  }
+
+  .cookie-consent h3 {
+    font-size: 16px;
+  }
+
+  .cookie-consent p {
+    font-size: 13px;
+  }
+
+  .cookie-consent-actions {
+    flex-direction: column;
+  }
+
+  .cookie-consent-actions button {
+    width: 100%;
+  }
+}
