@@ -198,7 +198,10 @@
         <div id="customTaskPanel" class="tab-panel">
           <div class="panel-header">
             <p class="panel-description">独自のタスクを追加できます。</p>
-            <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全カスタムタスクを削除</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="resetEditedDefaultTasksBtn" class="btn-main btn-small" type="button">デフォルトタスク編集をリセット</button>
+              <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全カスタムタスクを削除</button>
+            </div>
           </div>
           
           <form id="addTaskForm" class="add-task-form">

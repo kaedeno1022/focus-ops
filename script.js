@@ -8,7 +8,8 @@ const STORAGE_KEYS = {
   MINIMUM: 'nte_minimum',
   VISIBILITY: 'nte_visibility',
   CUSTOM_TASKS: 'nte_custom_tasks',
-  COMMENTS: 'nte_comments'
+  COMMENTS: 'nte_comments',
+  EDITED_DEFAULT_TASKS: 'nte_edited_default_tasks'
 };
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
@@ -127,6 +128,12 @@ let customTasks = loadFromStorage(STORAGE_KEYS.CUSTOM_TASKS) || {
 /** タスクコメント */
 let taskComments = loadFromStorage(STORAGE_KEYS.COMMENTS) || {};
 
+/** 編集されたデフォルトタスク */
+let editedDefaultTasks = loadFromStorage(STORAGE_KEYS.EDITED_DEFAULT_TASKS) || {};
+
+/** 現在編集中のタスク情報 */
+let editingTask = null;
+
 // ============================================================================
 // ユーティリティ関数
 // ============================================================================
@@ -164,12 +171,14 @@ function saveState() {
     }
     
     const commentsData = JSON.stringify(taskComments);
+    const editedDefaultData = JSON.stringify(editedDefaultTasks);
     
     localStorage.setItem(STORAGE_KEYS.CHECKED, checkedData);
     localStorage.setItem(STORAGE_KEYS.MINIMUM, minimumData);
     localStorage.setItem(STORAGE_KEYS.VISIBILITY, visibilityData);
     localStorage.setItem(STORAGE_KEYS.CUSTOM_TASKS, customData);
     localStorage.setItem(STORAGE_KEYS.COMMENTS, commentsData);
+    localStorage.setItem(STORAGE_KEYS.EDITED_DEFAULT_TASKS, editedDefaultData);
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     
@@ -264,13 +273,14 @@ function getCategoryFromPriority(priority) {
 }
 
 /**
- * 全タスクデータを取得（デフォルト + カスタム）
+ * 全タスクデータを取得（デフォルト + カスタム + 編集されたデフォルト）
  * @param {string} type - タスクタイプ
  * @returns {Array} タスクデータ配列
  */
 function getAllTasks(type) {
   const defaultTasks = DATA[type] || [];
   const custom = customTasks[type] || [];
+  const edited = editedDefaultTasks[type] || {};
   
   // カスタムタスクを優先度に基づいてカテゴリごとにグループ化
   const customGrouped = {};
@@ -282,12 +292,39 @@ function getAllTasks(type) {
     customGrouped[category].push([task.title, task.priority]);
   });
   
-  // デフォルトタスクをディープコピー（元のDATAを変更しないため）
-  const result = defaultTasks.map(group => ({
-    category: group.category,
-    tasks: [...group.tasks]
-  }));
+  // 編集されたデフォルトタスクで、カテゴリが変更されたものを追跡
+  const editedByCategoryChange = {};
   
+  // デフォルトタスクをディープコピー（元のDATAを変更しないため）
+  // 編集されたデフォルトタスクがある場合は上書き
+  const result = defaultTasks.map(group => {
+    const tasks = group.tasks.map(([title, priority]) => {
+      const key = createKey(type, group.category, title);
+      if (edited[key]) {
+        const newCategory = getCategoryFromPriority(edited[key].priority);
+        // カテゴリが変更された場合
+        if (newCategory !== group.category) {
+          // 新しいカテゴリ用に保存
+          if (!editedByCategoryChange[newCategory]) {
+            editedByCategoryChange[newCategory] = [];
+          }
+          editedByCategoryChange[newCategory].push([edited[key].title, edited[key].priority]);
+          // 元のカテゴリからは削除（nullを返す）
+          return null;
+        }
+        // 同じカテゴリ内での編集
+        return [edited[key].title, edited[key].priority];
+      }
+      return [title, priority];
+    }).filter(task => task !== null); // nullを除外
+    
+    return {
+      category: group.category,
+      tasks: [...tasks]
+    };
+  });
+  
+  // カスタムタスクをマージ
   Object.keys(customGrouped).forEach(category => {
     const existingCategory = result.find(g => g.category === category);
     if (existingCategory) {
@@ -296,6 +333,19 @@ function getAllTasks(type) {
       result.push({
         category: category,
         tasks: customGrouped[category]
+      });
+    }
+  });
+  
+  // カテゴリ変更された編集済みデフォルトタスクをマージ
+  Object.keys(editedByCategoryChange).forEach(category => {
+    const existingCategory = result.find(g => g.category === category);
+    if (existingCategory) {
+      existingCategory.tasks.push(...editedByCategoryChange[category]);
+    } else {
+      result.push({
+        category: category,
+        tasks: editedByCategoryChange[category]
       });
     }
   });
@@ -371,90 +421,18 @@ function createTaskElement(type, category, title, priority) {
   label.appendChild(titleDiv);
   task.appendChild(label);
 
-  // コメントボタンとコメント領域を追加
-  const commentBtn = document.createElement('button');
-  commentBtn.className = 'comment-btn';
-  commentBtn.textContent = '💬';
-  commentBtn.type = 'button';
-  commentBtn.setAttribute('aria-label', 'コメントを追加・編集');
-  commentBtn.title = 'コメントを追加・編集';
-
-  const commentSection = document.createElement('div');
-  commentSection.className = 'comment-section';
-  commentSection.style.display = 'none';
-
-  const commentTextarea = document.createElement('textarea');
-  commentTextarea.className = 'comment-input';
-  commentTextarea.placeholder = 'コメントを入力...';
-  commentTextarea.value = taskComments[key] || '';
-  commentTextarea.setAttribute('aria-label', `${title}のコメント`);
-
-  const commentActions = document.createElement('div');
-  commentActions.className = 'comment-actions';
-
-  const saveCommentBtn = document.createElement('button');
-  saveCommentBtn.className = 'btn-main btn-small';
-  saveCommentBtn.textContent = '保存';
-  saveCommentBtn.type = 'button';
-
-  const cancelCommentBtn = document.createElement('button');
-  cancelCommentBtn.className = 'btn-secondary btn-small';
-  cancelCommentBtn.textContent = 'キャンセル';
-  cancelCommentBtn.type = 'button';
-
-  commentActions.appendChild(saveCommentBtn);
-  commentActions.appendChild(cancelCommentBtn);
-  commentSection.appendChild(commentTextarea);
-  commentSection.appendChild(commentActions);
-
-  const commentDisplay = document.createElement('div');
-  commentDisplay.className = 'comment-display';
-  if (taskComments[key]) {
-    commentDisplay.textContent = taskComments[key];
-    commentDisplay.style.display = 'block';
-    commentBtn.classList.add('has-comment');
-  } else {
-    commentDisplay.style.display = 'none';
+  // コメント表示（コメントがある場合のみ）
+  const comment = taskComments[key];
+  if (comment) {
+    const commentDisplay = document.createElement('div');
+    commentDisplay.className = 'comment-display';
+    commentDisplay.textContent = comment;
+    commentDisplay.style.cursor = 'pointer';
+    commentDisplay.addEventListener('click', () => {
+      checkbox.click();
+    });
+    task.appendChild(commentDisplay);
   }
-
-  task.appendChild(commentBtn);
-  task.appendChild(commentDisplay);
-  task.appendChild(commentSection);
-
-  // コメントボタンのクリックイベント
-  commentBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isVisible = commentSection.style.display !== 'none';
-    commentSection.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) {
-      commentTextarea.focus();
-    }
-  });
-
-  // コメント保存
-  saveCommentBtn.addEventListener('click', () => {
-    const comment = commentTextarea.value.trim();
-    if (comment) {
-      taskComments[key] = comment;
-      commentDisplay.textContent = comment;
-      commentDisplay.style.display = 'block';
-      commentBtn.classList.add('has-comment');
-      announceToScreenReader('コメントを保存しました');
-    } else {
-      delete taskComments[key];
-      commentDisplay.style.display = 'none';
-      commentBtn.classList.remove('has-comment');
-      announceToScreenReader('コメントを削除しました');
-    }
-    commentSection.style.display = 'none';
-    saveState();
-  });
-
-  // キャンセル
-  cancelCommentBtn.addEventListener('click', () => {
-    commentTextarea.value = taskComments[key] || '';
-    commentSection.style.display = 'none';
-  });
 
   checkbox.addEventListener('change', () => {
     checkedState[key] = checkbox.checked;
@@ -829,6 +807,41 @@ function resetCustomTasks() {
   renderCustomTaskList();
 }
 
+/**
+ * デフォルトタスクの編集をリセット
+ */
+function resetEditedDefaultTasks() {
+  if (!confirm('全てのデフォルトタスクの編集を元に戻しますか？\nこの操作は元に戻せません。')) {
+    return;
+  }
+
+  // 編集されたデフォルトタスクの古いチェック状態とコメントを削除
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const edited = editedDefaultTasks[type] || {};
+    Object.keys(edited).forEach(key => {
+      const editData = edited[key];
+      const newCategory = getCategoryFromPriority(editData.priority);
+      const newKey = createKey(type, newCategory, editData.title);
+      
+      // 編集後のキーのデータを削除
+      if (newKey !== key) {
+        delete checkedState[newKey];
+        delete taskComments[newKey];
+      }
+    });
+  });
+
+  // 編集されたデフォルトタスクをクリア
+  editedDefaultTasks = {};
+  
+  // スクリーンリーダーへの通知
+  announceToScreenReader('デフォルトタスクの編集を全てリセットしました');
+
+  saveState();
+  renderAll();
+  renderCustomTaskList();
+}
+
 // ============================================================================
 // 設定モーダル機能
 // ============================================================================
@@ -870,6 +883,11 @@ function closeSettingsModal() {
   // スクロール防止とパディングを解除
   document.body.classList.remove('no-scroll');
   document.body.style.paddingRight = '';
+  
+  // 編集モードをキャンセル
+  if (editingTask) {
+    cancelTaskEdit();
+  }
 }
 
 /**
@@ -909,6 +927,23 @@ function renderVisibilitySettings() {
     const displayedKeys = new Set();
     
     const categories = getAllTasks(type);
+    const edited = editedDefaultTasks[type] || {};
+    
+    // 元のデフォルトタスクも確認するため
+    const defaultTasks = DATA[type] || [];
+    const originalTasksMap = new Map(); // key -> {originalTitle, originalPriority, originalCategory}
+    
+    defaultTasks.forEach(group => {
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        originalTasksMap.set(key, {
+          originalTitle: title,
+          originalPriority: priority,
+          originalCategory: group.category
+        });
+      });
+    });
+    
     categories.forEach(group => {
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
@@ -939,8 +974,47 @@ function renderVisibilitySettings() {
           renderAll();
         });
         
+        // 編集ボタンを追加
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-main btn-small';
+        editBtn.textContent = '編集';
+        editBtn.type = 'button';
+        editBtn.style.marginLeft = '8px';
+        
+        // タスクがカスタムかデフォルトかを判定
+        const isCustomTask = customTasks[type]?.some(t => 
+          t.title === title && getCategoryFromPriority(t.priority) === group.category
+        );
+        
+        // 元のタスク情報を特定（編集済みの場合を考慮）
+        let originalInfo = null;
+        if (!isCustomTask) {
+          // 編集済みタスクから元の情報を探す
+          for (const [origKey, editData] of Object.entries(edited)) {
+            if (editData.title === title && getCategoryFromPriority(editData.priority) === group.category) {
+              originalInfo = originalTasksMap.get(origKey);
+              break;
+            }
+          }
+          // 編集されていない場合は元のまま
+          if (!originalInfo && originalTasksMap.has(key)) {
+            originalInfo = originalTasksMap.get(key);
+          }
+        }
+        
+        editBtn.addEventListener('click', () => {
+          if (originalInfo) {
+            // デフォルトタスクの場合、元の情報を使って開く
+            openTaskEditFormWithOriginal(type, originalInfo.originalCategory, originalInfo.originalTitle, originalInfo.originalPriority, title, priority, false);
+          } else {
+            // カスタムタスクの場合
+            openTaskEditForm(type, group.category, title, priority, true);
+          }
+        });
+        
         item.appendChild(checkbox);
         item.appendChild(label);
+        item.appendChild(editBtn);
         container.appendChild(item);
       });
     });
@@ -993,6 +1067,21 @@ function renderCustomTaskList() {
         ${comment ? `<br><small style="color: var(--purple); margin-top: 4px; display: block;">💬 ${comment}</small>` : ''}
       `;
       
+      const buttonGroup = document.createElement('div');
+      buttonGroup.style.display = 'flex';
+      buttonGroup.style.gap = '8px';
+      
+      // 編集ボタン
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn-main btn-small';
+      editBtn.textContent = '編集';
+      editBtn.type = 'button';
+      
+      editBtn.addEventListener('click', () => {
+        openTaskEditForm(type, category, task.title, task.priority, true);
+      });
+      
+      // 削除ボタン
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn-danger btn-small';
       deleteBtn.textContent = '削除';
@@ -1016,8 +1105,11 @@ function renderCustomTaskList() {
         }
       });
       
+      buttonGroup.appendChild(editBtn);
+      buttonGroup.appendChild(deleteBtn);
+      
       item.appendChild(info);
-      item.appendChild(deleteBtn);
+      item.appendChild(buttonGroup);
       container.appendChild(item);
     });
   });
@@ -1042,6 +1134,14 @@ function addCustomTask(e) {
   
   if (!title) {
     alert('タスク名を入力してください。');
+    return;
+  }
+  
+  // 編集モードの場合
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn && submitBtn.dataset.editMode === 'true') {
+    saveTaskEdit(type, title, priority, comment);
+    cancelTaskEdit();
     return;
   }
   
@@ -1091,6 +1191,305 @@ function addCustomTask(e) {
   const categoryLabel = getCategoryFromPriority(priority);
   const commentInfo = comment ? 'とコメント' : '';
   announceToScreenReader(`${title}を${categoryLabel}に追加しました${commentInfo}`);
+}
+
+/**
+ * タスク編集フォームを開く
+ * @param {string} type - タスクタイプ
+ * @param {string} category - カテゴリー名
+ * @param {string} title - タスクタイトル
+ * @param {string} priority - 優先度
+ * @param {boolean} isCustomTask - カスタムタスクかどうか
+ */
+function openTaskEditForm(type, category, title, priority, isCustomTask) {
+  const form = getElement('addTaskForm');
+  if (!form) return;
+
+  // 編集中のタスク情報を保存
+  editingTask = {
+    type,
+    category,
+    title,
+    priority,
+    isCustomTask,
+    originalKey: createKey(type, category, title)
+  };
+
+  // フォームに既存の値を設定
+  form.taskType.value = type;
+  form.taskTitle.value = title;
+  form.taskPriority.value = priority;
+  
+  // コメントも取得
+  const key = createKey(type, category, title);
+  form.taskComment.value = taskComments[key] || '';
+
+  // 送信ボタンのテキストを変更
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = 'タスクを更新';
+    submitBtn.dataset.editMode = 'true';
+  }
+
+  // フォームの上にメッセージを表示
+  let editNotice = form.querySelector('.edit-notice');
+  if (!editNotice) {
+    editNotice = document.createElement('div');
+    editNotice.className = 'edit-notice';
+    editNotice.style.cssText = 'background: var(--purple); color: var(--white); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 0.9rem;';
+    form.insertBefore(editNotice, form.firstChild);
+  }
+  editNotice.textContent = `編集モード: ${title}`;
+  editNotice.style.display = 'block';
+
+  // キャンセルボタンを追加（まだなければ）
+  let cancelBtn = form.querySelector('.cancel-edit-btn');
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn-secondary cancel-edit-btn';
+    cancelBtn.textContent = '編集をキャンセル';
+    cancelBtn.style.marginLeft = '8px';
+    submitBtn.insertAdjacentElement('afterend', cancelBtn);
+
+    cancelBtn.addEventListener('click', cancelTaskEdit);
+  }
+  cancelBtn.style.display = 'inline-block';
+
+  // 設定モーダルを開いてカスタムタスクタブに切り替え
+  openSettingsModal();
+  switchTab('custom');
+
+  // タイトル入力欄にフォーカス
+  setTimeout(() => form.taskTitle.focus(), 100);
+}
+
+/**
+ * タスク編集フォームを開く（元の情報と編集済みの情報を両方指定）
+ * @param {string} type - タスクタイプ
+ * @param {string} originalCategory - 元のカテゴリー名
+ * @param {string} originalTitle - 元のタスクタイトル
+ * @param {string} originalPriority - 元の優先度
+ * @param {string} currentTitle - 現在のタスクタイトル
+ * @param {string} currentPriority - 現在の優先度
+ * @param {boolean} isCustomTask - カスタムタスクかどうか
+ */
+function openTaskEditFormWithOriginal(type, originalCategory, originalTitle, originalPriority, currentTitle, currentPriority, isCustomTask) {
+  const form = getElement('addTaskForm');
+  if (!form) return;
+
+  // 編集中のタスク情報を保存（元の情報を使用）
+  editingTask = {
+    type,
+    category: originalCategory,
+    title: originalTitle,
+    priority: originalPriority,
+    isCustomTask,
+    originalKey: createKey(type, originalCategory, originalTitle)
+  };
+
+  // フォームには現在の値（編集済み）を設定
+  form.taskType.value = type;
+  form.taskTitle.value = currentTitle;
+  form.taskPriority.value = currentPriority;
+  
+  // コメントも取得（現在のキーで）
+  const currentCategory = getCategoryFromPriority(currentPriority);
+  const currentKey = createKey(type, currentCategory, currentTitle);
+  form.taskComment.value = taskComments[currentKey] || '';
+
+  // 送信ボタンのテキストを変更
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = 'タスクを更新';
+    submitBtn.dataset.editMode = 'true';
+  }
+
+  // フォームの上にメッセージを表示
+  let editNotice = form.querySelector('.edit-notice');
+  if (!editNotice) {
+    editNotice = document.createElement('div');
+    editNotice.className = 'edit-notice';
+    editNotice.style.cssText = 'background: var(--purple); color: var(--white); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 0.9rem;';
+    form.insertBefore(editNotice, form.firstChild);
+  }
+  editNotice.textContent = `編集モード: ${currentTitle}`;
+  editNotice.style.display = 'block';
+
+  // キャンセルボタンを追加（まだなければ）
+  let cancelBtn = form.querySelector('.cancel-edit-btn');
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn-secondary cancel-edit-btn';
+    cancelBtn.textContent = '編集をキャンセル';
+    cancelBtn.style.marginLeft = '8px';
+    submitBtn.insertAdjacentElement('afterend', cancelBtn);
+
+    cancelBtn.addEventListener('click', cancelTaskEdit);
+  }
+  cancelBtn.style.display = 'inline-block';
+
+  // 設定モーダルを開いてカスタムタスクタブに切り替え
+  openSettingsModal();
+  switchTab('custom');
+
+  // タイトル入力欄にフォーカス
+  setTimeout(() => form.taskTitle.focus(), 100);
+}
+
+/**
+ * タスク編集をキャンセル
+ */
+function cancelTaskEdit() {
+  const form = getElement('addTaskForm');
+  if (!form) return;
+
+  // フォームをリセット
+  form.reset();
+
+  // 送信ボタンのテキストを戻す
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = 'タスクを追加';
+    delete submitBtn.dataset.editMode;
+  }
+
+  // 編集通知を非表示
+  const editNotice = form.querySelector('.edit-notice');
+  if (editNotice) {
+    editNotice.style.display = 'none';
+  }
+
+  // キャンセルボタンを非表示
+  const cancelBtn = form.querySelector('.cancel-edit-btn');
+  if (cancelBtn) {
+    cancelBtn.style.display = 'none';
+  }
+
+  // 編集中のタスク情報をクリア
+  editingTask = null;
+}
+
+/**
+ * タスク編集を保存
+ * @param {string} newType - 新しいタスクタイプ
+ * @param {string} newTitle - 新しいタスクタイトル
+ * @param {string} newPriority - 新しい優先度
+ * @param {string} newComment - 新しいコメント
+ */
+function saveTaskEdit(newType, newTitle, newPriority, newComment) {
+  if (!editingTask) return;
+
+  const { type: oldType, category: oldCategory, title: oldTitle, isCustomTask, originalKey } = editingTask;
+  const newCategory = getCategoryFromPriority(newPriority);
+  const newKey = createKey(newType, newCategory, newTitle);
+  
+  // 現在のタスクのキーを取得（編集済みの場合は編集後のキー）
+  let currentKey = originalKey;
+  if (!isCustomTask) {
+    const edited = editedDefaultTasks[oldType] || {};
+    if (edited[originalKey]) {
+      // 既に編集されている場合、現在のキーは編集後のもの
+      const currentCategory = getCategoryFromPriority(edited[originalKey].priority);
+      currentKey = createKey(oldType, currentCategory, edited[originalKey].title);
+    }
+  } else {
+    currentKey = createKey(oldType, oldCategory, oldTitle);
+  }
+
+  if (isCustomTask) {
+    // カスタムタスクの編集
+    const taskIndex = customTasks[oldType]?.findIndex(t => 
+      t.title === oldTitle && getCategoryFromPriority(t.priority) === oldCategory
+    );
+
+    if (taskIndex !== -1) {
+      // タスクタイプが変更された場合
+      if (oldType !== newType) {
+        // 古いタイプから削除
+        customTasks[oldType].splice(taskIndex, 1);
+        // 新しいタイプに追加
+        if (!customTasks[newType]) {
+          customTasks[newType] = [];
+        }
+        customTasks[newType].push({
+          title: newTitle,
+          priority: newPriority
+        });
+      } else {
+        // 同じタイプ内で更新
+        customTasks[oldType][taskIndex] = {
+          title: newTitle,
+          priority: newPriority
+        };
+      }
+    }
+  } else {
+    // デフォルトタスクの編集
+    if (!editedDefaultTasks[oldType]) {
+      editedDefaultTasks[oldType] = {};
+    }
+    
+    // タスクタイプが変更された場合は、カスタムタスクとして追加
+    if (oldType !== newType) {
+      // 元のデフォルトタスクを非表示にする
+      taskVisibility[originalKey] = false;
+      
+      // 編集記録から削除
+      if (editedDefaultTasks[oldType] && editedDefaultTasks[oldType][originalKey]) {
+        delete editedDefaultTasks[oldType][originalKey];
+      }
+      
+      // 新しいタイプにカスタムタスクとして追加
+      if (!customTasks[newType]) {
+        customTasks[newType] = [];
+      }
+      customTasks[newType].push({
+        title: newTitle,
+        priority: newPriority
+      });
+    } else {
+      // 同じタイプ内で編集情報を保存（originalKeyをキーとして使用）
+      editedDefaultTasks[oldType][originalKey] = {
+        title: newTitle,
+        priority: newPriority,
+        originalTitle: oldTitle,
+        originalPriority: editingTask.priority
+      };
+    }
+  }
+
+  // チェック状態とコメントを移行（currentKeyから新しいキーへ）
+  if (currentKey !== newKey) {
+    if (checkedState[currentKey]) {
+      checkedState[newKey] = checkedState[currentKey];
+      delete checkedState[currentKey];
+    }
+    
+    if (taskComments[currentKey]) {
+      // 古いコメントを新しいキーに移動（新しいコメントがない場合）
+      if (!newComment) {
+        taskComments[newKey] = taskComments[currentKey];
+      }
+      delete taskComments[currentKey];
+    }
+  }
+
+  // 新しいコメントを保存
+  if (newComment) {
+    taskComments[newKey] = newComment;
+  } else if (!taskComments[newKey]) {
+    // 新しいコメントがなく、移行もされていない場合は削除
+    delete taskComments[newKey];
+  }
+
+  saveState();
+  renderCustomTaskList();
+  renderAll();
+  renderVisibilitySettings();
+
+  announceToScreenReader(`${newTitle}を更新しました`);
 }
 
 // ============================================================================
@@ -1150,6 +1549,12 @@ function setupEventListeners() {
   const resetCustomTasksBtn = getElement('resetCustomTasksBtn');
   if (resetCustomTasksBtn) {
     resetCustomTasksBtn.addEventListener('click', resetCustomTasks);
+  }
+
+  // デフォルトタスク編集リセットボタン
+  const resetEditedDefaultTasksBtn = getElement('resetEditedDefaultTasksBtn');
+  if (resetEditedDefaultTasksBtn) {
+    resetEditedDefaultTasksBtn.addEventListener('click', resetEditedDefaultTasks);
   }
 
   // ハンバーガーメニュー

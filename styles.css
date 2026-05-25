@@ -251,6 +251,20 @@ button:active {
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--neon);
+  color: var(--neon);
+}
+
+.btn-secondary:hover {
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.btn-secondary:active {
+  background: rgba(34, 211, 238, 0.2);
+}
+
 .toggle-btn.active {
   outline: 2px solid white;
   outline-offset: 2px;
@@ -848,41 +862,22 @@ button:active {
 }
 
 /* ============================================================================
-   コメント機能
+   編集ボタン（設定パネル用）
    ============================================================================ */
 
-/* コメントボタン */
-.comment-btn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
+/* タスクのレイアウト調整 */
+.task > input[type="checkbox"] {
+  margin-top: 4px;
+}
+
+.task > label {
+  flex: 1;
   cursor: pointer;
-  padding: 4px 8px;
-  margin-left: 8px;
-  opacity: 0.5;
-  transition: all 0.2s ease;
-  border-radius: 6px;
-  line-height: 1;
 }
 
-.comment-btn:hover {
-  opacity: 1;
-  background: rgba(0, 229, 255, 0.1);
-  transform: scale(1.1);
-}
-
-.comment-btn.has-comment {
-  opacity: 1;
-  background: rgba(0, 229, 255, 0.15);
-}
-
-.comment-btn:focus {
-  outline: 2px solid var(--neon);
-  outline-offset: 2px;
-}
-
-/* コメント表示 */
-.comment-display {
+/* コメント表示（読み取り専用） */
+.task > .comment-display {
+  width: 100%;
   margin-top: 8px;
   padding: 10px 12px;
   background: rgba(139, 92, 246, 0.1);
@@ -895,120 +890,10 @@ button:active {
   word-wrap: break-word;
 }
 
-/* コメント入力セクション */
-.comment-section {
-  margin-top: 8px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  animation: slideDown 0.2s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.comment-input {
-  width: 100%;
-  min-height: 60px;
-  padding: 10px;
-  background: #0d1117;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
-  transition: all 0.2s ease;
-}
-
-.comment-input:focus {
-  outline: none;
-  border-color: var(--neon);
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.2);
-}
-
-.comment-input::placeholder {
-  color: var(--sub);
-  opacity: 0.6;
-}
-
-.comment-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  justify-content: flex-end;
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--sub);
-  border: 1px solid var(--line);
-  padding: 10px 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text);
-  border-color: var(--sub);
-}
-
-/* タスクのレイアウト調整（コメントボタンを含むため） */
-.task > input[type="checkbox"] {
-  margin-top: 4px;
-}
-
-.task > label {
-  flex: 1;
-  cursor: pointer;
-}
-
-.task > .comment-btn {
-  margin-left: auto;
-  margin-top: 2px;
-}
-
-.task > .comment-display,
-.task > .comment-section {
-  width: 100%;
-  margin-left: 0;
-}
-
-/* モバイル対応（コメント機能） */
+/* モバイル対応 */
 @media (max-width: 700px) {
-  .comment-btn {
-    font-size: 16px;
-    padding: 6px;
-  }
-
-  .comment-display {
+  .task > .comment-display {
     font-size: 12px;
     padding: 8px 10px;
-  }
-
-  .comment-input {
-    font-size: 14px;
-  }
-
-  .comment-actions {
-    flex-direction: column;
-  }
-
-  .comment-actions button {
-    width: 100%;
   }
 }
