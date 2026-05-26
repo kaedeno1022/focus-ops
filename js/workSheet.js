@@ -240,7 +240,6 @@
     toast.innerHTML = `
       <span class="toast-icon">${TOAST_ICONS[type] ?? TOAST_ICONS.info}</span>
       <div class="toast-body"><div class="toast-msg">${msg.replace(/\n/g, '<br>')}</div></div>
-      <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
       <div class="toast-progress"></div>
     `;
     container.appendChild(toast);
@@ -538,14 +537,19 @@
     const sumArea = document.getElementById('work-summary');
     sumArea.innerHTML = '';
 
-    if (!data.length) {
+    // 月フィルタリング
+    const filteredData = selectedMonth 
+      ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+      : data;
+
+    if (!filteredData.length) {
       sumArea.classList.add('hidden');
       return;
     }
     sumArea.classList.remove('hidden');
 
     if (currentMode === 'bp') {
-      const totalWorkMinutes = data.reduce((sum, d) => {
+      const totalWorkMinutes = filteredData.reduce((sum, d) => {
         const w = calcWorkMinutes(d);
         return sum + (w !== null ? w : 0);
       }, 0);
@@ -553,8 +557,8 @@
       return;
     }
 
-    const workDays  = data.filter(d => d.作業開始 && d.作業終了);
-    const offDays   = data.filter(d => OFF_STATUSES.includes(d.勤務実績));
+    const workDays  = filteredData.filter(d => d.作業開始 && d.作業終了);
+    const offDays   = filteredData.filter(d => OFF_STATUSES.includes(d.勤務実績));
     let totalWorkMinutes = 0;
     let offCount = offDays.length;
     workDays.forEach(d => {
@@ -564,7 +568,11 @@
     let roundDiffTotalMin = 0;
     const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
     if (roundDiffs.length) {
-      roundDiffTotalMin = roundDiffs.reduce((s, r) => s + r.diffMinutes, 0);
+      // 選択月の調整差分のみ集計
+      const filteredDiffs = selectedMonth
+        ? roundDiffs.filter(r => r.date && r.date.startsWith(selectedMonth))
+        : roundDiffs;
+      roundDiffTotalMin = filteredDiffs.reduce((s, r) => s + r.diffMinutes, 0);
     }
     const overtimeMin = calculateOvertime(groupByWeek(workDays));
     const html = `
@@ -695,13 +703,31 @@
   }
 
   async function clearAll() {
-    if (!await showConfirm('全データを削除しますか？\nこの操作は取り消せません。', { title: '全削除', danger: true })) return;
-    const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
-    localStorage.removeItem(key);
-    if (currentMode === 'employee') localStorage.removeItem('roundDiffs');
-    data.length = 0;
-    render();
-    showToast('全データを削除しました', 'success');
+    const monthText = selectedMonth ? `${selectedMonth}月の` : '全';
+    const confirmMsg = selectedMonth 
+      ? `${selectedMonth}月のデータを削除しますか？\nこの操作は取り消せません。`
+      : '全データを削除しますか？\nこの操作は取り消せません。';
+    
+    if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true })) return;
+    
+    if (selectedMonth) {
+      // 選択月のみ削除
+      const beforeCount = data.length;
+      data.splice(0, data.length, ...data.filter(d => !d.日付 || !d.日付.startsWith(selectedMonth)));
+      const deletedCount = beforeCount - data.length;
+      const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
+      localStorage.setItem(key, JSON.stringify(data));
+      render();
+      showToast(`${selectedMonth}月のデータ ${deletedCount}件を削除しました`, 'success');
+    } else {
+      // 全データ削除
+      const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
+      localStorage.removeItem(key);
+      if (currentMode === 'employee') localStorage.removeItem('roundDiffs');
+      data.length = 0;
+      render();
+      showToast('全データを削除しました', 'success');
+    }
   }
 
   function clearRoundDiffs() {
@@ -751,22 +777,66 @@
   }
 
   function formatTimes() {
-    let count = 0;
-    data.forEach(d => {
-      if (d.作業開始 && d.作業開始.length === 4 && !d.作業開始.includes(':')) {
+    // 選択月のデータのみを対象とする
+    const targetData = selectedMonth 
+      ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+      : data;
+    
+    const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
+    let formatCount = 0;
+    let roundCount = 0;
+    
+    targetData.forEach(d => {
+      // HHMM形式（4桁数字、コロンなし）→ HH:MM形式に変換
+      if (d.作業開始 && /^\d{4}$/.test(d.作業開始)) {
         d.作業開始 = d.作業開始.slice(0, 2) + ':' + d.作業開始.slice(2);
-        count++;
+        formatCount++;
       }
-      if (d.作業終了 && d.作業終了.length === 4 && !d.作業終了.includes(':')) {
+      if (d.作業終了 && /^\d{4}$/.test(d.作業終了)) {
         d.作業終了 = d.作業終了.slice(0, 2) + ':' + d.作業終了.slice(2);
-        count++;
+        formatCount++;
+      }
+      
+      // 15分単位への丸め込み（四捨五入）
+      if (d.作業開始 && d.作業終了) {
+        const originalWorkMin = calcWorkMinutes(d);
+        if (originalWorkMin !== null) {
+          const roundedStart = roundToQuarter(d.作業開始, 'nearest');
+          const roundedEnd = roundToQuarter(d.作業終了, 'nearest');
+          
+          if (roundedStart !== d.作業開始 || roundedEnd !== d.作業終了) {
+            d.作業開始 = roundedStart;
+            d.作業終了 = roundedEnd;
+            
+            const roundedWorkMin = calcWorkMinutes(d);
+            const diffMin = roundedWorkMin - originalWorkMin;
+            
+            // 差分を記録
+            const existingIdx = roundDiffs.findIndex(r => r.date === d.日付);
+            if (existingIdx >= 0) {
+              roundDiffs[existingIdx].diffMinutes += diffMin;
+            } else {
+              roundDiffs.push({ date: d.日付, diffMinutes: diffMin });
+            }
+            
+            roundCount++;
+          }
+        }
       }
     });
-    if (count > 0) {
+    
+    const totalCount = formatCount + roundCount;
+    if (totalCount > 0) {
+      localStorage.setItem(ROUND_DIFFS_KEY, JSON.stringify(roundDiffs));
       save(); render();
-      showToast(`${count}件の時間フォーマットを修正しました`, 'success');
+      const monthText = selectedMonth ? `${selectedMonth}月の` : '';
+      const messages = [];
+      if (formatCount > 0) messages.push(`フォーマット修正${formatCount}件`);
+      if (roundCount > 0) messages.push(`15分単位丸め${roundCount}件`);
+      showToast(`${monthText}${messages.join('、')}を実行しました`, 'success');
     } else {
-      showToast('修正が必要な項目はありませんでした', 'info');
+      const monthText = selectedMonth ? `${selectedMonth}月は` : '';
+      showToast(`${monthText}修正が必要な項目はありませんでした`, 'info');
     }
   }
 
@@ -1004,9 +1074,38 @@
   }
 
   async function clearAllEvents() {
-    if (!await showConfirm('全イベントデータを削除しますか？\nこの操作は取り消せません。', { title: '全削除', danger: true })) return;
-    eventData.length = 0; saveEventData(); renderEventTable();
-    showToast('全イベントを削除しました', 'success');
+    const monthText = selectedEventMonth ? `${selectedEventMonth}月の` : '全';
+    const confirmMsg = selectedEventMonth
+      ? `${selectedEventMonth}月のイベントデータを削除しますか？\nこの操作は取り消せません。`
+      : '全イベントデータを削除しますか？\nこの操作は取り消せません。';
+    
+    if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true })) return;
+    
+    if (selectedEventMonth) {
+      // 選択月のみ削除
+      const beforeCount = eventData.length;
+      eventData.splice(0, eventData.length, ...eventData.filter(ev => {
+        if (ev.dates) {
+          return !ev.dates.some(d => d.startsWith(selectedEventMonth));
+        } else {
+          const start = ev.startDate || ev.date || '';
+          const end = ev.endDate || ev.date || '';
+          const matchesMonth = start.startsWith(selectedEventMonth) || end.startsWith(selectedEventMonth) ||
+                 (start && end && start <= selectedEventMonth + '-31' && end >= selectedEventMonth + '-01');
+          return !matchesMonth;
+        }
+      }));
+      const deletedCount = beforeCount - eventData.length;
+      saveEventData(); 
+      renderEventTable();
+      showToast(`${selectedEventMonth}月のイベント ${deletedCount}件を削除しました`, 'success');
+    } else {
+      // 全イベント削除
+      eventData.length = 0; 
+      saveEventData(); 
+      renderEventTable();
+      showToast('全イベントを削除しました', 'success');
+    }
   }
 
   // ============================================================
@@ -1144,14 +1243,24 @@
   // JSON Import/Export
   // ============================================================
   function exportJSON() {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const exportData = selectedMonth 
+      ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+      : data;
+    
+    const filename = selectedMonth 
+      ? `workData_${selectedMonth}.json`
+      : 'workData.json';
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = 'workData.json';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('JSONをエクスポートしました', 'success');
+    
+    const countText = selectedMonth ? `${selectedMonth}月 ${exportData.length}件` : `${exportData.length}件`;
+    showToast(`JSONをエクスポートしました (${countText})`, 'success');
   }
 
   function importJSON() {
@@ -1182,14 +1291,34 @@
   }
 
   function exportEventJSON() {
-    const blob = new Blob([JSON.stringify(eventData, null, 2)], { type: 'application/json' });
+    let exportData = eventData;
+    let filename = 'eventData.json';
+    let countText = `${eventData.length}件`;
+    
+    // イベント一覧の選択月でフィルタリング
+    if (selectedEventMonth) {
+      exportData = eventData.filter(ev => {
+        if (ev.dates) {
+          return ev.dates.some(d => d.startsWith(selectedEventMonth));
+        } else {
+          const start = ev.startDate || ev.date || '';
+          const end = ev.endDate || ev.date || '';
+          return start.startsWith(selectedEventMonth) || end.startsWith(selectedEventMonth) ||
+                 (start && end && start <= selectedEventMonth + '-31' && end >= selectedEventMonth + '-01');
+        }
+      });
+      filename = `eventData_${selectedEventMonth}.json`;
+      countText = `${selectedEventMonth}月 ${exportData.length}件`;
+    }
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = 'eventData.json';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('イベントJSONをエクスポートしました', 'success');
+    showToast(`イベントJSONをエクスポートしました (${countText})`, 'success');
   }
 
   function importEventJSON() {
@@ -1463,25 +1592,6 @@
       lines.push('');
     });
     return lines.join('\n');
-  }
-
-  function copyStartEnd() {
-    if (!data.length) { showToast('データがありません', 'warning'); return; }
-    const lines = data.map(d => {
-      const dateStr = d.日付;
-      const start   = d.作業開始 || '---';
-      const end     = d.作業終了 || '---';
-      const content = d.作業内容;
-      return `${dateStr} ${start}-${end} ${content}`;
-    });
-    const text = lines.join('\n');
-    copyTextToClipboard(text);
-  }
-
-  function copyContents() {
-    const monthLines = buildMonthLines();
-    if (!monthLines) return;
-    copyTextToClipboard(monthLines);
   }
 
   // ============================================================
@@ -1794,8 +1904,6 @@
   window.clearChecks = clearChecks;
   window.selectWeekdays = selectWeekdays;
   window.executeCopy = executeCopy;
-  window.copyStartEnd = copyStartEnd;
-  window.copyContents = copyContents;
   window.switchMode = switchMode;
   window.filterDataByMonth = filterDataByMonth;
   window.filterEventsByMonth = filterEventsByMonth;
