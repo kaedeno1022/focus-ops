@@ -341,8 +341,8 @@ table.mode-employee tbody tr td:nth-child(9) {
   min-width: 130px; max-width: 240px; white-space: normal; text-align: left; 
 }
 /* 操作列 */
-td:last-child { min-width: 150px; max-width: 230px; }
-.td-ops { display: flex; gap: 6px; justify-content: center; }
+td:last-child { min-width: 150px; text-align: center; }
+.td-ops { display: flex; gap: 6px; justify-content: center; align-items: center; }
 .td-ops button { box-shadow: none; }
 .td-ops button:hover { box-shadow: var(--shadow-sm); }
 
@@ -496,6 +496,61 @@ td:last-child { min-width: 150px; max-width: 230px; }
   margin-left: 8px;
   font-size: .8em;
   padding: 4px 10px;
+}
+
+/* ===== Event Calendar ===== */
+.event-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 400px;
+}
+
+.calendar-day-header {
+  font-size: .8em;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+  background: white;
+  border-radius: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: white;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  font-size: .9em;
+  font-weight: 600;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.calendar-day:hover:not(.empty) {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.calendar-day.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border: none;
+  cursor: default;
 }
 
 /* ===== Mode Bar ===== */

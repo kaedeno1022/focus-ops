@@ -1,7 +1,7 @@
 // ============================================================
 // イベントデータ管理
 // ============================================================
-import { eventData, eventMode, editEventIndex, setEventMode, setEditEventIndex } from './state.js';
+import { eventData, eventMode, editEventIndex, selectedDates, selectedEventMonth, setEventMode, setEditEventIndex, setSelectedDates, toggleSelectedDate } from './state.js';
 import { saveEventData } from './storage.js';
 import { showToast, showConfirm } from './ui.js';
 
@@ -15,24 +15,33 @@ export function setEventModeUI(mode) {
   const contentField = document.getElementById('event-field-content');
   if (isSingle) {
     contentField.classList.remove('grid-col-span-2');
+    contentField.classList.add('grid-col-span-3');
   } else {
+    contentField.classList.remove('grid-col-span-3');
     contentField.classList.add('grid-col-span-2');
   }
   document.getElementById('event-mode-single').style.opacity = isSingle ? '1' : '0.5';
   document.getElementById('event-mode-range').style.opacity  = isSingle ? '0.5' : '1';
+  
+  if (isSingle) {
+    // DOMの準備ができてから実行
+    setTimeout(() => renderEventCalendar(), 0);
+  }
 }
 
 export function addEvent() {
   const content = document.getElementById('event-content').value.trim();
   if (!content) { showToast('内容は必須です', 'warning'); return; }
 
-  let startDate = '', endDate = '', excludeDates = '';
+  let startDate = '', endDate = '', excludeDates = '', dates = [];
   if (eventMode === 'single') {
-    const singleDate = document.getElementById('event-single-date').value;
-    if (!singleDate) { showToast('日付を入力してください', 'warning'); return; }
-    startDate = singleDate;
-    endDate   = singleDate;
+    // 複数日選択モード
+    if (selectedDates.length === 0) {
+      showToast('日付を選択してください', 'warning'); return;
+    }
+    dates = [...selectedDates];
   } else {
+    // 期間指定モード
     startDate    = document.getElementById('event-start-date').value;
     endDate      = document.getElementById('event-end-date').value;
     excludeDates = document.getElementById('event-exclude-dates').value.trim();
@@ -41,19 +50,21 @@ export function addEvent() {
     }
   }
 
-  if (eventData.some(ev =>
-    (ev.startDate || ev.date || '') === startDate &&
-    (ev.endDate   || ev.date || '') === endDate   &&
-    ev.content === content
-  )) {
-    showToast('同じ内容のイベントが既に存在します', 'warning'); return;
-  }
   const ev = { content };
-  if (startDate)    ev.startDate    = startDate;
-  if (endDate)      ev.endDate      = endDate;
-  if (excludeDates) ev.excludeDates = excludeDates;
+  if (dates.length > 0) {
+    ev.dates = dates;
+  } else {
+    if (startDate) ev.startDate = startDate;
+    if (endDate) ev.endDate = endDate;
+    if (excludeDates) ev.excludeDates = excludeDates;
+  }
+  
   eventData.push(ev);
-  eventData.sort((a, b) => (a.startDate || a.date || '').localeCompare(b.startDate || b.date || ''));
+  eventData.sort((a, b) => {
+    const aDate = a.dates ? a.dates[0] : (a.startDate || a.date || '');
+    const bDate = b.dates ? b.dates[0] : (b.startDate || b.date || '');
+    return aDate.localeCompare(bDate);
+  });
   saveEventData(); renderEventTable(); clearEventForm();
   showToast('イベントを追加しました', 'success');
 }
@@ -64,41 +75,78 @@ export function deleteEvent(i) {
 }
 
 export function clearEventForm() {
-  document.getElementById('event-single-date').value   = '';
+  setSelectedDates([]);
   document.getElementById('event-start-date').value    = '';
   document.getElementById('event-end-date').value      = '';
   document.getElementById('event-content').value       = '';
   document.getElementById('event-exclude-dates').value = '';
+  renderEventCalendar();
 }
 
 export function renderEventTable() {
   const tbody = document.getElementById('event-tbody');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
-  eventData.forEach((ev, i) => {
-    const tr    = document.createElement('tr');
-    const start = ev.startDate || ev.date || '';
-    const end   = ev.endDate   || ev.date || '';
-    [start, end, ev.excludeDates || '', ev.content].forEach((text, ci) => {
-      const td = document.createElement('td');
-      td.textContent = text;
-      if (ci === 2 && text) {
-        td.style.whiteSpace = 'normal';
-        td.style.maxWidth   = '160px';
-        td.style.fontSize   = '.82em';
-        td.style.color      = 'var(--text-muted)';
-      }
-      tr.appendChild(td);
-    });
+  
+  // 月フィルタリング
+  const filterMonth = selectedEventMonth;
+  const filteredEvents = filterMonth 
+    ? eventData.filter(ev => {
+        if (ev.dates) {
+          return ev.dates.some(d => d.startsWith(filterMonth));
+        } else {
+          const start = ev.startDate || ev.date || '';
+          const end = ev.endDate || ev.date || '';
+          return start.startsWith(filterMonth) || end.startsWith(filterMonth) || 
+                 (start && end && start <= filterMonth + '-31' && end >= filterMonth + '-01');
+        }
+      })
+    : eventData;
+  
+  filteredEvents.forEach((ev, i) => {
+    const actualIndex = eventData.indexOf(ev);
+    const tr = document.createElement('tr');
+    
+    if (ev.dates) {
+      // 複数日選択の場合
+      const datesStr = ev.dates.join(', ');
+      [datesStr, '', '', ev.content].forEach((text, ci) => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        if (ci === 0) {
+          td.style.whiteSpace = 'normal';
+          td.style.fontSize = '.85em';
+          td.colSpan = 3;
+        }
+        if (ci === 0 || ci === 3) tr.appendChild(td);
+      });
+    } else {
+      // 期間指定の場合
+      const start = ev.startDate || ev.date || '';
+      const end = ev.endDate || ev.date || '';
+      [start, end, ev.excludeDates || '', ev.content].forEach((text, ci) => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        if (ci === 2 && text) {
+          td.style.whiteSpace = 'normal';
+          td.style.maxWidth = '160px';
+          td.style.fontSize = '.82em';
+          td.style.color = 'var(--text-muted)';
+        }
+        tr.appendChild(td);
+      });
+    }
+    
     const tdOp = document.createElement('td');
     tdOp.className = 'td-ops';
     const editBtn = document.createElement('button');
     editBtn.textContent = '✏ 編集';
     editBtn.className = 'btn-secondary btn-sm';
-    editBtn.addEventListener('click', () => openEditEventModal(i));
-    const btn  = document.createElement('button');
-    btn.textContent = '🗑 削除'; btn.className = 'btn-danger btn-sm';
-    btn.addEventListener('click', () => deleteEvent(i));
+    editBtn.addEventListener('click', () => openEditEventModal(actualIndex));
+    const btn = document.createElement('button');
+    btn.textContent = '🗑 削除';
+    btn.className = 'btn-danger btn-sm';
+    btn.addEventListener('click', () => deleteEvent(actualIndex));
     tdOp.appendChild(editBtn);
     tdOp.appendChild(btn);
     tr.appendChild(tdOp);
@@ -110,6 +158,13 @@ export function renderEventTable() {
 export function openEditEventModal(i) {
   setEditEventIndex(i);
   const ev = eventData[i];
+  
+  // 複数日選択の場合は編集不可のメッセージを表示
+  if (ev.dates && Array.isArray(ev.dates)) {
+    showToast('複数日選択イベントの編集は未対応です。削除して再作成してください。', 'warning', 4000);
+    return;
+  }
+  
   const start = ev.startDate || ev.date || '';
   const end   = ev.endDate   || ev.date || '';
   document.getElementById('event-edit-single-date').value = (start === end) ? start : '';
@@ -217,3 +272,84 @@ window.closeEditEventModal = closeEditEventModal;
 window.saveEditEvent = saveEditEvent;
 window.clearAllEvents = clearAllEvents;
 window.switchEditEventMode = switchEditEventMode;
+
+// ============================================================
+// カレンダーUI
+// ============================================================
+export function renderEventCalendar() {
+  const monthInput = document.getElementById('event-calendar-month');
+  const calendarDiv = document.getElementById('event-calendar');
+  
+  if (!monthInput || !calendarDiv) {
+    console.warn('カレンダー要素が見つかりません');
+    return;
+  }
+  
+  if (!monthInput.value) {
+    const now = new Date();
+    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  
+  const [year, month] = monthInput.value.split('-').map(Number);
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDayOfWeek = firstDay.getDay();
+  
+  calendarDiv.innerHTML = '';
+  
+  // 曜日ヘッダー
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  weekdays.forEach(wd => {
+    const dayHeader = document.createElement('div');
+    dayHeader.className = 'calendar-day-header';
+    dayHeader.textContent = wd;
+    calendarDiv.appendChild(dayHeader);
+  });
+  
+  // 空白セル
+  for (let i = 0; i < startDayOfWeek; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'calendar-day empty';
+    calendarDiv.appendChild(emptyCell);
+  }
+  
+  // 日付セル
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day';
+    dayCell.textContent = day;
+    
+    if (selectedDates.includes(dateStr)) {
+      dayCell.classList.add('selected');
+    }
+    
+    dayCell.addEventListener('click', () => {
+      toggleEventDate(dateStr);
+    });
+    
+    calendarDiv.appendChild(dayCell);
+  }
+  
+  updateSelectedDatesDisplay();
+}
+
+export function toggleEventDate(dateStr) {
+  toggleSelectedDate(dateStr);
+  renderEventCalendar();
+}
+
+export function updateSelectedDatesDisplay() {
+  const display = document.getElementById('selected-dates-display');
+  if (!display) return;
+  
+  if (selectedDates.length === 0) {
+    display.textContent = 'なし';
+  } else {
+    display.textContent = `${selectedDates.length}日選択: ${selectedDates.join(', ')}`;
+  }
+}
+
+window.renderEventCalendar = renderEventCalendar;
+window.toggleEventDate = toggleEventDate;

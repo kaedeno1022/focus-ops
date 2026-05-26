@@ -101,6 +101,11 @@ export function applyEventsToCheckin() {
   const today = getTodayJST();
   if (!eventData?.length) { showToast('イベントデータがありません', 'info'); return; }
   const matched = eventData.filter(ev => {
+    // 複数日選択の場合
+    if (ev.dates && Array.isArray(ev.dates)) {
+      return ev.dates.includes(today);
+    }
+    // 期間指定の場合
     const st = ev.startDate || ev.date || null;
     const ed = ev.endDate   || ev.date || null;
     const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];

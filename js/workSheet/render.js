@@ -2,7 +2,7 @@
 // レンダリング（テーブル表示）
 // ============================================================
 import { ROUND_DIFFS_KEY, OFF_STATUSES, WEEKDAYS } from './constants.js';
-import { data, currentMode } from './state.js';
+import { data, currentMode, selectedMonth } from './state.js';
 import { calcWorkMinutes, formatHoursMinutes, groupByWeek, calculateOvertime } from './utils.js';
 
 export function render() {
@@ -17,7 +17,14 @@ export function render() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
-  data.forEach((d, i) => {
+  
+  // 月フィルタリング
+  const filteredData = selectedMonth 
+    ? data.filter(d => d.日付.startsWith(selectedMonth))
+    : data;
+  
+  filteredData.forEach(d => {
+    const actualIndex = data.indexOf(d);
     const tr = document.createElement('tr');
     const dateObj = new Date(d.日付);
     const weekday = WEEKDAYS[dateObj.getDay()];
@@ -46,13 +53,13 @@ export function render() {
     tdOp.className = 'td-ops';
     const editBtn = document.createElement('button');
     editBtn.textContent = '✏ 編集'; editBtn.className = 'btn-secondary btn-sm';
-    editBtn.onclick = () => window.editRow(i);
+    editBtn.onclick = () => window.editRow(actualIndex);
     const copyBtn = document.createElement('button');
     copyBtn.textContent = '📅 コピー'; copyBtn.className = 'btn-secondary btn-sm';
-    copyBtn.onclick = () => window.openCopy(i);
+    copyBtn.onclick = () => window.openCopy(actualIndex);
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑 削除'; delBtn.className = 'btn-danger btn-sm';
-    delBtn.onclick = () => window.del(i);
+    delBtn.onclick = () => window.del(actualIndex);
     tdOp.appendChild(editBtn); tdOp.appendChild(copyBtn); tdOp.appendChild(delBtn);
     tr.appendChild(tdOp);
     frag.appendChild(tr);

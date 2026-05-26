@@ -130,6 +130,14 @@
   <!-- データ一覧タブ -->
   <div id="list-tab" class="tab-content">
     <div class="section-title"><span class="icon">📋</span> データ一覧</div>
+    <div class="card" style="padding:12px 20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <label style="font-weight:600;color:var(--text-muted);margin:0;">📅 表示月:</label>
+        <select id="data-month-filter" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.9rem;">
+          <option value="">全期間</option>
+        </select>
+      </div>
+    </div>
     <div class="card table-wrap">
       <table>
         <thead>
@@ -176,33 +184,34 @@
   <!-- イベント一覧タブ -->
   <div id="event-tab" class="tab-content">
     <div class="section-title"><span class="icon">📅</span> イベント一覧</div>
-    <div class="card">
-      <div class="btn-row" style="margin-bottom:14px;margin-top:0;">
-        <button id="event-mode-single" class="btn-secondary btn-sm" onclick="setEventMode('single')">📌 単一日付</button>
-        <button id="event-mode-range"  class="btn-secondary btn-sm" onclick="setEventMode('range')">📆 期間指定</button>
+    <div class="card" style="padding:12px 20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <label style="font-weight:600;color:var(--text-muted);margin:0;">📅 表示月:</label>
+        <select id="event-month-filter" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.9rem;">
+          <option value="">全期間</option>
+        </select>
+        <span style="font-size:0.85em;color:var(--text-muted);margin-left:8px;">※カレンダー表示月にも反映</span>
       </div>
+    </div>
+    <div class="card">
       <div class="form-grid form-grid-3">
-        <!-- 単一日付モード -->
-        <div class="form-item" id="event-field-single-date">
-          <label>日付</label>
-          <input type="date" id="event-single-date">
+        <div class="form-item grid-col-span-3">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="event-no-date" style="width:auto;margin:0;">
+            <span>常時表示（除外日を下のカレンダーで選択）</span>
+          </label>
         </div>
-        <!-- 期間指定モード -->
-        <div class="form-item hidden" id="event-field-start-date">
-          <label>開始日 <span class="label-note">（空欄→制限なし）</span></label>
-          <input type="date" id="event-start-date">
-        </div>
-        <div class="form-item hidden" id="event-field-end-date">
-          <label>終了日 <span class="label-note">（空欄→制限なし）</span></label>
-          <input type="date" id="event-end-date">
+        <div class="form-item grid-col-span-3" id="event-field-single-date">
+          <label id="event-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
+          <div id="event-calendar" class="event-calendar"></div>
+          <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
+            <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;" id="selected-dates-label">選択中の日付:</div>
+            <div id="selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+          </div>
         </div>
         <div class="form-item" id="event-field-content">
           <label>内容 <span class="label-note">（例: 事業部会）</span></label>
           <input type="text" id="event-content" maxlength="32" placeholder="イベント内容">
-        </div>
-        <div class="form-item grid-col-span-3 hidden" id="event-field-exclude">
-          <label>除外日 <span class="label-note">（カンマ区切りで複数指定可&emsp;例: 2026-04-23, 2026-04-25）</span></label>
-          <input type="text" id="event-exclude-dates" placeholder="取り込みたくない日を入力">
         </div>
       </div>
       <div class="btn-row">
@@ -213,7 +222,7 @@
     <div class="card table-wrap">
       <table>
         <thead>
-          <tr><th>開始日</th><th>終了日</th><th>除外日</th><th>内容</th><th>操作</th></tr>
+          <tr><th>日付</th><th>件数</th><th>内容</th><th>操作</th></tr>
         </thead>
         <tbody id="event-tbody"></tbody>
       </table>
@@ -222,31 +231,26 @@
     <!-- イベント編集モーダル -->
     <div id="eventEditModal" class="hidden">
       <div class="section-title"><span class="icon">📝</span> イベント編集</div>
-      <div class="btn-row" style="margin-bottom:14px;margin-top:0;">
-        <button id="event-edit-mode-single" class="btn-secondary btn-sm" type="button" onclick="switchEditEventMode('single')">📌 単一日付</button>
-        <button id="event-edit-mode-range"  class="btn-secondary btn-sm" type="button" onclick="switchEditEventMode('range')">📆 期間指定</button>
-      </div>
       <div class="form-grid form-grid-3">
-        <div class="form-item" id="event-edit-field-single-date">
-          <label for="event-edit-single-date">日付</label>
-          <input type="date" id="event-edit-single-date">
+        <div class="form-item grid-col-span-3">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="event-edit-no-date" style="width:auto;margin:0;">
+            <span>常時表示（除外日を下のカレンダーで選択）</span>
+          </label>
         </div>
-        <div class="form-item" id="event-edit-field-start-date">
-          <label for="event-edit-start-date">開始日</label>
-          <input type="date" id="event-edit-start-date">
+        <div class="form-item grid-col-span-3" id="event-edit-field-single-date">
+          <label id="event-edit-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
+          <div id="event-edit-calendar" class="event-calendar"></div>
+          <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
+            <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;" id="event-edit-selected-dates-label">選択中の日付:</div>
+            <div id="event-edit-selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+          </div>
         </div>
-        <div class="form-item" id="event-edit-field-end-date">
-          <label for="event-edit-end-date">終了日</label>
-          <input type="date" id="event-edit-end-date">
-        </div>
-        <div class="form-item grid-col-span-2" id="event-edit-field-content">
+        <div class="form-item" id="event-edit-field-content">
           <label for="event-edit-content">内容</label>
           <input type="text" id="event-edit-content" maxlength="32">
         </div>
-        <div class="form-item grid-col-span-3" id="event-edit-field-exclude">
-          <label for="event-edit-exclude-dates">除外日 <span class="label-note">（カンマ区切り可 例: 2026-04-23, 2026-04-25）</span></label>
-          <input type="text" id="event-edit-exclude-dates" placeholder="取り込みたくない日を入力">
-        </div>
+
       </div>
       <div class="btn-row">
         <button onclick="saveEditEvent()">✔ 更新</button>
