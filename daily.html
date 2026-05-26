@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="業務タスク管理Pro - プロジェクトとタスクを一元管理する高機能ツール">
+  <title>業務タスク管理 Pro</title>
+  
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WPV9BG4YSJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-WPV9BG4YSJ');
+  </script>
+  
+  <!-- CSS Modules -->
+  <link rel="stylesheet" href="./css/variables.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/base.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/layout.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/components.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/tasks.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/modals.css?v=2.0.0">
+  <link rel="stylesheet" href="./css/responsive.css?v=2.0.0">
+  
+  <!-- JavaScript Modules -->
+  <script defer src="./js/constants.js?v=2.0.0"></script>
+  <script defer src="./js/storage.js?v=2.0.0"></script>
+  <script defer src="./js/state.js?v=2.0.0"></script>
+  <script defer src="./js/utils.js?v=2.0.0"></script>
+  <script defer src="./js/taskMetadata.js?v=2.0.0"></script>
+  <script defer src="./js/taskRenderer.js?v=2.0.0"></script>
+  <script defer src="./js/menuHandlers.js?v=2.0.0"></script>
+  <script defer src="./js/settings.js?v=2.0.0"></script>
+  <script defer src="./js/cookieConsent.js?v=2.0.0"></script>
+  <script defer src="./js/eventHandlers.js?v=2.0.0"></script>
+  <script defer src="./js/main.js?v=2.0.0"></script>
+</head>
+
+<body>
+  <!-- スクリーンリーダー用ライブリージョン -->
+  <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <div>
+          <a href="index.html" class="home-link" style="display: inline-block; margin-bottom: 8px; color: #8b5cf6; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#8b5cf6'">← ホームに戻る</a>
+          <h1 class="title">業務タスク管理 Pro</h1>
+          <p class="subtitle">プロジェクトとタスクを一元管理</p>
+        </div>
+        <div class="mobile-actions">
+          <button
+            id="dailyResetBtnMobile"
+            class="btn-main mobile-only"
+            type="button"
+            data-category="daily"
+          >
+            今日リセット
+          </button>
+          <button 
+            id="menuToggleBtn" 
+            class="menu-toggle" 
+            type="button" 
+            aria-label="メニューを開く"
+            aria-expanded="false"
+          >
+            <span class="hamburger-icon"></span>
+            <span class="hamburger-icon"></span>
+            <span class="hamburger-icon"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="topbar" id="topbar" role="navigation" aria-label="タスク管理操作">
+      <button
+        id="settingsBtn"
+        class="btn-main"
+        type="button"
+      >
+        ⚙ 設定
+      </button>
+
+      <button
+        id="minimumBtn"
+        class="btn-main toggle-btn"
+        type="button"
+        aria-pressed="false"
+      >
+        最低限モード OFF
+      </button>
+
+      <button
+        id="dailyResetBtn"
+        class="btn-main desktop-only"
+        type="button"
+        data-category="daily"
+      >
+        今日リセット
+      </button>
+
+      <button
+        id="weeklyResetBtn"
+        class="btn-main"
+        type="button"
+        data-category="weekly"
+      >
+        今週リセット
+      </button>
+
+      <button
+        id="seasonResetBtn"
+        class="btn-main"
+        type="button"
+        data-category="season"
+      >
+        今月リセット
+      </button>
+
+      <button
+        id="resetAllBtn"
+        class="btn-danger"
+        type="button"
+      >
+        全リセット
+      </button>
+    </nav>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- システムステータス -->
+    <section class="system-status" aria-label="システムステータス">
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">LAST SYNC</div>
+          <div class="status-value" id="lastSyncTime">--:--</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">OVERALL COMPLETION</div>
+          <div class="status-value" id="overallCompletion">0%</div>
+        </div>
+      </div>
+    </section>
+
+    <main class="grid" aria-label="タスクリスト">
+      <section class="card" aria-labelledby="daily-title">
+        <h2 id="daily-title">📅 今日のタスク</h2>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span id="dailyRemain" aria-live="polite"></span>
+            <span id="dailyProgress" aria-live="polite"></span>
+          </div>
+
+          <div class="progress" role="progressbar" aria-label="デイリー進捗">
+            <div class="progress-bar" id="dailyBar"></div>
+          </div>
+        </div>
+
+        <div id="dailyContainer"></div>
+      </section>
+
+      <section class="card" aria-labelledby="weekly-title">
+        <h2 id="weekly-title">📆 今週のタスク</h2>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span id="weeklyRemain" aria-live="polite"></span>
+            <span id="weeklyProgress" aria-live="polite"></span>
+          </div>
+
+          <div class="progress" role="progressbar" aria-label="ウィークリー進捗">
+            <div class="progress-bar" id="weeklyBar"></div>
+          </div>
+        </div>
+
+        <div id="weeklyContainer"></div>
+      </section>
+
+      <section class="card" aria-labelledby="season-title">
+        <h2 id="season-title">📊 今月のタスク</h2>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span id="seasonRemain" aria-live="polite"></span>
+            <span id="seasonProgress" aria-live="polite"></span>
+          </div>
+
+          <div class="progress" role="progressbar" aria-label="シーズン進捗">
+            <div class="progress-bar" id="seasonBar"></div>
+          </div>
+        </div>
+
+        <div id="seasonContainer"></div>
+      </section>
+    </main>
+
+    <footer class="info">
+      赤 = 高優先度 / 黄 = 中優先度 / 青 = 低優先度<br>
+      LocalStorage保存対応
+      <div class="footer-links">
+        <button id="privacyPolicyBtn" class="footer-link" type="button">プライバシーポリシー</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 設定モーダル -->
+  <div id="settingsModal" class="modal" role="dialog" aria-labelledby="settingsModalTitle" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="settingsModalTitle">タスク設定</h2>
+        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="閉じる">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tabs">
+          <button id="visibilityTab" class="tab-btn active" type="button">表示設定</button>
+          <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
+        </div>
+
+        <!-- 表示設定タブ -->
+        <div id="visibilityPanel" class="tab-panel active">
+          <div class="panel-header">
+            <p class="panel-description">各タスクの表示/非表示を設定できます。</p>
+            <button id="resetVisibilityBtn" class="btn-main btn-small" type="button">表示設定をリセット</button>
+          </div>
+          
+          <div class="settings-section">
+            <h3>デイリー</h3>
+            <div id="dailyVisibilitySettings" class="task-list"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>ウィークリー</h3>
+            <div id="weeklyVisibilitySettings" class="task-list"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>シーズン / 隔週</h3>
+            <div id="seasonVisibilitySettings" class="task-list"></div>
+          </div>
+        </div>
+
+        <!-- カスタムタスクタブ -->
+        <div id="customTaskPanel" class="tab-panel">
+          <div class="panel-header">
+            <p class="panel-description">独自のタスクを追加できます。</p>
+            <div class="button-group">
+              <button id="resetEditedDefaultTasksBtn" class="btn-main btn-small" type="button">デフォルトタスク編集をリセット</button>
+              <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全カスタムタスクを削除</button>
+            </div>
+          </div>
+          
+          <form id="addTaskForm" class="add-task-form">
+            <div class="form-group">
+              <label for="taskType">カテゴリ</label>
+              <select id="taskType" required>
+                <option value="daily">デイリー</option>
+                <option value="weekly">ウィークリー</option>
+                <option value="season">シーズン / 隔週</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="taskTitle">タスク名</label>
+              <input type="text" id="taskTitle" placeholder="例: 新しいタスク" required>
+            </div>
+
+            <div class="form-group">
+              <label for="taskPriority">優先度（自動でサブカテゴリ分けされます）</label>
+              <select id="taskPriority" required>
+                <option value="high">高（優先度：高）- 赤</option>
+                <option value="mid">中（優先度：中）- 黄</option>
+                <option value="low">低（余裕があれば）- 青</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="taskProject">プロジェクト（任意）</label>
+              <select id="taskProject">
+                <option value="">選択してください</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="taskDeadline">締め切り（任意）</label>
+              <input type="date" id="taskDeadline">
+            </div>
+
+            <div class="form-group">
+              <label for="taskTags">タグ（任意・複数選択可）</label>
+              <div id="taskTags" class="tag-selector"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="taskEstimatedTime">予想作業時間（任意）</label>
+              <div class="time-input-group">
+                <input type="number" id="taskEstimatedHours" min="0" max="99" placeholder="0" style="width: 70px;">
+                <span>時間</span>
+                <input type="number" id="taskEstimatedMinutes" min="0" max="59" placeholder="0" style="width: 70px;">
+                <span>分</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="taskComment">メモ（任意）</label>
+              <textarea id="taskComment" placeholder="例: 毎週月曜日に実施" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn-main">タスクを追加</button>
+          </form>
+
+          <div class="settings-section">
+            <h3>追加済みカスタムタスク</h3>
+            <div id="customTaskList" class="custom-task-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie同意バナー -->
+  <div id="cookieConsent" class="cookie-consent" role="dialog" aria-labelledby="cookieConsentTitle" aria-describedby="cookieConsentDesc">
+    <div class="cookie-consent-content">
+      <h3 id="cookieConsentTitle">Cookieの使用について</h3>
+      <p id="cookieConsentDesc">このサイトではGoogle Analytics (GA4)を使用して、サイトの利用状況を分析しています。継続してご利用いただくことで、Cookieの使用に同意したものとみなされます。</p>
+      <div class="cookie-consent-actions">
+        <button id="acceptCookies" class="btn-main" type="button">同意する</button>
+        <button id="declineCookies" class="btn-secondary" type="button">拒否する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- プライバシーポリシーモーダル -->
+  <div id="privacyModal" class="modal" role="dialog" aria-labelledby="privacyModalTitle" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="privacyModalTitle">プライバシーポリシー</h2>
+        <button id="closePrivacyBtn" class="close-btn" type="button" aria-label="閉じる">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-content">
+          <h3>個人情報の収集について</h3>
+          <p>当サイトでは、Google Analytics（GA4）を使用して、サイトの利用状況を分析しています。</p>
+          
+          <h3>収集する情報</h3>
+          <ul>
+            <li>ページビュー数</li>
+            <li>アクセス元の地域情報（国・都市レベル）</li>
+            <li>使用デバイス・ブラウザ情報</li>
+            <li>サイト内の行動データ</li>
+          </ul>
+          
+          <h3>情報の利用目的</h3>
+          <p>収集した情報は、サイトの改善およびユーザー体験の向上のためにのみ使用します。</p>
+          
+          <h3>第三者への提供</h3>
+          <p>収集した情報は、Google Analyticsのプライバシーポリシーに従って処理されます。詳細は<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Googleプライバシーポリシー</a>をご確認ください。</p>
+          
+          <h3>Cookieの管理</h3>
+          <p>ブラウザの設定でCookieを無効にすることができますが、一部機能が正常に動作しない場合があります。</p>
+          
+          <h3>データの保存</h3>
+          <p>タスクの進捗状況などは、お使いのブラウザのLocalStorageに保存されます。これらのデータは外部に送信されません。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- トーストコンテナ -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

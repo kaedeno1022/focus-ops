@@ -24,6 +24,18 @@ let taskComments = loadFromStorage(STORAGE_KEYS.COMMENTS) || {};
 /** 編集されたデフォルトタスク */
 let editedDefaultTasks = loadFromStorage(STORAGE_KEYS.EDITED_DEFAULT_TASKS) || {};
 
+/** タスクのプロジェクト紐付け */
+let taskProjects = loadFromStorage(STORAGE_KEYS.PROJECTS) || {};
+
+/** タスクの締め切り */
+let taskDeadlines = loadFromStorage(STORAGE_KEYS.DEADLINES) || {};
+
+/** タスクのタグ */
+let taskTags = loadFromStorage(STORAGE_KEYS.TAGS) || {};
+
+/** タスクの予想作業時間（分） */
+let taskEstimatedTime = loadFromStorage(STORAGE_KEYS.ESTIMATED_TIME) || {};
+
 /** 現在編集中のタスク情報 */
 let editingTask = null;
 

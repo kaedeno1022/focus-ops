@@ -19,6 +19,10 @@ function init() {
     }
   }
 
+  // プロジェクトとタグのセレクタを初期化
+  initProjectSelector();
+  initTagSelector();
+
   setupEventListeners();
   renderAll();
   

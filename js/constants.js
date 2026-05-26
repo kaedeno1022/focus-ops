@@ -4,13 +4,17 @@
 
 /** LocalStorageのキー */
 const STORAGE_KEYS = {
-  CHECKED: 'nte_checked',
-  MINIMUM: 'nte_minimum',
-  VISIBILITY: 'nte_visibility',
-  CUSTOM_TASKS: 'nte_custom_tasks',
-  COMMENTS: 'nte_comments',
-  EDITED_DEFAULT_TASKS: 'nte_edited_default_tasks',
-  COOKIE_CONSENT: 'nte_cookie_consent'
+  CHECKED: 'work_tasks_checked',
+  MINIMUM: 'work_tasks_minimum',
+  VISIBILITY: 'work_tasks_visibility',
+  CUSTOM_TASKS: 'work_tasks_custom',
+  COMMENTS: 'work_tasks_comments',
+  EDITED_DEFAULT_TASKS: 'work_tasks_edited',
+  COOKIE_CONSENT: 'work_tasks_cookie_consent',
+  PROJECTS: 'work_tasks_projects',
+  DEADLINES: 'work_tasks_deadlines',
+  TAGS: 'work_tasks_tags',
+  ESTIMATED_TIME: 'work_tasks_estimated_time'
 };
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
@@ -21,88 +25,118 @@ const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:
 
 /** カテゴリーラベル */
 const CATEGORY_LABELS = {
-  daily: 'デイリー',
-  weekly: 'ウィークリー',
-  season: 'シーズン'
+  daily: '今日のタスク',
+  weekly: '今週のタスク',
+  season: '今月のタスク'
 };
 
 /** 必須カテゴリー名 */
-const REQUIRED_CATEGORY = '必須';
+const REQUIRED_CATEGORY = '優先度：高';
 
 /** タスクデータ構造 */
 const DATA = {
   daily: [
     {
-      category: '必須',
+      category: '優先度：高',
       tasks: [
-        ['本性ピクセル消費', 'high'],
-        ['デイリークエスト', 'high'],
-        ['ハンター褒章', 'high'],
-        ['ナクペイダの泉', 'high'],
-        ['魔女の家（占い）', 'high'],
-        ['カフェ収益回収', 'high'],
-        ['キャラプレゼント', 'high'],
-        ['キャラデート', 'high'],
-        ['ハムスターブロック', 'high'],
-        ['甲虫コイン', 'high'],
-        ['もふもふコットン', 'high']
+        ['メール確認・返信', 'high'],
+        ['朝礼・デイリースタンドアップ', 'high'],
+        ['進行中タスクの進捗確認', 'high'],
+        ['日報作成・提出', 'high'],
+        ['Slack・チャット確認', 'high']
       ]
     },
     {
-      category: '余裕あれば',
+      category: '優先度：中',
       tasks: [
-        ['祈願', 'mid'],
-        ['異象家具回収', 'mid'],
-        ['NPCから強盗', 'mid'],
-        ['ちぃちゃんファンス', 'mid'],
-        ['特別配達', 'mid'],
-        ['刑務所', 'mid'],
-        ['エイボンの小屋', 'mid']
+        ['ドキュメント更新', 'mid'],
+        ['コードレビュー', 'mid'],
+        ['会議議事録作成', 'mid'],
+        ['タスク管理ツール更新', 'mid']
       ]
     },
     {
-      category: '確認系',
+      category: '余裕があれば',
       tasks: [
-        ['イベント確認', 'low'],
-        ['バトルパス確認', 'low']
+        ['技術記事・ブログ執筆', 'low'],
+        ['学習・自己啓発', 'low'],
+        ['環境整備・最適化', 'low']
       ]
     }
   ],
 
   weekly: [
     {
-      category: '必須',
+      category: '優先度：高',
       tasks: [
-        ['異象巡礼（週ボス）', 'high'],
-        ['オークション', 'high'],
-        ['貪欲の領域（マモン）', 'high'],
-        ['シティスタミナ消費', 'high'],
-        ['金庫回収', 'high']
+        ['週次レポート作成', 'high'],
+        ['1on1ミーティング', 'high'],
+        ['プロジェクト進捗レビュー', 'high'],
+        ['週次振り返り', 'high']
       ]
     },
     {
-      category: '余裕あれば',
+      category: '優先度：中',
       tasks: [
-        ['DSD堂などで万引き', 'mid']
+        ['バックログ整理', 'mid'],
+        ['技術的負債の確認', 'mid'],
+        ['チーム定例会議', 'mid']
+      ]
+    },
+    {
+      category: '余裕があれば',
+      tasks: [
+        ['ナレッジ共有会参加', 'mid'],
+        ['他チームとの情報交換', 'mid']
       ]
     }
   ],
 
   season: [
     {
-      category: '必須',
+      category: '優先度：高',
       tasks: [
-        ['にくきゅう大強盗', 'high'],
-        ['シーズンバトルパス', 'high'],
-        ['ショップ交換', 'high']
+        ['月次報告書作成', 'high'],
+        ['経費精算', 'high'],
+        ['目標設定・振り返り', 'high'],
+        ['月次KPI確認', 'high']
       ]
     },
     {
-      category: '余裕あれば',
+      category: '優先度：中',
       tasks: [
-        ['軌道外領域', 'mid'],
-        ['シーズンイベントのチェック', 'mid']
+        ['プロジェクト予算確認', 'mid'],
+        ['四半期計画レビュー', 'mid'],
+        ['人事評価関連', 'mid']
+      ]
+    },
+    {
+      category: '余裕があれば',
+      tasks: [
+        ['業務フロー改善提案', 'mid'],
+        ['ツール導入検討', 'mid']
       ]
     }
   ]
 };
+
+/** プロジェクトマスター */
+const PROJECTS = [
+  { id: 'proj-none', name: 'プロジェクトなし', color: '#64748b' },
+  { id: 'proj-1', name: 'プロジェクトA', color: '#3b82f6' },
+  { id: 'proj-2', name: 'プロジェクトB', color: '#8b5cf6' },
+  { id: 'proj-3', name: 'プロジェクトC', color: '#ec4899' },
+  { id: 'proj-4', name: '運用・保守', color: '#10b981' },
+  { id: 'proj-5', name: '自己啓発', color: '#f59e0b' }
+];
+
+/** タグマスター */
+const TAGS = [
+  { id: 'tag-urgent', name: '緊急', color: '#ef4444' },
+  { id: 'tag-meeting', name: '会議', color: '#3b82f6' },
+  { id: 'tag-dev', name: '開発', color: '#10b981' },
+  { id: 'tag-review', name: 'レビュー', color: '#8b5cf6' },
+  { id: 'tag-doc', name: 'ドキュメント', color: '#f59e0b' },
+  { id: 'tag-report', name: '報告', color: '#06b6d4' },
+  { id: 'tag-admin', name: '事務作業', color: '#64748b' }
+];

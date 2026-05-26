@@ -124,6 +124,88 @@
 }
 
 /* ============================================================================
+   タスクメタ情報（プロジェクト、タグ、締め切り、時間）
+   ============================================================================ */
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.task-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.project-badge {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tag-badge {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  opacity: 0.9;
+}
+
+.task-deadline {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(100, 116, 139, 0.2);
+  color: var(--sub);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.task-deadline.deadline-overdue {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: pulse-deadline 2s infinite;
+}
+
+.task-deadline.deadline-today {
+  background: rgba(251, 146, 60, 0.2);
+  color: #fdba74;
+  border-color: rgba(251, 146, 60, 0.4);
+}
+
+.task-deadline.deadline-soon {
+  background: rgba(250, 204, 21, 0.2);
+  color: #fde047;
+  border-color: rgba(250, 204, 21, 0.3);
+}
+
+.task-time {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+@keyframes pulse-deadline {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================================
    フッター
    ============================================================================ */
 .info {

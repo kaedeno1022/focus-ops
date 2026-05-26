@@ -299,6 +299,80 @@
   color: var(--text);
 }
 
+/* 時間入力グループ */
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.time-input-group input[type="number"] {
+  width: 70px !important;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.time-input-group input[type="number"]::-webkit-outer-spin-button,
+.time-input-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.time-input-group span {
+  color: var(--sub);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* タグセレクタ */
+.tag-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: #0d1117;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 50px;
+}
+
+.tag-checkbox-label {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin: 0 !important;
+}
+
+.tag-checkbox-label:hover {
+  opacity: 0.85;
+}
+
+.tag-checkbox {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  cursor: pointer;
+}
+
+.tag-checkbox + span {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.tag-checkbox:checked + span {
+  box-shadow: 0 0 10px currentColor;
+  border-width: 2px;
+}
+
 /* セレクトボックスのオプション */
 .form-group select option {
   background: #0d1117;

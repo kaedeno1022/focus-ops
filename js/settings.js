@@ -251,12 +251,13 @@ function renderCustomTaskList() {
         if (confirm(`「${task.title}」を削除しますか？`)) {
           customTasks[type].splice(index, 1);
           
-          // コメントも削除
+          // コメントとメタデータも削除
           const category = getCategoryFromPriority(task.priority);
           const key = createKey(type, category, task.title);
           if (taskComments[key]) {
             delete taskComments[key];
           }
+          deleteTaskMetadata(key);
           
           saveState();
           renderCustomTaskList();
@@ -341,12 +342,16 @@ function addCustomTask(e) {
   
   // コメントがある場合は保存
   if (comment) {
-    const key = createKey(type, category, title);
     taskComments[key] = comment;
   }
   
+  // メタデータを保存
+  const metadata = getTaskMetadataFromForm();
+  saveTaskMetadata(key, metadata);
+  
   saveState();
   form.reset();
+  clearTaskMetadataForm();
   renderCustomTaskList();
   renderAll();
   updateSystemStatus();

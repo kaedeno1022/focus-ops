@@ -1,0 +1,2085 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作業表ツール</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #22c55e;
+  --success-light: #dcfce7;
+  --warning-light: #fef3c7;
+  --bg: #f0f4f8;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 4px 16px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.1), 0 4px 12px rgba(0,0,0,.05);
+  --th-bg: #f1f5f9;
+  --checkin-bg: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  --checkin-status-in: #dcfce7;
+  --checkin-status-out: #fee2e2;
+  --transition: .2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== App Header ===== */
+.app-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  color: #fff;
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(30,64,175,.2);
+}
+.app-header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: .04em; }
+.app-header p  { margin: 4px 0 0; font-size: .85rem; opacity: .8; }
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 6px;
+  max-width: 980px;
+  margin: 20px auto 0;
+  padding: 0 16px;
+}
+.tab-btn {
+  flex: 1 1 0;
+  padding: 13px 0;
+  background: rgba(255,255,255,.5);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  backdrop-filter: blur(4px);
+  position: relative;
+  letter-spacing: .02em;
+}
+.tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,.75);
+  color: var(--primary);
+}
+.tab-btn.active {
+  background: var(--card-bg);
+  color: var(--primary);
+  border-color: var(--border);
+  z-index: 2;
+  box-shadow: 0 -2px 8px rgba(0,0,0,.03);
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 3px 3px 0 0;
+}
+.tab-content { display: none; animation: fadeIn .25s ease; }
+.tab-content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== App Container ===== */
+.app-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+/* ===== Section Title ===== */
+.section-title {
+  font-size: 1.15rem;
+  margin: 24px 0 16px;
+  color: var(--text);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Card ===== */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 0 auto 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+/* ===== Checkin Card ===== */
+.checkin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 28px;
+  background: var(--checkin-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+}
+.checkin-header { width: 100%; display: flex; justify-content: center; margin-bottom: 20px; }
+.checkin-status {
+  font-size: .95em;
+  font-weight: 700;
+  padding: 6px 22px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  transition: all var(--transition);
+  letter-spacing: .04em;
+}
+.checkin-status.in  { background: var(--checkin-status-in);  color: #15803d; border-color: #86efac; }
+.checkin-status.out { background: var(--checkin-status-out); color: #dc2626; border-color: #fca5a5; }
+.checkin-row { display: flex; gap: 16px; margin-bottom: 20px; }
+.checkin-btn {
+  font-size: 1.05em; font-weight: 700;
+  padding: 14px 40px;
+  border-radius: var(--radius);
+  border: none; cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: .03em;
+}
+.checkin-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow); }
+.checkin-btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
+.checkin-btn.in  { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.checkin-btn.in:disabled  { background: #cbd5e1; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-btn.out { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+.checkin-btn.out:disabled { background: #fecaca; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-info {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; margin-bottom: 8px;
+}
+.checkin-time { font-size: .95em; color: var(--primary); font-weight: 600; margin-right: 12px; }
+.checkin-content, .checkin-manual-in {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-size: .95em; background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.checkin-content    { width: 100%; max-width: 280px; }
+.checkin-content-row { display: flex; align-items: center; gap: 8px; width: 90%; max-width: 360px; }
+.checkin-manual-in  { width: 90%; max-width: 200px; }
+.checkin-content:focus, .checkin-manual-in:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+.checkin-guide {
+  font-size: .85em; color: var(--text-light);
+  margin-top: 10px; text-align: center; line-height: 1.5;
+}
+
+/* ===== Form ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px 24px;
+}
+.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-col-1      { grid-column: 1; }
+.grid-col-2      { grid-column: 2; }
+.grid-col-span-3 { grid-column: span 3; }
+.form-item { display: flex; flex-direction: column; gap: 6px; }
+.form-item label {
+  display: block; font-size: .85em; color: var(--text-muted);
+  font-weight: 600; letter-spacing: .02em; text-align: left;
+}
+.form-item input, .form-item select {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .95em; background: #fff; color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-item input[type="date"] { width: 180px; }
+.form-item input:hover, .form-item select:hover { border-color: var(--border-hover); }
+.form-item input:focus, .form-item select:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+.form-item input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+.date-row { display: flex; align-items: center; gap: 6px; }
+.weekday-label { font-size: .88em; color: var(--primary); font-weight: 600; }
+
+/* ===== Buttons ===== */
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn-row-grouped { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.btn-group  { display: flex; gap: 6px; }
+.btn-divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; align-self: center; }
+button {
+  padding: 10px 20px; background: var(--primary); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  cursor: pointer; font-size: .9em; font-weight: 600;
+  transition: all var(--transition); box-shadow: var(--shadow-sm); letter-spacing: .02em;
+}
+button:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow); }
+button:active { transform: translateY(0) scale(.98); }
+.btn-danger   { background: var(--danger); }
+.btn-danger:hover { background: var(--danger-hover); }
+.btn-secondary { background: #64748b; }
+.btn-secondary:hover { background: #475569; }
+.btn-sm { padding: 6px 14px; font-size: .82em; }
+
+/* ===== Table ===== */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .9em; table-layout: auto; }
+thead th {
+  background: var(--th-bg); color: var(--text);
+  padding: 12px 10px; border-bottom: 2px solid var(--border);
+  font-weight: 700; font-size: .85em; text-transform: uppercase;
+  letter-spacing: .06em; position: sticky; top: 0; z-index: 1; white-space: nowrap;
+}
+thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:hover { background: var(--primary-light); }
+td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 8px; text-align: center; white-space: nowrap; color: var(--text);
+}
+td:nth-child(9) { min-width: 130px; max-width: 240px; white-space: normal; text-align: left; }
+td:last-child   { min-width: 150px; max-width: 230px; }
+.td-ops { display: flex; gap: 6px; justify-content: center; }
+.td-ops button { box-shadow: none; }
+.td-ops button:hover { box-shadow: var(--shadow-sm); }
+
+/* ===== Modal & Overlay ===== */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.45); backdrop-filter: blur(4px); z-index: 100;
+}
+#editModal, #copyModal {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card-bg); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); padding: 28px 24px;
+  min-width: 340px; z-index: 101; border: 1px solid var(--border);
+  max-height: 90vh; overflow-y: auto;
+}
+#copyModal h4 {
+  font-size: 1.05rem; margin: 0 0 16px; color: var(--text);
+  font-weight: 700; display: flex; align-items: center; gap: 8px;
+}
+#calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 40px); gap: 2px;
+  margin-bottom: 10px; background: #f8fafc;
+  padding: 10px 6px; border-radius: var(--radius); border: 1px solid var(--border);
+}
+.calendar-header {
+  display: grid; grid-template-columns: repeat(7, 40px);
+  font-size: .82em; font-weight: 700; color: var(--text-muted);
+  margin-bottom: 2px; text-align: center; letter-spacing: .08em;
+  padding-left: 6px; text-transform: uppercase;
+}
+.calendar-cell { height: 38px; display: flex; align-items: center; justify-content: center; }
+.calendar-cell label {
+  width: 34px; height: 34px;
+  display: flex; justify-content: center; align-items: center;
+  border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); font-size: .9em;
+}
+.calendar-cell label:hover { background: var(--primary-light); }
+.calendar-cell input[type="checkbox"] { accent-color: var(--primary); }
+
+/* ===== Toast ===== */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  pointer-events: auto; position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; gap: 10px;
+  min-width: 280px; max-width: 420px; padding: 14px 18px;
+  border-radius: var(--radius); background: var(--card-bg);
+  box-shadow: var(--shadow-lg); border-left: 4px solid var(--primary);
+  animation: toastIn .35s cubic-bezier(.21,1.02,.73,1) forwards;
+  font-size: .92em; line-height: 1.5; color: var(--text);
+}
+.toast.toast-out { animation: toastOut .25s ease forwards; }
+.toast.success { border-left-color: #22c55e; }
+.toast.error   { border-left-color: #ef4444; }
+.toast.warning { border-left-color: #f59e0b; }
+.toast.info    { border-left-color: #3b82f6; }
+.toast-icon { font-size: 1.2em; flex-shrink: 0; margin-top: 1px; }
+.toast-body { flex: 1; }
+.toast-msg  { color: var(--text-muted); white-space: pre-line; }
+.toast-close {
+  flex-shrink: 0; background: none; border: none; color: var(--text-light);
+  font-size: 1.1em; cursor: pointer; padding: 0 2px; line-height: 1;
+  box-shadow: none; transition: color var(--transition);
+}
+.toast-close:hover { color: var(--text); background: none; box-shadow: none; transform: none; }
+.toast-progress {
+  position: absolute; bottom: 0; left: 4px; right: 0; height: 3px;
+  border-radius: 0 0 var(--radius) 0; background: var(--primary); opacity: .3;
+  animation: toastProgress var(--toast-duration, 3.5s) linear forwards;
+}
+.toast.success .toast-progress { background: #22c55e; }
+.toast.error   .toast-progress { background: #ef4444; }
+.toast.warning .toast-progress { background: #f59e0b; }
+
+@keyframes toastIn  { from { opacity: 0; transform: translateX(40px) scale(.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes toastOut { from { opacity: 1; transform: translateX(0) scale(1); }       to { opacity: 0; transform: translateX(40px) scale(.92); } }
+@keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+
+/* ===== Custom Confirm Dialog ===== */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.5);
+  backdrop-filter: blur(4px); z-index: 10000;
+  display: flex; align-items: center; justify-content: center; animation: fadeIn .2s ease;
+}
+.confirm-dialog {
+  background: var(--card-bg); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); padding: 28px 28px 22px;
+  min-width: 320px; max-width: 420px; text-align: center;
+  animation: confirmIn .25s cubic-bezier(.21,1.02,.73,1);
+}
+.confirm-icon  { font-size: 2.2em; margin-bottom: 10px; }
+.confirm-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.confirm-msg   { font-size: .9rem; color: var(--text-muted); margin-bottom: 22px; line-height: 1.5; white-space: pre-line; }
+.confirm-btns  { display: flex; gap: 10px; justify-content: center; }
+.confirm-btns button { min-width: 100px; padding: 10px 22px; font-size: .9em; }
+.confirm-cancel       { background: #e2e8f0 !important; color: var(--text-muted) !important; }
+.confirm-cancel:hover { background: #cbd5e1 !important; }
+@keyframes confirmIn { from { opacity: 0; transform: scale(.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* ===== Utility ===== */
+.hidden { display: none !important; }
+.label-note       { font-weight: normal; color: #94a3b8; }
+.label-file-input { cursor: pointer; margin: 0; }
+.btn-row-mb       { margin-bottom: 12px; }
+
+/* ===== Work Summary ===== */
+.work-summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+}
+.work-summary-sep {
+  width: 1px; height: 28px;
+  background: var(--border);
+}
+.work-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.work-summary-label {
+  font-size: .88em;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.work-summary-value {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.work-summary-overtime {
+  color: #ef4444;
+}
+
+/* ===== Mode Bar ===== */
+.mode-bar {
+  background: #1e3a8a;
+  padding: 6px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+.mode-bar-inner {
+  max-width: 980px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.mode-bar-label {
+  font-size: .82em;
+  color: rgba(255,255,255,.6);
+  margin-right: 2px;
+}
+.mode-btn {
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,.3);
+  background: transparent;
+  color: rgba(255,255,255,.65);
+  font-size: .8em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: none;
+  letter-spacing: .03em;
+}
+.mode-btn:hover {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+.mode-btn.active {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+  border-color: rgba(255,255,255,.7);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 700px) {
+  .app-header { padding: 16px 12px; }
+  .app-header h1 { font-size: 1.15rem; }
+  .app-container { padding: 0 8px 24px; }
+  .tabs { padding: 0 8px; gap: 4px; }
+  .tab-btn { font-size: .88em; padding: 11px 0; }
+  .card { padding: 16px 12px; }
+  .form-grid { gap: 12px 10px; grid-template-columns: 1fr 1fr; }
+  th, td { font-size: .85em; padding: 8px 5px; }
+  #calendar-grid, .calendar-header { grid-template-columns: repeat(7, 32px); }
+  .calendar-cell { height: 32px; }
+  .calendar-cell label { width: 28px; height: 28px; font-size: .82em; }
+  .checkin-btn { padding: 12px 28px; font-size: .95em; }
+  .checkin-row { gap: 10px; }
+  .btn-row { gap: 8px; }
+  button { padding: 9px 16px; font-size: .85em; }
+}
+@media (max-width: 440px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-item.grid-col-span-3 { grid-column: span 1 !important; }
+  .checkin-row { flex-direction: column; gap: 10px; }
+  .checkin-btn { width: 100%; }
+  .toast-container { top: 12px; right: 12px; left: 12px; }
+  .toast { min-width: auto; max-width: 100%; }
+  .confirm-dialog { min-width: auto; margin: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- App Header -->
+<header class="app-header">
+  <a href="index.html" style="display: inline-block; margin-bottom: 12px; color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">← ホームに戻る</a>
+  <h1>📋 作業表ツール</h1>
+  <p>勤務時間・作業内容の記録管理</p>
+</header>
+
+<!-- モード切り替えバー -->
+<div class="mode-bar">
+  <div class="mode-bar-inner">
+    <span class="mode-bar-label">モード：</span>
+    <button id="mode-employee-btn" class="mode-btn active" onclick="setMode('employee')">👤 社員用</button>
+    <button id="mode-bp-btn" class="mode-btn" onclick="setMode('bp')">🤝 BP用</button>
+  </div>
+</div>
+
+<!-- タブ -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="checkin-tab">出社・退勤</button>
+  <button class="tab-btn" data-tab="input-tab">作業表入力</button>
+  <button class="tab-btn" data-tab="list-tab">データ一覧</button>
+  <button class="tab-btn" data-tab="event-tab">イベント一覧</button>
+</div>
+
+<div class="app-container">
+
+  <!-- 出社・退勤タブ -->
+  <div id="checkin-tab" class="tab-content active">
+    <div class="section-title"><span class="icon">🏢</span> 出社・退勤</div>
+    <div class="card checkin-card">
+      <div class="checkin-header">
+        <span id="checkin-status" class="checkin-status">未出社</span>
+      </div>
+      <div class="checkin-row">
+        <button id="simple_in_btn"  class="checkin-btn in"  onclick="simpleCheckIn()">🏢 出社</button>
+        <button id="simple_out_btn" class="checkin-btn out" onclick="simpleCheckOut()">🏠 退勤</button>
+      </div>
+      <div class="checkin-info">
+        <div>
+          <span id="simple_in_time"  class="checkin-time"></span>
+          <span id="simple_out_time" class="checkin-time"></span>
+        </div>
+        <div class="checkin-content-row">
+          <input type="text" id="simple_content" maxlength="27"
+                 placeholder="作業内容（最大27文字）" class="checkin-content" />
+          <button class="btn-secondary btn-sm" onclick="applyEventsToCheckin()" title="今日のイベントを内容に反映">📅</button>
+        </div>
+        <input type="time" id="manual_in_time" class="checkin-manual-in hidden" />
+      </div>
+      <p class="checkin-guide">出社ボタンで時刻を記録、退勤ボタンで内容とともに登録します</p>
+    </div>
+  </div>
+
+  <!-- 作業表入力タブ -->
+  <div id="input-tab" class="tab-content">
+    <div class="section-title"><span class="icon">📝</span> 作業表入力</div>
+    <div class="card">
+      <div class="form-grid form-grid-3">
+        <div class="form-item">
+          <label>日付</label>
+          <div class="date-row">
+            <input type="date" id="date">
+            <span id="weekday" class="weekday-label"></span>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>勤務実績</label>
+          <select id="status">
+            <option value=""></option>
+            <option>有休</option><option>午前半休</option><option>午後半休</option>
+            <option>有休（計画）</option><option>午前半休（計画）</option><option>午後半休（計画）</option>
+            <option>プロジェクト休暇</option><option>特別休暇</option><option>代休</option>
+            <option>休日出勤</option><option>振替出勤日</option><option>振替休日</option>
+            <option>変則勤務</option><option>休業</option><option>休業半日</option>
+            <option>休業（研修）</option><option>休業（研修）半日</option>
+            <option>休業(研修)/午後半休</option><option>午前半休/休業(研修)</option>
+            <option>欠勤</option><option>欠勤（生理休暇）</option><option>休職</option>
+            <option>入社日</option><option>退社日</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>遅刻 / 早退</label>
+          <select id="late">
+            <option value=""></option>
+            <option>遅刻</option><option>早退</option><option>遅刻/早退</option>
+          </select>
+        </div>
+        <div class="form-item grid-col-1">
+          <label>作業開始</label>
+          <input type="time" id="start" value="09:00">
+        </div>
+        <div class="form-item grid-col-2">
+          <label>作業終了</label>
+          <input type="time" id="end" value="18:00">
+        </div>
+        <div class="form-item grid-col-1">
+          <label>18時以降休憩</label>
+          <select id="break">
+            <option value=""></option>
+            <option>0.5</option><option>1.0</option><option>1.5</option><option>2.0</option>
+          </select>
+        </div>
+        <div class="form-item grid-col-2 hidden" id="substitute-wrap">
+          <label>振替代休対象日</label>
+          <div class="date-row">
+            <input type="date" id="substitute">
+            <span id="substitute-weekday" class="weekday-label"></span>
+          </div>
+        </div>
+        <div class="form-item grid-col-span-3">
+          <label>内容 <span class="label-note">（最大27文字）</span></label>
+          <input type="text" id="content" maxlength="27">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button onclick="addData()">✔ 登録</button>
+        <button class="btn-secondary" onclick="clearForm()">↺ クリア</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- データ一覧タブ -->
+  <div id="list-tab" class="tab-content">
+    <div class="section-title"><span class="icon">📋</span> データ一覧</div>
+    <div class="card table-wrap">
+      <table>
+        <thead>
+          <tr id="list-thead-tr">
+            <th>日付</th><th>曜</th><th>実績</th>
+            <th>開始</th><th>終了</th><th>18時以降休憩</th>
+            <th>遅刻</th><th>振替</th><th>内容</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="work-summary" class="card hidden" style="padding:14px 24px;"></div>
+    <div class="card">
+      <div class="btn-row btn-row-grouped">
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="exportJSON()">⬇ JSON出力</button>
+          <label class="label-file-input">
+            <button class="btn-secondary" onclick="this.closest('label').querySelector('input').click()">⬆ JSON読込</button>
+            <input type="file" id="fileInput" accept=".json" onchange="importJSON(event)" class="hidden">
+          </label>
+        </div>
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="importEventsToContents()">📥 イベント取り込み</button>
+        </div>
+        <div class="btn-divider"></div>
+        <div class="btn-group">
+          <button class="btn-danger" onclick="clearAll()">🗑 全体クリア</button>
+        </div>
+        <div class="btn-divider"></div>
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="copyStartEnd()">⧉ 開始・終了コピー</button>
+          <button class="btn-secondary" onclick="copyContents()">⧉ 内容コピー</button>
+          <button class="btn-secondary" onclick="formatTimes()">⏱ 時間フォーマット整理</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- イベント一覧タブ -->
+  <div id="event-tab" class="tab-content">
+    <div class="section-title"><span class="icon">📅</span> イベント一覧</div>
+    <div class="card">
+      <div class="btn-row" style="margin-bottom:14px;margin-top:0;">
+        <button id="event-mode-single" class="btn-secondary btn-sm" onclick="setEventMode('single')">📌 単一日付</button>
+        <button id="event-mode-range"  class="btn-secondary btn-sm" onclick="setEventMode('range')">📆 期間指定</button>
+      </div>
+      <div class="form-grid form-grid-3">
+        <!-- 単一日付モード -->
+        <div class="form-item" id="event-field-single-date">
+          <label>日付</label>
+          <input type="date" id="event-single-date">
+        </div>
+        <!-- 期間指定モード -->
+        <div class="form-item hidden" id="event-field-start-date">
+          <label>開始日 <span class="label-note">（空欄→制限なし）</span></label>
+          <input type="date" id="event-start-date">
+        </div>
+        <div class="form-item hidden" id="event-field-end-date">
+          <label>終了日 <span class="label-note">（空欄→制限なし）</span></label>
+          <input type="date" id="event-end-date">
+        </div>
+        <div class="form-item" id="event-field-content">
+          <label>内容 <span class="label-note">（例: 事業部会）</span></label>
+          <input type="text" id="event-content" maxlength="32" placeholder="イベント内容">
+        </div>
+        <div class="form-item grid-col-span-3 hidden" id="event-field-exclude">
+          <label>除外日 <span class="label-note">（カンマ区切りで複数指定可&emsp;例: 2026-04-23, 2026-04-25）</span></label>
+          <input type="text" id="event-exclude-dates" placeholder="取り込みたくない日を入力">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button onclick="addEvent()">＋ 追加</button>
+        <button class="btn-secondary" onclick="clearEventForm()">↺ クリア</button>
+      </div>
+    </div>
+    <div class="card table-wrap">
+      <table>
+        <thead>
+          <tr><th>開始日</th><th>終了日</th><th>除外日</th><th>内容</th><th>操作</th></tr>
+        </thead>
+        <tbody id="event-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- イベント編集モーダル -->
+    <div id="eventEditModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 28px 24px; min-width: 340px; z-index: 102; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto;">
+      <div class="section-title"><span class="icon">📝</span> イベント編集</div>
+      <div class="btn-row" style="margin-bottom:14px;margin-top:0;">
+        <button id="event-edit-mode-single" class="btn-secondary btn-sm" type="button" onclick="switchEditEventMode('single')">📌 単一日付</button>
+        <button id="event-edit-mode-range"  class="btn-secondary btn-sm" type="button" onclick="switchEditEventMode('range')">📆 期間指定</button>
+      </div>
+      <div class="form-grid form-grid-3">
+        <div class="form-item" id="event-edit-field-single-date">
+          <label for="event-edit-single-date">日付</label>
+          <input type="date" id="event-edit-single-date">
+        </div>
+        <div class="form-item" id="event-edit-field-start-date">
+          <label for="event-edit-start-date">開始日</label>
+          <input type="date" id="event-edit-start-date">
+        </div>
+        <div class="form-item" id="event-edit-field-end-date">
+          <label for="event-edit-end-date">終了日</label>
+          <input type="date" id="event-edit-end-date">
+        </div>
+        <div class="form-item grid-col-span-2" id="event-edit-field-content">
+          <label for="event-edit-content">内容</label>
+          <input type="text" id="event-edit-content" maxlength="32">
+        </div>
+        <div class="form-item grid-col-span-3" id="event-edit-field-exclude">
+          <label for="event-edit-exclude-dates">除外日 <span class="label-note">（カンマ区切り可 例: 2026-04-23, 2026-04-25）</span></label>
+          <input type="text" id="event-edit-exclude-dates" placeholder="取り込みたくない日を入力">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button onclick="saveEditEvent()">✔ 更新</button>
+        <button class="btn-secondary" onclick="closeEditEventModal()">✕ 閉じる</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="btn-row btn-row-grouped">
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="exportEventJSON()">⬇ JSON出力</button>
+          <label class="label-file-input">
+            <button class="btn-secondary" onclick="this.closest('label').querySelector('input').click()">⬆ JSON読込</button>
+            <input type="file" id="eventFileInput" accept=".json" onchange="importEventJSON(event)" class="hidden">
+          </label>
+        </div>
+        <div class="btn-divider"></div>
+        <div class="btn-group">
+          <button class="btn-danger" onclick="clearAllEvents()">🗑 全体クリア</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.app-container -->
+
+<!-- 編集モーダル -->
+<div id="overlay" class="hidden" onclick="closeEditModal(); closeModal(); closeEditEventModal();"></div>
+<div id="editModal" class="hidden">
+  <div class="section-title"><span class="icon">📝</span> 編集</div>
+  <div class="form-grid form-grid-3">
+    <div class="form-item">
+      <label>日付</label>
+      <div class="date-row">
+        <input type="date" id="edit-date">
+        <span id="edit-weekday" class="weekday-label"></span>
+      </div>
+    </div>
+    <div class="form-item">
+      <label>勤務実績</label>
+      <select id="edit-status">
+        <option value=""></option>
+        <option>有休</option><option>午前半休</option><option>午後半休</option>
+        <option>有休（計画）</option><option>午前半休（計画）</option><option>午後半休（計画）</option>
+        <option>プロジェクト休暇</option><option>特別休暇</option><option>代休</option>
+        <option>休日出勤</option><option>振替出勤日</option><option>振替休日</option>
+        <option>変則勤務</option><option>休業</option><option>休業半日</option>
+        <option>休業（研修）</option><option>休業（研修）半日</option>
+        <option>休業(研修)/午後半休</option><option>午前半休/休業(研修)</option>
+        <option>欠勤</option><option>欠勤（生理休暇）</option><option>休職</option>
+        <option>入社日</option><option>退社日</option>
+      </select>
+    </div>
+    <div class="form-item">
+      <label>遅刻 / 早退</label>
+      <select id="edit-late">
+        <option value=""></option>
+        <option>遅刻</option><option>早退</option><option>遅刻/早退</option>
+      </select>
+    </div>
+    <div class="form-item grid-col-1">
+      <label>作業開始</label>
+      <input type="time" id="edit-start">
+    </div>
+    <div class="form-item grid-col-2">
+      <label>作業終了</label>
+      <input type="time" id="edit-end">
+    </div>
+    <div class="form-item grid-col-1">
+      <label>18時以降休憩</label>
+      <select id="edit-break">
+        <option value=""></option>
+        <option>0.5</option><option>1.0</option><option>1.5</option><option>2.0</option>
+      </select>
+    </div>
+    <div class="form-item grid-col-2 hidden" id="edit-substitute-wrap">
+      <label>振替代休対象日</label>
+      <div class="date-row">
+        <input type="date" id="edit-substitute">
+        <span id="edit-substitute-weekday" class="weekday-label"></span>
+      </div>
+    </div>
+    <div class="form-item grid-col-span-3">
+      <label>内容 <span class="label-note">（最大27文字）</span></label>
+      <input type="text" id="edit-content" maxlength="27">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button onclick="saveEditData()">✔ 更新</button>
+    <button class="btn-secondary" onclick="closeEditModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- コピーモーダル -->
+<div id="copyModal" class="hidden">
+  <h4>📅 コピー先をカレンダーから選択</h4>
+  <div class="calendar-header">
+    <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+  </div>
+  <div id="calendar-grid"></div>
+  <div class="btn-row btn-row-mb">
+    <button class="btn-secondary btn-sm" onclick="selectWeekdays()">平日</button>
+    <button class="btn-secondary btn-sm" onclick="selectAll()">全選択</button>
+    <button class="btn-secondary btn-sm" onclick="clearChecks()">解除</button>
+  </div>
+  <div class="btn-row">
+    <button onclick="executeCopy()">✔ コピー実行</button>
+    <button class="btn-secondary" onclick="closeModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+'use strict';
+
+// ============================================================
+// 定数
+// ============================================================
+const STATUS = {
+  SUBSTITUTE_WORK: '振替出勤日',
+  SUBSTITUTE_OFF:  '振替休日',
+  FLEX:            '変則勤務',
+  COMPENSATORY:    '代休',
+};
+const SUBSTITUTE_VISIBLE_STATUSES = [STATUS.COMPENSATORY, STATUS.SUBSTITUTE_OFF, STATUS.SUBSTITUTE_WORK];
+const OFF_STATUSES = [
+  '有休', '有休（計画）', 'プロジェクト休暇', '特別休暇', '代休',
+  '振替休日', '休業', '欠勤', '欠勤（生理休暇）',
+];
+const WEEKDAYS        = ['日', '月', '火', '水', '木', '金', '土'];
+const TOAST_ICONS     = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+const STORAGE_KEY     = 'workData';
+const BP_STORAGE_KEY  = 'workData_bp';
+const MODE_KEY        = 'workMode';
+const EVENT_STORAGE_KEY = 'eventData';
+const CHECKIN_KEY     = 'simpleCheckIn';
+const ROUND_DIFFS_KEY = 'roundDiffs';
+
+// ============================================================
+// 状態
+// ============================================================
+let data        = [];
+let eventData   = [];
+let editIndex   = null;
+let copyBase    = null;
+let Els         = {};
+let currentMode = 'employee'; // 'employee' | 'bp'
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function getWeekdayLabel(dateStr) {
+  return dateStr ? `(${WEEKDAYS[new Date(dateStr).getDay()]})` : '';
+}
+function timeToMinutes(timeStr) {
+  if (!timeStr) return 0;
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+function minutesToTime(minutes) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}
+function roundToQuarter(timeStr, mode = 'nearest') {
+  if (!timeStr) return '';
+  const total = timeToMinutes(timeStr);
+  let rounded;
+  if (mode === 'up')        rounded = Math.ceil(total  / 15) * 15;
+  else if (mode === 'down') rounded = Math.floor(total / 15) * 15;
+  else                      rounded = Math.round(total / 15) * 15;
+  return minutesToTime(rounded);
+}
+function isTimeReversed(startStr, endStr) {
+  return !!startStr && !!endStr && timeToMinutes(endStr) < timeToMinutes(startStr);
+}
+function nowTimeStr() {
+  const now = new Date();
+  return minutesToTime(now.getHours() * 60 + now.getMinutes());
+}
+// BP用実働時間フォーマット（例: 480 → "8:00"）
+function minutesToBpTime(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h}:${String(m).padStart(2, '0')}`;
+}
+
+// ============================================================
+// モード切り替え
+// ============================================================
+function setMode(mode) {
+  currentMode = mode;
+  localStorage.setItem(MODE_KEY, mode);
+  const isBp = mode === 'bp';
+
+  document.getElementById('mode-employee-btn').classList.toggle('active', !isBp);
+  document.getElementById('mode-bp-btn').classList.toggle('active', isBp);
+
+  // 社員用のみのフォームフィールドを表示/非表示
+  ['status', 'late', 'edit-status', 'edit-late'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.closest('.form-item').style.display = isBp ? 'none' : '';
+  });
+
+  // データを切り替えて再描画
+  data = [];
+  load();
+  render();
+  clearForm();
+  if (!isBp) { controlBreakDisplay(); updateSubstituteVisibility(); }
+}
+function calcWorkMinutes(d) {
+  if (!d.作業開始 || !d.作業終了) return null;
+  let start = timeToMinutes(d.作業開始);
+  let end   = timeToMinutes(d.作業終了);
+  if (end < start) end += 24 * 60; // 日跨ぎ対応（開始=終了は0分として扱う）
+  const duration     = end - start;
+  const lunchBreak   = duration > 6 * 60 ? 60 : 0; // 6時間超なら1時間昼休憩を差し引く
+  const breakAfter18 = Math.round(parseFloat(d['18時以降休憩'] || '0') * 60);
+  return Math.max(0, duration - lunchBreak - breakAfter18);
+}
+function formatHoursMinutes(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}時間${m}分` : `${h}時間`;
+}
+
+// ============================================================
+// Toast 通知
+// ============================================================
+function showToast(msg, type = 'info', duration = 3500) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.style.setProperty('--toast-duration', duration + 'ms');
+  toast.innerHTML = `
+    <span class="toast-icon">${TOAST_ICONS[type] ?? TOAST_ICONS.info}</span>
+    <div class="toast-body"><div class="toast-msg">${msg.replace(/\n/g, '<br>')}</div></div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
+    <div class="toast-progress"></div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.remove(), { once: true });
+  }, duration);
+}
+
+// ============================================================
+// カスタム確認ダイアログ
+// ============================================================
+function showConfirm(msg, { title = '確認', danger = false } = {}) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-dialog">
+        <div class="confirm-icon">${danger ? '⚠️' : '❓'}</div>
+        <div class="confirm-title">${title}</div>
+        <div class="confirm-msg">${msg.replace(/\n/g, '<br>')}</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" id="_cfm_no">キャンセル</button>
+          <button class="${danger ? 'btn-danger' : ''}" id="_cfm_yes">OK</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = result => { overlay.remove(); resolve(result); };
+    overlay.querySelector('#_cfm_yes').addEventListener('click', () => close(true));
+    overlay.querySelector('#_cfm_no').addEventListener('click',  () => close(false));
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
+  });
+}
+
+// ============================================================
+// データ永続化
+// ============================================================
+function save()      { const key = currentMode === 'bp' ? BP_STORAGE_KEY : STORAGE_KEY; localStorage.setItem(key, JSON.stringify(data)); }
+function load()      { const key = currentMode === 'bp' ? BP_STORAGE_KEY : STORAGE_KEY; const s = localStorage.getItem(key); data = s ? JSON.parse(s) : []; }
+function sortData()  { data.sort((a, b) => new Date(a.日付) - new Date(b.日付)); }
+function saveEventData() { localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(eventData)); }
+function loadEventData() { const s = localStorage.getItem(EVENT_STORAGE_KEY); if (s) eventData = JSON.parse(s); }
+
+// ============================================================
+// タブ切り替え
+// ============================================================
+function initTabs() {
+  const tabBtns     = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(tc => tc.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ============================================================
+// フォーム制御（入力フォーム / 編集モーダル 共通）
+// prefix = '' → 入力フォーム、prefix = 'edit' → 編集モーダル
+// ============================================================
+function getFormEl(prefix, id) {
+  return document.getElementById(prefix ? `${prefix}-${id}` : id);
+}
+
+function controlTime(prefix = '') {
+  if (currentMode === 'bp') return;
+  const off   = OFF_STATUSES.includes(getFormEl(prefix, 'status').value);
+  const start = getFormEl(prefix, 'start');
+  const end   = getFormEl(prefix, 'end');
+  start.disabled = off;
+  end.disabled   = off;
+  if (off) {
+    start.value = '';
+    end.value   = '';
+  } else {
+    if (!start.value) start.value = '09:00';
+    if (!end.value)   end.value   = '18:00';
+  }
+}
+
+function updateSubstituteVisibility(prefix = '') {
+  if (currentMode === 'bp') return;
+  const v       = getFormEl(prefix, 'status').value;
+  const wrap    = document.getElementById(prefix ? `${prefix}-substitute-wrap` : 'substitute-wrap');
+  const subInput = getFormEl(prefix, 'substitute');
+  const wdSpan  = document.getElementById(prefix ? `${prefix}-substitute-weekday` : 'substitute-weekday');
+  if (SUBSTITUTE_VISIBLE_STATUSES.includes(v)) {
+    wrap.classList.remove('hidden');
+    subInput.required = true;
+  } else {
+    wrap.classList.add('hidden');
+    subInput.required = false;
+    subInput.value    = '';
+    wdSpan.textContent = '';
+  }
+}
+
+function updateBreakOptions(prefix = '') {
+  const status   = getFormEl(prefix, 'status').value;
+  const startVal = getFormEl(prefix, 'start').value || '00:00';
+  const endVal   = getFormEl(prefix, 'end').value;
+  const breakSel = getFormEl(prefix, 'break');
+
+  if (status === STATUS.FLEX || status === STATUS.SUBSTITUTE_WORK) {
+    breakSel.innerHTML = '<option value=""></option>' +
+      ['0.5','1.0','1.5','2.0'].map(v => `<option>${v}</option>`).join('');
+    return;
+  }
+  const reversed     = isTimeReversed(startVal, endVal);
+  const effectiveEnd = reversed ? '24:00' : (endVal || '');
+  const allowed      = [];
+  if (effectiveEnd >= '18:30') allowed.push('0.5');
+  if (effectiveEnd >= '19:00') allowed.push('1.0');
+  if (effectiveEnd >= '19:30') allowed.push('1.5');
+  if (effectiveEnd >= '20:00') allowed.push('2.0');
+  const current = breakSel.value;
+  breakSel.innerHTML = '<option value=""></option>' +
+    allowed.map(v => `<option${current === v ? ' selected' : ''}>${v}</option>`).join('');
+}
+
+function controlBreakDisplay(prefix = '') {
+  const breakSel  = getFormEl(prefix, 'break');
+  const breakWrap = breakSel.closest('.form-item');
+  if (!breakWrap) return;
+  if (currentMode === 'bp') { breakWrap.classList.add('hidden'); breakSel.value = ''; return; }
+
+  const status   = getFormEl(prefix, 'status').value;
+  const startVal = getFormEl(prefix, 'start').value || '00:00';
+  const endVal   = getFormEl(prefix, 'end').value;
+
+  const showAll  = status === STATUS.FLEX || status === STATUS.SUBSTITUTE_WORK;
+  const off      = OFF_STATUSES.includes(status);
+  const reversed = isTimeReversed(startVal, endVal);
+
+  if (showAll || reversed || (!off && endVal && endVal > '18:00')) {
+    breakWrap.classList.remove('hidden');
+    updateBreakOptions(prefix);
+  } else {
+    breakWrap.classList.add('hidden');
+    breakSel.value = '';
+  }
+}
+
+// ============================================================
+// 入力フォーム 初期化
+// ============================================================
+function initInputForm() {
+  document.getElementById('date').addEventListener('change', () => {
+    const dateVal = document.getElementById('date').value;
+    document.getElementById('weekday').textContent = getWeekdayLabel(dateVal);
+    applyEventsToContentField(dateVal);
+  });
+  document.getElementById('substitute').addEventListener('change', () => {
+    document.getElementById('substitute-weekday').textContent = getWeekdayLabel(document.getElementById('substitute').value);
+  });
+  document.getElementById('status').addEventListener('change', () => {
+    controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
+  });
+  document.getElementById('end').addEventListener('change', () => controlBreakDisplay());
+  // 初期状態
+  controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
+}
+
+function applyEventsToCheckin() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  if (!eventData?.length) { showToast('イベントデータがありません', 'info', 2000); return; }
+  const matched = eventData.filter(ev => {
+    const start    = ev.startDate || ev.date || null;
+    const end      = ev.endDate   || ev.date || null;
+    const excludes = ev.excludeDates
+      ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    if (excludes.includes(dateStr)) return false;
+    if (start && dateStr < start)   return false;
+    if (end   && dateStr > end)     return false;
+    return true;
+  }).map(ev => ev.content);
+  if (!matched.length) { showToast('今日に該当するイベントがありません', 'info', 2000); return; }
+  const contentEl = document.getElementById('simple_content');
+  const parts     = contentEl.value.trim() ? contentEl.value.trim().split(',').map(s => s.trim()) : [];
+  let added = false;
+  matched.forEach(c => { if (!parts.includes(c)) { parts.push(c); added = true; } });
+  if (added) {
+    contentEl.value = parts.join(',').slice(0, 27);
+    showToast('イベントを内容に反映しました', 'success', 2000);
+  } else {
+    showToast('既に全て反映済みです', 'info', 2000);
+  }
+}
+
+function applyEventsToContentField(dateStr) {
+  if (!dateStr || !eventData?.length) return;
+  const matched = eventData.filter(ev => {
+    const start    = ev.startDate || ev.date || null;
+    const end      = ev.endDate   || ev.date || null;
+    const excludes = ev.excludeDates
+      ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    if (excludes.includes(dateStr)) return false;
+    if (start && dateStr < start)   return false;
+    if (end   && dateStr > end)     return false;
+    return true;
+  }).map(ev => ev.content);
+  if (!matched.length) return;
+
+  const contentEl = document.getElementById('content');
+  const existing  = contentEl.value.trim();
+  const parts     = existing ? existing.split(',').map(s => s.trim()) : [];
+  let added = false;
+  matched.forEach(c => { if (!parts.includes(c)) { parts.push(c); added = true; } });
+  if (added) {
+    contentEl.value = parts.join(',').slice(0, 27);
+    showToast(`イベントから内容を自動反映しました`, 'info', 2500);
+  }
+}
+
+// ============================================================
+// 編集モーダル 初期化
+// ============================================================
+function initEditModalListeners() {
+  document.getElementById('edit-status').addEventListener('change', () => {
+    controlTime('edit'); controlBreakDisplay('edit'); updateSubstituteVisibility('edit');
+  });
+  document.getElementById('edit-end').addEventListener('change', () => controlBreakDisplay('edit'));
+  document.getElementById('edit-date').addEventListener('change', () => {
+    document.getElementById('edit-weekday').textContent = getWeekdayLabel(document.getElementById('edit-date').value);
+  });
+  document.getElementById('edit-substitute').addEventListener('change', () => {
+    document.getElementById('edit-substitute-weekday').textContent = getWeekdayLabel(document.getElementById('edit-substitute').value);
+  });
+}
+
+// ============================================================
+// バリデーション & データ生成（共通）
+// ============================================================
+function validateWorkItem(prefix = '') {
+  const dateVal    = getFormEl(prefix, 'date').value;
+  const contentVal = getFormEl(prefix, 'content').value.trim();
+  const startEl    = getFormEl(prefix, 'start');
+  const endEl      = getFormEl(prefix, 'end');
+
+  if (!dateVal || !contentVal) { showToast('日付と内容は必須です', 'warning'); return false; }
+  if (!startEl.disabled && (!startEl.value || !endEl.value)) {
+    showToast('開始・終了時間を入力してください', 'warning'); return false;
+  }
+  // BP用は日跨ぎを許容するため時刻逆転チェックをスキップ
+  if (currentMode === 'bp') return true;
+
+  const statusVal  = getFormEl(prefix, 'status').value;
+  const subVal     = getFormEl(prefix, 'substitute').value;
+  if (SUBSTITUTE_VISIBLE_STATUSES.includes(statusVal) && !subVal) {
+    showToast('振替代休対象日を入力してください', 'warning'); return false;
+  }
+  const noReverseCheck = statusVal === STATUS.FLEX || statusVal === STATUS.SUBSTITUTE_WORK;
+  if (!startEl.disabled && !noReverseCheck && startEl.value && endEl.value) {
+    if (timeToMinutes(endEl.value) < timeToMinutes(startEl.value)) {
+      showToast('開始時刻が終了時刻より後になっています。\n正しい時刻を入力してください。', 'error'); return false;
+    }
+  }
+  return true;
+}
+
+function buildWorkItem(prefix = '') {
+  const p = prefix ? `${prefix}-` : '';
+  const base = {
+    日付:     document.getElementById(`${p}date`).value,
+    作業開始: document.getElementById(`${p}start`).value,
+    作業終了: document.getElementById(`${p}end`).value,
+    作業内容: document.getElementById(`${p}content`).value.trim(),
+  };
+  if (currentMode === 'bp') return base;
+  return {
+    ...base,
+    勤務実績:       document.getElementById(`${p}status`).value,
+    '18時以降休憩': document.getElementById(`${p}break`).value,
+    遅刻早退:       document.getElementById(`${p}late`).value,
+    振替代休対象日: document.getElementById(`${p}substitute`).value,
+  };
+}
+
+// ============================================================
+// データ登録
+// ============================================================
+async function addData() {
+  if (!validateWorkItem()) return;
+  const item = buildWorkItem();
+  const idx  = data.findIndex(d => d.日付 === item.日付);
+  if (idx !== -1) {
+    if (!await showConfirm('同じ日付のデータが存在します。\nこの内容で更新しますか？')) return;
+    data[idx] = item;
+  } else {
+    data.push(item);
+  }
+  sortData(); save(); render(); clearForm();
+  showToast('登録が完了しました', 'success');
+}
+
+// ============================================================
+// 編集モーダル 開閉・保存
+// ============================================================
+function editRow(i) {
+  editIndex = i;
+  const d = data[i];
+  document.getElementById('edit-date').value        = d.日付;
+  document.getElementById('edit-status').value      = d.勤務実績      || '';
+  document.getElementById('edit-start').value       = d.作業開始;
+  document.getElementById('edit-end').value         = d.作業終了;
+  document.getElementById('edit-break').value       = d['18時以降休憩'] || '';
+  document.getElementById('edit-late').value        = d.遅刻早退       || '';
+  document.getElementById('edit-substitute').value  = d.振替代休対象日  || '';
+  document.getElementById('edit-content').value     = d.作業内容;
+  document.getElementById('edit-weekday').textContent           = getWeekdayLabel(d.日付);
+  document.getElementById('edit-substitute-weekday').textContent = getWeekdayLabel(d.振替代休対象日 || '');
+
+  controlTime('edit'); controlBreakDisplay('edit'); updateSubstituteVisibility('edit');
+  document.getElementById('editModal').classList.remove('hidden');
+  document.getElementById('overlay').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function saveEditData() {
+  if (!validateWorkItem('edit')) return;
+  if (editIndex === null) return;
+  data[editIndex] = buildWorkItem('edit');
+  sortData(); save(); render();
+  closeEditModal();
+  showToast('編集内容を更新しました', 'success');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  editIndex = null;
+  if (document.getElementById('copyModal').classList.contains('hidden')) {
+    document.getElementById('overlay').classList.add('hidden');
+  }
+}
+
+// ============================================================
+// 削除・フォームクリア
+// ============================================================
+async function del(i) {
+  if (!await showConfirm('このデータを削除しますか？', { danger: true })) return;
+  data.splice(i, 1);
+  save(); render();
+  showToast('削除しました', 'success');
+}
+
+function clearForm() {
+  ['status', 'late'].forEach(id => document.getElementById(id).value = '');
+  ['date', 'substitute', 'content', 'break'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('start').value    = '09:00';
+  document.getElementById('end').value      = '18:00';
+  document.getElementById('start').disabled = false;
+  document.getElementById('end').disabled   = false;
+  document.getElementById('weekday').textContent             = '';
+  document.getElementById('substitute-weekday').textContent  = '';
+  editIndex = null;
+  updateSubstituteVisibility(); controlBreakDisplay();
+}
+
+async function clearAll() {
+  if (!await showConfirm('全データを削除しますか？\nこの操作は取り消せません。', { title: '全削除', danger: true })) return;
+  data = [];
+  const key = currentMode === 'bp' ? BP_STORAGE_KEY : STORAGE_KEY;
+  localStorage.removeItem(key);
+  if (currentMode === 'employee') localStorage.removeItem(ROUND_DIFFS_KEY);
+  render();
+  showToast('全データを削除しました', 'success');
+}
+
+// ============================================================
+// 残業計算用ヘルパー関数
+// ============================================================
+// ISO週番号を取得（月曜日始まり）
+function getISOWeek(dateStr) {
+  const date = new Date(dateStr);
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+// データを週単位でグループ化
+function groupByWeek(dataArray) {
+  const weeks = {};
+  dataArray.forEach(d => {
+    if (!d.日付) return;
+    const week = getISOWeek(d.日付);
+    if (!weeks[week]) weeks[week] = [];
+    weeks[week].push(d);
+  });
+  return weeks;
+}
+
+// 残業時間を計算（日曜日を除き、1日8時間または週40時間を超えた分）
+function calculateOvertime(weeklyData) {
+  let totalOvertimeMin = 0;
+
+  Object.values(weeklyData).forEach(weekData => {
+    let weekTotalMin = 0;
+    let dailyOvertimeMin = 0;
+
+    weekData.forEach(d => {
+      const workMin = calcWorkMinutes(d);
+      if (workMin === null) return;
+
+      const dayOfWeek = new Date(d.日付).getDay();
+      // 日曜日（0）は残業計算から除外
+      if (dayOfWeek === 0) return;
+
+      weekTotalMin += workMin;
+
+      // 1日8時間を超えた分を日次残業として計上
+      const dailyOvertime = Math.max(0, workMin - 8 * 60);
+      dailyOvertimeMin += dailyOvertime;
+    });
+
+    // 週40時間を超えた分を計算（日次残業を除く）
+    const weeklyOvertime = Math.max(0, weekTotalMin - 40 * 60 - dailyOvertimeMin);
+    
+    totalOvertimeMin += dailyOvertimeMin + weeklyOvertime;
+  });
+
+  return totalOvertimeMin;
+}
+
+// ============================================================
+// テーブル描画
+// ============================================================
+function render() {
+  let totalWorkMin = 0;
+  let totalOvertimeMin = 0;
+
+  // thead 切り替え
+  const theadTr = document.getElementById('list-thead-tr');
+  if (theadTr) {
+    const isBp = currentMode === 'bp';
+    theadTr.innerHTML = isBp
+      ? '<th>日付</th><th>曜</th><th>開始</th><th>終了</th><th>内容</th><th>操作</th>'
+      : '<th>日付</th><th>曜</th><th>実績</th><th>開始</th><th>終了</th><th>18時以降休憩</th><th>遅刻</th><th>振替</th><th>内容</th><th>操作</th>';
+  }
+
+  // 残業計算のため、データを週単位でグループ化
+  const weeklyData = groupByWeek(data);
+  totalOvertimeMin = calculateOvertime(weeklyData);
+
+  const frag = document.createDocumentFragment();
+  data.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    const workMin = calcWorkMinutes(d);
+    if (currentMode === 'bp') {
+      [d.日付, WEEKDAYS[new Date(d.日付).getDay()], d.作業開始, d.作業終了].forEach(text => {
+        const td = document.createElement('td'); td.textContent = text; tr.appendChild(td);
+      });
+      const tdContent = document.createElement('td');
+      tdContent.textContent = d.作業内容;
+      tdContent.style.cssText = 'white-space:normal;text-align:left;';
+      tr.appendChild(tdContent);
+    } else {
+      [
+        d.日付, WEEKDAYS[new Date(d.日付).getDay()], d.勤務実績,
+        d.作業開始, d.作業終了, d['18時以降休憩'] || '',
+        d.遅刻早退, d.振替代休対象日, d.作業内容,
+      ].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+    }
+
+    if (workMin !== null) {
+      totalWorkMin += workMin;
+    }
+
+    const tdOp   = document.createElement('td');
+    const opsDiv = document.createElement('div');
+    opsDiv.className = 'td-ops';
+    [
+      { label: '✏ 編集',   cls: 'btn-secondary btn-sm', fn: () => editRow(i) },
+      { label: '🗑 削除',  cls: 'btn-danger btn-sm',    fn: () => del(i)     },
+      { label: '📋 コピー', cls: 'btn-secondary btn-sm', fn: () => openCopy(i) },
+    ].forEach(({ label, cls, fn }) => {
+      const btn = document.createElement('button');
+      btn.textContent = label; btn.className = cls;
+      btn.addEventListener('click', fn);
+      opsDiv.appendChild(btn);
+    });
+    tdOp.appendChild(opsDiv);
+    tr.appendChild(tdOp);
+    frag.appendChild(tr);
+  });
+  Els.tbody.innerHTML = '';
+  Els.tbody.appendChild(frag);
+  updateWorkSummary(totalWorkMin, totalOvertimeMin);
+}
+
+function updateWorkSummary(totalWorkMin, totalOvertimeMin) {
+  const el = document.getElementById('work-summary');
+  if (!el) return;
+  const hasWork = data.some(d => calcWorkMinutes(d) !== null);
+  if (!hasWork) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+
+  const overtimeHtml = totalOvertimeMin > 0
+    ? `<span class="work-summary-value work-summary-overtime">${formatHoursMinutes(totalOvertimeMin)}</span>`
+    : `<span class="work-summary-value">0時間</span>`;
+
+  let diffHtml = '';
+  if (currentMode === 'employee') {
+    let roundDiffs = {};
+    try { roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '{}'); } catch (_) {}
+    const diffTotal = Object.values(roundDiffs).reduce((s, v) => s + v, 0);
+    const hasDiff   = Object.keys(roundDiffs).length > 0;
+    if (hasDiff) {
+      const diffSign  = diffTotal > 0 ? '+' : '';
+      const diffColor = diffTotal !== 0 ? 'color:#f59e0b;' : '';
+      diffHtml = `
+      <div class="work-summary-sep"></div>
+      <div class="work-summary-item">
+        <span class="work-summary-label">🔧 調整差分</span>
+        <span class="work-summary-value" style="${diffColor}">${diffSign}${diffTotal}分</span>
+        <button class="btn-secondary btn-sm" onclick="clearRoundDiffs()" style="margin-left:6px;">&#10005; クリア</button>
+      </div>`;
+    }
+  }
+
+  el.innerHTML = `
+    <div class="work-summary-grid">
+      <div class="work-summary-item">
+        <span class="work-summary-label">⏱ 合計作業時間</span>
+        <span class="work-summary-value">${formatHoursMinutes(totalWorkMin)}</span>
+      </div>
+      <div class="work-summary-sep"></div>
+      <div class="work-summary-item">
+        <span class="work-summary-label">⚡ うち残業（日8h/週40h超）</span>
+        ${overtimeHtml}
+      </div>
+      ${diffHtml}
+    </div>`;
+}
+
+// ============================================================
+// 調整差分クリア
+// ============================================================
+function clearRoundDiffs() {
+  localStorage.removeItem(ROUND_DIFFS_KEY);
+  render();
+  showToast('調整差分をクリアしました', 'success');
+}
+
+// ============================================================
+// JSON 入出力
+// ============================================================
+function exportJSON() {
+  if (currentMode === 'bp') {
+    const ym = data.length ? data[0].日付.slice(0, 7) : new Date().toISOString().slice(0, 7);
+    const output = {
+      年月: ym,
+      勤務データ: data.map(d => ({ 日付: d.日付, 作業開始: d.作業開始, 作業終了: d.作業終了, 作業内容: d.作業内容 })),
+    };
+    downloadJSON(output, 'work_bp.json');
+  } else {
+    downloadJSON({ 勤務データ: data }, 'work.json');
+  }
+}
+function importJSON(e) {
+  readJSONFile(e, async j => {
+    if (!j.勤務データ) { showToast('不正なJSONフォーマットです', 'error'); return false; }
+    if (!await showConfirm('現在のデータを上書きして読み込みますか？')) return false;
+    if (currentMode === 'bp') {
+      data = j.勤務データ.map(d => ({
+        日付: d.日付 || '', 作業開始: d.作業開始 || '', 作業終了: d.作業終了 || '', 作業内容: d.作業内容 || '',
+      }));
+    } else {
+      data = j.勤務データ;
+    }
+    sortData(); save(); render();
+    showToast('データを読込完了', 'success'); return true;
+  });
+}
+function exportEventJSON() { downloadJSON({ イベントデータ: eventData }, 'events.json'); }
+function importEventJSON(e) {
+  readJSONFile(e, async j => {
+    if (!j.イベントデータ) { showToast('不正なJSONフォーマットです', 'error'); return false; }
+    if (!await showConfirm('現在のイベントデータを上書きして読み込みますか？')) return false;
+    eventData = j.イベントデータ; saveEventData(); renderEventTable();
+    showToast('イベントデータを読込完了', 'success'); return true;
+  });
+}
+function downloadJSON(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function readJSONFile(e, handler) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async () => {
+    let j;
+    try { j = JSON.parse(r.result); }
+    catch { showToast('JSONの解析に失敗しました', 'error'); e.target.value = ''; return; }
+    await handler(j); e.target.value = '';
+  };
+  r.readAsText(f);
+}
+
+// ============================================================
+// コピーモーダル（カレンダー型）
+// ============================================================
+function openCopy(i) {
+  copyBase = data[i];
+  const ym       = copyBase.日付.slice(0, 7);
+  const firstDay = new Date(ym + '-01');
+  const firstDow = firstDay.getDay();
+  const lastDate = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0).getDate();
+  const frag = document.createDocumentFragment();
+  let day = 1;
+  for (let row = 0; row < 6; row++) {
+    let rowHasDay = false;
+    for (let col = 0; col < 7; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      if ((row === 0 && col < firstDow) || day > lastDate) {
+        cell.innerHTML = '';
+      } else {
+        const label = document.createElement('label');
+        const cb    = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = day;
+        label.appendChild(cb); label.append(` ${day}`);
+        cell.appendChild(label);
+        rowHasDay = true; day++;
+      }
+      frag.appendChild(cell);
+    }
+    if (day > lastDate && !rowHasDay) break;
+  }
+  Els.calendar.innerHTML = '';
+  Els.calendar.appendChild(frag);
+  document.getElementById('copyModal').classList.remove('hidden');
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('copyModal').classList.add('hidden');
+  if (document.getElementById('editModal').classList.contains('hidden')) {
+    document.getElementById('overlay').classList.add('hidden');
+  }
+}
+function selectAll()   { Els.calendar.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = true); }
+function clearChecks() { Els.calendar.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false); }
+function selectWeekdays() {
+  const ym = copyBase.日付.slice(0, 7);
+  Els.calendar.querySelectorAll('input[type=checkbox]').forEach(c => {
+    const w = new Date(`${ym}-${String(c.value).padStart(2,'0')}`).getDay();
+    c.checked = w !== 0 && w !== 6;
+  });
+}
+function executeCopy() {
+  const ym = copyBase.日付.slice(0, 7);
+  Els.calendar.querySelectorAll('input[type=checkbox]:checked').forEach(c => {
+    const newDate = `${ym}-${String(c.value).padStart(2,'0')}`;
+    const item    = { ...copyBase, 日付: newDate };
+    const idx     = data.findIndex(x => x.日付 === newDate);
+    if (idx !== -1) data[idx] = item; else data.push(item);
+  });
+  sortData(); save(); render(); closeModal();
+  showToast('コピーしました', 'success');
+}
+
+// ============================================================
+// 時間フォーマット整理
+// ============================================================
+function formatTimes() {
+  let roundDiffs = {};
+  if (currentMode === 'employee') {
+    try { roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '{}'); } catch (_) {}
+  }
+  let changed = false;
+  data.forEach(d => {
+    ['作業開始','作業終了'].forEach(key => {
+      if (!d[key]) return;
+      const after = roundToQuarter(d[key]);
+      if (d[key] !== after) {
+        if (currentMode === 'employee') {
+          roundDiffs[d.日付] = (roundDiffs[d.日付] || 0) + (timeToMinutes(after) - timeToMinutes(d[key]));
+        }
+        d[key] = after; changed = true;
+      }
+    });
+  });
+  if (currentMode === 'employee') localStorage.setItem(ROUND_DIFFS_KEY, JSON.stringify(roundDiffs));
+  if (changed) { save(); render(); showToast('全データの時間を15分単位に整理しました', 'success'); }
+  else showToast('既に全て15分単位です', 'info');
+}
+
+// ============================================================
+// クリップボードコピー
+// ============================================================
+function copyTextToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+function fallbackCopy(text) {
+  const ta = Object.assign(document.createElement('textarea'), {
+    value: text, style: 'position:fixed;opacity:0',
+  });
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+function buildMonthLines(mapFn) {
+  if (!data.length) { showToast('データがありません', 'warning'); return null; }
+  const ym         = data[0].日付.slice(0, 7);
+  const [yr, mo]   = ym.split('-').map(Number);
+  const lastDate   = new Date(yr, mo, 0).getDate();
+  const map        = Object.fromEntries(data.map(d => [d.日付, d]));
+  return Array.from({ length: lastDate }, (_, i) => {
+    const dateStr = `${ym}-${String(i + 1).padStart(2, '0')}`;
+    return mapFn(map[dateStr]);
+  });
+}
+function copyStartEnd() {
+  const lines = buildMonthLines(d => `${d?.作業開始 ?? ''}\t${d?.作業終了 ?? ''}`);
+  if (!lines) return;
+  copyTextToClipboard(lines.join('\n'));
+  showToast('開始・終了時刻をコピーしました。\nExcel等に貼り付けできます。', 'success');
+}
+function copyContents() {
+  const lines = buildMonthLines(d => d?.作業内容 ?? '');
+  if (!lines) return;
+  copyTextToClipboard(lines.join('\n'));
+  showToast('内容をコピーしました。', 'success', 5000);
+}
+
+// ============================================================
+// イベント取り込み
+// ============================================================
+function importEventsToContents() {
+  if (!eventData?.length) { showToast('イベントデータがありません', 'warning'); return; }
+  if (!data.length)        { showToast('作業データがありません',    'warning'); return; }
+  let added = 0;
+  const already = [];
+  eventData.forEach(ev => {
+    // 旧形式 (ev.date) の後方互換
+    const start    = ev.startDate || ev.date || null;
+    const end      = ev.endDate   || ev.date || null;
+    const excludes = ev.excludeDates
+      ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    data.filter(d => {
+      const date = d.日付;
+      if (excludes.includes(date)) return false;
+      if (start && date < start)   return false;
+      if (end   && date > end)     return false;
+      return true;
+    }).forEach(d => {
+      const parts = d.作業内容 ? d.作業内容.split(',').map(s => s.trim()) : [];
+      if (parts.includes(ev.content)) { already.push(`${d.日付}：${ev.content}`); return; }
+      d.作業内容 = d.作業内容 ? `${d.作業内容},${ev.content}` : ev.content;
+      added++;
+    });
+  });
+  if (added > 0)      { save(); render(); showToast(`イベント内容を${added}件追加しました`, 'success'); }
+  if (already.length) showToast(`既に記載済み:\n${already.join('\n')}`, 'info', 5000);
+  if (!added && !already.length) showToast('取り込めるイベントがありません', 'info');
+}
+
+// ============================================================
+// 出社・退勤
+// ============================================================
+function updateCheckinUI() {
+  const saved    = localStorage.getItem(CHECKIN_KEY);
+  const inBtn    = document.getElementById('simple_in_btn');
+  const outBtn   = document.getElementById('simple_out_btn');
+  const inTimeEl = document.getElementById('simple_in_time');
+  const statusEl = document.getElementById('checkin-status');
+  const manualIn = document.getElementById('manual_in_time');
+  if (saved) {
+    const { date, in: inTime } = JSON.parse(saved);
+    inTimeEl.textContent  = `出社: ${date} ${inTime}`;
+    inBtn.disabled        = true;
+    outBtn.disabled       = false;
+    statusEl.textContent  = '出社済み';
+    statusEl.className    = 'checkin-status in';
+    manualIn.classList.add('hidden');
+  } else {
+    inTimeEl.textContent  = '';
+    document.getElementById('simple_out_time').textContent = '';
+    inBtn.disabled        = false;
+    outBtn.disabled       = false;
+    statusEl.textContent  = '未出社';
+    statusEl.className    = 'checkin-status';
+    manualIn.classList.add('hidden');
+  }
+}
+
+// JST（日本時間）で日付（YYYY-MM-DD）を取得する関数
+function getTodayJST() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  return jst.toISOString().slice(0, 10);
+}
+
+function simpleCheckIn() {
+  load();
+  const date = getTodayJST();
+  if (localStorage.getItem(CHECKIN_KEY) || data.some(d => d.日付 === date)) {
+    showToast('すでに本日の出社記録があります。\n修正したい場合は退勤後に編集してください。', 'warning'); return;
+  }
+  const timeStr = nowTimeStr();
+  localStorage.setItem(CHECKIN_KEY, JSON.stringify({ date, in: timeStr }));
+  updateCheckinUI();
+  showToast(`出社時刻 ${timeStr} を記録しました`, 'success');
+}
+
+async function simpleCheckOut() {
+  const content  = document.getElementById('simple_content').value.trim();
+  const manualIn = document.getElementById('manual_in_time');
+  const saved    = localStorage.getItem(CHECKIN_KEY);
+  let date, inTime;
+
+  if (saved) {
+    ({ date, in: inTime } = JSON.parse(saved));
+    manualIn.classList.add('hidden');
+  } else {
+    date = getTodayJST();
+    manualIn.classList.remove('hidden');
+  }
+
+  if (data.some(d => d.日付 === date)) {
+    manualIn.classList.add('hidden');
+    showToast('本日のデータは既に登録されています。\n編集したい場合は一覧から編集してください。', 'warning'); return;
+  }
+  if (!content) { showToast('作業内容を入力してください', 'warning'); return; }
+  if (!saved) {
+    inTime = manualIn.value;
+    if (!inTime) { showToast('出社時刻を手入力してください', 'warning'); return; }
+  }
+
+  const outTime = nowTimeStr();
+  if (timeToMinutes(outTime) < timeToMinutes(inTime)) {
+    showToast('出社時刻が退勤時刻より後になっています。\n正しい時刻を入力してください。', 'error'); return;
+  }
+
+  data.push(currentMode === 'bp'
+    ? { 日付: date, 作業開始: inTime, 作業終了: outTime, 作業内容: content }
+    : { 日付: date, 勤務実績: '', 作業開始: inTime, 作業終了: outTime,
+        '18時以降休憩': '', 遅刻早退: '', 振替代休対象日: '', 作業内容: content });
+  sortData(); save(); render();
+
+  document.getElementById('simple_out_time').textContent = `退勤: ${date} ${outTime}`;
+  localStorage.removeItem(CHECKIN_KEY);
+  const statusEl = document.getElementById('checkin-status');
+  statusEl.textContent = '退勤済み'; statusEl.className = 'checkin-status out';
+  document.getElementById('simple_in_btn').disabled  = false;
+  document.getElementById('simple_out_btn').disabled = true;
+  manualIn.classList.add('hidden');
+  showToast(`出社:${inTime} 退勤:${outTime} で登録しました`, 'success');
+}
+
+// ============================================================
+// イベント一覧
+// ============================================================
+let eventMode = 'single'; // 'single' | 'range'
+
+function setEventMode(mode) {
+  eventMode = mode;
+  const isSingle = mode === 'single';
+  document.getElementById('event-field-single-date').classList.toggle('hidden', !isSingle);
+  document.getElementById('event-field-start-date').classList.toggle('hidden', isSingle);
+  document.getElementById('event-field-end-date').classList.toggle('hidden', isSingle);
+  document.getElementById('event-field-exclude').classList.toggle('hidden', isSingle);
+  // content列の位置調整（単一時はgrid-col-2、期間時はgrid-col-3）
+  const contentField = document.getElementById('event-field-content');
+  if (isSingle) {
+    contentField.classList.remove('grid-col-span-2');
+  } else {
+    contentField.classList.add('grid-col-span-2');
+  }
+  document.getElementById('event-mode-single').style.opacity = isSingle ? '1' : '0.5';
+  document.getElementById('event-mode-range').style.opacity  = isSingle ? '0.5' : '1';
+}
+
+function addEvent() {
+  const content      = document.getElementById('event-content').value.trim();
+  if (!content) { showToast('内容は必須です', 'warning'); return; }
+
+  let startDate = '', endDate = '', excludeDates = '';
+  if (eventMode === 'single') {
+    const singleDate = document.getElementById('event-single-date').value;
+    if (!singleDate) { showToast('日付を入力してください', 'warning'); return; }
+    startDate = singleDate;
+    endDate   = singleDate;
+  } else {
+    startDate    = document.getElementById('event-start-date').value;
+    endDate      = document.getElementById('event-end-date').value;
+    excludeDates = document.getElementById('event-exclude-dates').value.trim();
+    if (startDate && endDate && startDate > endDate) {
+      showToast('開始日が終了日より後になっています', 'warning'); return;
+    }
+  }
+
+  if (eventData.some(ev =>
+    (ev.startDate || ev.date || '') === startDate &&
+    (ev.endDate   || ev.date || '') === endDate   &&
+    ev.content === content
+  )) {
+    showToast('同じ内容のイベントが既に存在します', 'warning'); return;
+  }
+  const ev = { content };
+  if (startDate)    ev.startDate    = startDate;
+  if (endDate)      ev.endDate      = endDate;
+  if (excludeDates) ev.excludeDates = excludeDates;
+  eventData.push(ev);
+  eventData.sort((a, b) => (a.startDate || a.date || '').localeCompare(b.startDate || b.date || ''));
+  saveEventData(); renderEventTable(); clearEventForm();
+  showToast('イベントを追加しました', 'success');
+}
+function deleteEvent(i) {
+  eventData.splice(i, 1); saveEventData(); renderEventTable();
+  showToast('削除しました', 'success');
+}
+function clearEventForm() {
+  document.getElementById('event-single-date').value   = '';
+  document.getElementById('event-start-date').value    = '';
+  document.getElementById('event-end-date').value      = '';
+  document.getElementById('event-content').value       = '';
+  document.getElementById('event-exclude-dates').value = '';
+}
+let editEventIndex = null;
+function renderEventTable() {
+  const tbody = document.getElementById('event-tbody');
+  tbody.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  eventData.forEach((ev, i) => {
+    const tr    = document.createElement('tr');
+    const start = ev.startDate || ev.date || '';
+    const end   = ev.endDate   || ev.date || '';
+    [start, end, ev.excludeDates || '', ev.content].forEach((text, ci) => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (ci === 2 && text) {
+        td.style.whiteSpace = 'normal';
+        td.style.maxWidth   = '160px';
+        td.style.fontSize   = '.82em';
+        td.style.color      = 'var(--text-muted)';
+      }
+      tr.appendChild(td);
+    });
+  const tdOp = document.createElement('td');
+  tdOp.className = 'td-ops';
+  // 編集ボタン
+  const editBtn = document.createElement('button');
+  editBtn.textContent = '✏ 編集';
+  editBtn.className = 'btn-secondary btn-sm';
+  editBtn.addEventListener('click', () => openEditEventModal(i));
+  // 削除ボタン
+  const btn  = document.createElement('button');
+  btn.textContent = '🗑 削除'; btn.className = 'btn-danger btn-sm';
+  btn.addEventListener('click', () => deleteEvent(i));
+  // 横並び・隙間
+  tdOp.appendChild(editBtn);
+  tdOp.appendChild(btn);
+  tr.appendChild(tdOp);
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+
+// 編集モーダルを開く
+function openEditEventModal(i) {
+  editEventIndex = i;
+  const ev = eventData[i];
+  const start = ev.startDate || ev.date || '';
+  const end   = ev.endDate   || ev.date || '';
+  document.getElementById('event-edit-single-date').value = (start === end) ? start : '';
+  document.getElementById('event-edit-start-date').value  = (start !== end) ? start : '';
+  document.getElementById('event-edit-end-date').value    = (start !== end) ? end   : '';
+  document.getElementById('event-edit-content').value     = ev.content || '';
+  document.getElementById('event-edit-exclude-dates').value = ev.excludeDates || '';
+  // 表示切り替え
+  // 単一日付 or 期間指定の表示切替
+  if (start === end) {
+    switchEditEventMode('single');
+    document.getElementById('event-edit-single-date').value = start;
+  } else {
+    switchEditEventMode('range');
+    document.getElementById('event-edit-start-date').value = start;
+    document.getElementById('event-edit-end-date').value = end;
+  }
+
+
+
+function switchEditEventMode(mode) {
+  const singleBtn = document.getElementById('event-edit-mode-single');
+  const rangeBtn  = document.getElementById('event-edit-mode-range');
+  if (mode === 'single') {
+    document.getElementById('event-edit-field-single-date').classList.remove('hidden');
+    document.getElementById('event-edit-field-start-date').classList.add('hidden');
+    document.getElementById('event-edit-field-end-date').classList.add('hidden');
+    document.getElementById('event-edit-field-exclude').classList.add('hidden');
+    singleBtn.classList.add('active');
+    rangeBtn.classList.remove('active');
+    // 値を同期
+    const v = document.getElementById('event-edit-start-date').value || document.getElementById('event-edit-single-date').value;
+    document.getElementById('event-edit-single-date').value = v;
+    document.getElementById('event-edit-end-date').value = v;
+  } else {
+    document.getElementById('event-edit-field-single-date').classList.add('hidden');
+    document.getElementById('event-edit-field-start-date').classList.remove('hidden');
+    document.getElementById('event-edit-field-end-date').classList.remove('hidden');
+    document.getElementById('event-edit-field-exclude').classList.remove('hidden');
+    singleBtn.classList.remove('active');
+    rangeBtn.classList.add('active');
+    // 値を同期
+    const v = document.getElementById('event-edit-single-date').value || document.getElementById('event-edit-start-date').value;
+    document.getElementById('event-edit-start-date').value = v;
+    document.getElementById('event-edit-end-date').value = v;
+  }
+}
+window.switchEditEventMode = switchEditEventMode;
+  // オーバーレイ表示
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('eventEditModal').classList.remove('hidden');
+  // 他のモーダルは必ず非表示
+  document.getElementById('editModal').classList.add('hidden');
+  document.getElementById('copyModal').classList.add('hidden');
+}
+// 編集モーダルを閉じる
+function closeEditEventModal() {
+  document.getElementById('eventEditModal').classList.add('hidden');
+  editEventIndex = null;
+  // オーバーレイを消すのは他のモーダルが全てhiddenのときのみ
+  if (
+    document.getElementById('editModal').classList.contains('hidden') &&
+    document.getElementById('copyModal').classList.contains('hidden')
+  ) {
+    document.getElementById('overlay').classList.add('hidden');
+  }
+}
+// 編集内容を保存
+function saveEditEvent() {
+  if (editEventIndex === null) return;
+  const isSingle = !document.getElementById('event-edit-field-single-date').classList.contains('hidden');
+  let startDate = '', endDate = '', excludeDates = '';
+  if (isSingle) {
+    startDate = document.getElementById('event-edit-single-date').value;
+    endDate   = startDate;
+  } else {
+    startDate    = document.getElementById('event-edit-start-date').value;
+    endDate      = document.getElementById('event-edit-end-date').value;
+    excludeDates = document.getElementById('event-edit-exclude-dates').value.trim();
+    if (startDate && endDate && startDate > endDate) {
+      showToast('開始日が終了日より後になっています', 'warning'); return;
+    }
+  }
+  const content = document.getElementById('event-edit-content').value.trim();
+  if (!content) { showToast('内容は必須です', 'warning'); return; }
+  // 重複チェック
+  if (eventData.some((ev, idx) =>
+    idx !== editEventIndex &&
+    (ev.startDate || ev.date || '') === startDate &&
+    (ev.endDate   || ev.date || '') === endDate &&
+    ev.content === content
+  )) {
+    showToast('同じ内容のイベントが既に存在します', 'warning'); return;
+  }
+  const ev = { content };
+  if (startDate)    ev.startDate    = startDate;
+  if (endDate)      ev.endDate      = endDate;
+  if (excludeDates) ev.excludeDates = excludeDates;
+  eventData[editEventIndex] = ev;
+  eventData.sort((a, b) => (a.startDate || a.date || '').localeCompare(b.startDate || b.date || ''));
+  saveEventData(); renderEventTable();
+  closeEditEventModal();
+  showToast('イベントを更新しました', 'success');
+}
+async function clearAllEvents() {
+  if (!await showConfirm('全イベントデータを削除しますか？\nこの操作は取り消せません。', { title: '全削除', danger: true })) return;
+  eventData = []; saveEventData(); renderEventTable();
+  showToast('全イベントを削除しました', 'success');
+}
+
+// ============================================================
+// 初期化
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  Els = {
+    tbody:    document.getElementById('tbody'),
+    calendar: document.getElementById('calendar-grid'),
+  };
+  initTabs();
+  initInputForm();
+  initEditModalListeners();
+  loadEventData();
+  renderEventTable();
+  updateCheckinUI();
+  setEventMode('single');
+  // モード初期化（データ読み込み・描画を含む）
+  currentMode = localStorage.getItem(MODE_KEY) || 'employee';
+  setMode(currentMode);
+});
+</script>
+</body>
+</html>
