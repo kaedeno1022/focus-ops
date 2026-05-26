@@ -11,7 +11,8 @@ export let eventMode = 'single'; // 'single' | 'range'
 export let editEventIndex = null;
 export let selectedMonth = ''; // データ一覧の選択月 (YYYY-MM)
 export let selectedEventMonth = ''; // イベント一覧の選択月 (YYYY-MM)
-export let selectedDates = []; // 複数日選択用
+export let selectedDates = []; // 複数日選択用 (イベント)
+export let copySelectedDates = []; // 複数日選択用 (コピー)
 
 export function setData(newData) {
   data = newData;
@@ -65,4 +66,18 @@ export function toggleSelectedDate(date) {
     selectedDates.push(date);
   }
   selectedDates.sort();
+}
+
+export function setCopySelectedDates(dates) {
+  copySelectedDates = dates;
+}
+
+export function toggleCopySelectedDate(date) {
+  const idx = copySelectedDates.indexOf(date);
+  if (idx > -1) {
+    copySelectedDates.splice(idx, 1);
+  } else {
+    copySelectedDates.push(date);
+  }
+  copySelectedDates.sort();
 }

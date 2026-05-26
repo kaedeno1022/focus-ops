@@ -378,82 +378,6 @@ td:last-child { min-width: 150px; text-align: center; }
   border-bottom: 2px solid var(--border);
 }
 
-.copy-calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  padding: 8px;
-  background: #f8fafc;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-}
-
-.copy-calendar-th {
-  font-size: .75em;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 6px 0;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-
-.copy-calendar-empty {
-  height: 36px;
-}
-
-.copy-calendar-box {
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.copy-calendar-label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition);
-  font-size: .88em;
-  background: white;
-  border: 1px solid var(--border);
-  width: 100%;
-  justify-content: center;
-}
-
-.copy-calendar-label:hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-}
-
-.copy-calendar-label input[type="checkbox"] {
-  cursor: pointer;
-  width: 14px;
-  height: 14px;
-  accent-color: var(--primary);
-}
-
-.copy-day-sun .copy-calendar-label {
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
-.copy-day-sat .copy-calendar-label {
-  background: #dbeafe;
-  border-color: #93c5fd;
-}
-
-.copy-day-sun .copy-calendar-label:hover {
-  background: #fecaca;
-}
-
-.copy-day-sat .copy-calendar-label:hover {
-  background: #bfdbfe;
-}
-
 /* ===== Work Summary ===== */
 .work-summary-grid {
   display: flex;
@@ -507,7 +431,8 @@ td:last-child { min-width: 150px; text-align: center; }
   background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  max-width: 400px;
+  max-width: 450px;
+  margin: 0 auto;
 }
 
 .calendar-day-header {
@@ -639,7 +564,7 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 #copyModal {
-  max-width: 400px;
+  max-width: 500px;
 }
 
 #eventEditModal {
@@ -881,7 +806,6 @@ td:last-child { min-width: 150px; text-align: center; }
   .tab-btn { font-size: .88em; padding: 11px 0; }
   .form-grid { gap: 12px 10px; grid-template-columns: 1fr 1fr; }
   th, td { font-size: .85em; padding: 8px 5px; }
-  #copyCalendar .copy-calendar-grid { grid-template-columns: repeat(7, 1fr); }
   #editModal, #copyModal, #eventEditModal {
     max-width: 95%;
     padding: 20px 16px;

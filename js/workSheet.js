@@ -53,7 +53,8 @@
   let editEventIndex = null;
   let selectedMonth = ''; // データ一覧の選択月 (YYYY-MM)
   let selectedEventMonth = ''; // イベント一覧の選択月 (YYYY-MM)
-  let selectedDates = []; // 複数日選択用
+  let selectedDates = []; // 複数日選択用 (イベント)
+  let copySelectedDates = []; // 複数日選択用 (コピー)
 
   function setData(newData) {
     data = newData;
@@ -1223,14 +1224,16 @@
   // ============================================================
   function openCopy(i) {
     setCopyBase(data[i]);
+    copySelectedDates = [];
     document.getElementById('copyModal').classList.remove('hidden');
     document.getElementById('overlay').classList.remove('hidden');
-    buildCalendar();
+    renderCopyCalendar();
   }
 
   function closeModal() {
     document.getElementById('copyModal').classList.add('hidden');
     setCopyBase(null);
+    copySelectedDates = [];
     if (document.getElementById('editModal').classList.contains('hidden') &&
         document.getElementById('eventEditModal').classList.contains('hidden')) {
       document.getElementById('overlay').classList.add('hidden');
@@ -1238,29 +1241,66 @@
   }
 
   function selectAll() {
-    document.querySelectorAll('#copyCalendar input[type="checkbox"]').forEach(cb => cb.checked = true);
+    let monthValue = selectedMonth;
+    if (!monthValue) {
+      const monthFilter = document.getElementById('data-month-filter');
+      monthValue = monthFilter ? monthFilter.value : '';
+    }
+    if (!monthValue) {
+      const now = new Date();
+      monthValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+    
+    const [y, m] = monthValue.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const dates = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      dates.push(`${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    }
+    copySelectedDates = dates;
+    renderCopyCalendar();
   }
 
   function clearChecks() {
-    document.querySelectorAll('#copyCalendar input[type="checkbox"]').forEach(cb => cb.checked = false);
+    copySelectedDates = [];
+    renderCopyCalendar();
   }
 
   function selectWeekdays() {
-    document.querySelectorAll('#copyCalendar input[type="checkbox"]').forEach(cb => {
-      const dateStr = cb.value;
-      const dow = new Date(dateStr).getDay();
-      cb.checked = dow >= 1 && dow <= 5;
-    });
+    let monthValue = selectedMonth;
+    if (!monthValue) {
+      const monthFilter = document.getElementById('data-month-filter');
+      monthValue = monthFilter ? monthFilter.value : '';
+    }
+    if (!monthValue) {
+      const now = new Date();
+      monthValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+    
+    const [y, m] = monthValue.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const dates = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dow = new Date(y, m - 1, day).getDay();
+      if (dow >= 1 && dow <= 5) {
+        dates.push(dateStr);
+      }
+    }
+    copySelectedDates = dates;
+    renderCopyCalendar();
   }
 
   async function executeCopy() {
     if (!copyBase) { showToast('コピー元がありません', 'warning'); return; }
-    const checked = Array.from(document.querySelectorAll('#copyCalendar input[type="checkbox"]:checked')).map(cb => cb.value);
-    if (!checked.length) { showToast('コピー先を選択してください', 'warning'); return; }
-    if (!await showConfirm(`${checked.length}日分をコピーしますか？`)) return;
-    const dup = data.filter(d => checked.includes(d.日付)).map(d => d.日付);
+    if (!copySelectedDates || copySelectedDates.length === 0) { 
+      showToast('コピー先を選択してください', 'warning'); 
+      return; 
+    }
+    if (!await showConfirm(`${copySelectedDates.length}日分をコピーしますか？`)) return;
+    const dup = data.filter(d => copySelectedDates.includes(d.日付)).map(d => d.日付);
     let msg = '';
-    checked.forEach(dateStr => {
+    copySelectedDates.forEach(dateStr => {
       const alreadyExists = dup.includes(dateStr);
       const newItem = { ...copyBase, 日付: dateStr };
       if (alreadyExists) {
@@ -1272,61 +1312,97 @@
     });
     if (dup.length) msg = `(${dup.length}件は上書き更新されました)`;
     sortData(); save(); render();
+    const copiedCount = copySelectedDates.length;
     closeModal();
-    showToast(`${checked.length}日分のコピーが完了しました ${msg}`, 'success');
+    showToast(`${copiedCount}日分のコピーが完了しました ${msg}`, 'success');
   }
 
-  function buildCalendar() {
+  function renderCopyCalendar() {
     if (!copyBase) return;
     const cal = document.getElementById('copyCalendar');
     cal.innerHTML = '';
-    const now = new Date();
-    const y   = now.getFullYear();
-    const m   = now.getMonth();
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const firstDow    = new Date(y, m, 1).getDay();
-    const monthStr    = `${y}年${m + 1}月`;
+    
+    // データ一覧の選択月を使用
+    const monthFilter = document.getElementById('data-month-filter');
+    let monthValue = selectedMonth;
+    if (!monthValue && monthFilter) {
+      monthValue = monthFilter.value;
+    }
+    if (!monthValue) {
+      const now = new Date();
+      monthValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+    
+    const [y, m] = monthValue.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const firstDow = new Date(y, m - 1, 1).getDay();
+    const monthStr = `${y}年${m}月`;
+    
     const title = document.createElement('div');
     title.className = 'copy-calendar-title';
     title.textContent = `コピー先カレンダー: ${monthStr}`;
     cal.appendChild(title);
+    
     const grid = document.createElement('div');
-    grid.className = 'copy-calendar-grid';
+    grid.className = 'event-calendar';
+    
+    // 曜日ヘッダー
     WEEKDAYS.forEach(wd => {
       const th = document.createElement('div');
-      th.className = 'copy-calendar-th';
+      th.className = 'calendar-day-header';
       th.textContent = wd;
       grid.appendChild(th);
     });
+    
+    // 空白セル
     for (let i = 0; i < firstDow; i++) {
       const empty = document.createElement('div');
-      empty.className = 'copy-calendar-empty';
+      empty.className = 'calendar-day empty';
       grid.appendChild(empty);
     }
-    const existingSet = new Set(data.map(d => d.日付));
+    
+    // 日付セル
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const dow     = new Date(y, m, day).getDay();
-      const box = document.createElement('div');
-      box.className = 'copy-calendar-box';
-      const label   = document.createElement('label');
-      label.className = 'copy-calendar-label';
-      const cb = document.createElement('input');
-      cb.type  = 'checkbox'; cb.value = dateStr;
-      const spanDay = document.createElement('span');
-      spanDay.textContent = day;
-      const badge = existingSet.has(dateStr) ? ' 📝' : '';
-      const badgeNode = document.createElement('span');
-      badgeNode.textContent = badge;
-      label.appendChild(cb);
-      label.appendChild(spanDay);
-      label.appendChild(badgeNode);
-      box.appendChild(label);
-      if (dow === 0)      box.classList.add('copy-day-sun');
-      else if (dow === 6) box.classList.add('copy-day-sat');
-      grid.appendChild(box);
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayCell = document.createElement('div');
+      dayCell.className = 'calendar-day';
+      dayCell.textContent = day;
+      
+      if (copySelectedDates.includes(dateStr)) {
+        dayCell.classList.add('selected');
+      }
+      
+      dayCell.addEventListener('click', () => {
+        toggleCopyDate(dateStr);
+      });
+      
+      grid.appendChild(dayCell);
     }
+    
     cal.appendChild(grid);
+    updateCopySelectedDatesDisplay();
+  }
+
+  function toggleCopyDate(dateStr) {
+    const idx = copySelectedDates.indexOf(dateStr);
+    if (idx > -1) {
+      copySelectedDates.splice(idx, 1);
+    } else {
+      copySelectedDates.push(dateStr);
+    }
+    copySelectedDates.sort();
+    renderCopyCalendar();
+  }
+
+  function updateCopySelectedDatesDisplay() {
+    const display = document.getElementById('copy-selected-dates-display');
+    if (!display) return;
+    
+    if (copySelectedDates.length === 0) {
+      display.textContent = 'なし';
+    } else {
+      display.textContent = `${copySelectedDates.length}日選択済み`;
+    }
   }
 
   // ============================================================

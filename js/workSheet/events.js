@@ -277,7 +277,7 @@ window.switchEditEventMode = switchEditEventMode;
 // カレンダーUI
 // ============================================================
 export function renderEventCalendar() {
-  const monthInput = document.getElementById('event-calendar-month');
+  const monthInput = document.getElementById('event-month-filter');
   const calendarDiv = document.getElementById('event-calendar');
   
   if (!monthInput || !calendarDiv) {
@@ -285,12 +285,13 @@ export function renderEventCalendar() {
     return;
   }
   
-  if (!monthInput.value) {
+  let monthValue = monthInput.value;
+  if (!monthValue) {
     const now = new Date();
-    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    monthValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
   
-  const [year, month] = monthInput.value.split('-').map(Number);
+  const [year, month] = monthValue.split('-').map(Number);
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
   const daysInMonth = lastDay.getDate();
@@ -347,7 +348,7 @@ export function updateSelectedDatesDisplay() {
   if (selectedDates.length === 0) {
     display.textContent = 'なし';
   } else {
-    display.textContent = `${selectedDates.length}日選択: ${selectedDates.join(', ')}`;
+    display.textContent = `${selectedDates.length}日選択済み`;
   }
 }
 

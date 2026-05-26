@@ -344,6 +344,10 @@
 <div id="copyModal" class="hidden">
   <h4>📅 コピー先をカレンダーから選択</h4>
   <div id="copyCalendar"></div>
+  <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
+    <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;">選択中の日付:</div>
+    <div id="copy-selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+  </div>
   <div class="btn-row btn-row-mb">
     <button class="btn-secondary btn-sm" onclick="selectWeekdays()">平日</button>
     <button class="btn-secondary btn-sm" onclick="selectAll()">全選択</button>
@@ -359,6 +363,6 @@
 <div class="toast-container" id="toast-container"></div>
 
 
-<script src="js/workSheet.js"></script>
+<script src="js/workSheet.js?v=20260526-4"></script>
 </body>
 </html>

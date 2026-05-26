@@ -90,12 +90,6 @@ function initMonthFilters() {
   } else {
     console.error('event-month-filter 要素が見つかりません');
   }
-  
-  // カレンダー月選択のイベントリスナー
-  const calendarMonthInput = document.getElementById('event-calendar-month');
-  if (calendarMonthInput) {
-    calendarMonthInput.addEventListener('change', renderEventCalendar);
-  }
 }
 
 function populateMonthOptions(selectElement) {
@@ -139,6 +133,7 @@ function filterEventsByMonth() {
   const selected = document.getElementById('event-month-filter').value;
   setSelectedEventMonth(selected);
   renderEventTable();
+  renderEventCalendar();
 }
 
 // 念のためwindowにも公開（互換性のため）
