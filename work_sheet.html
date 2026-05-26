@@ -1,14 +1,29 @@
 ﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="css/worksheet.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="作業表ツール - 勤務時間・作業内容の記録管理">
+  <title>作業表ツール | Focus Ops</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WPV9BG4YSJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-WPV9BG4YSJ');
+  </script>
+
+  <script defer src="./js/cookieConsent.js"></script>
+
+  <link rel="stylesheet" href="css/worksheet.css">
 </head>
 <body>
 
 <!-- App Header -->
 <header class="app-header">
-  <a href="index.html" style="display: inline-block; margin-bottom: 12px; color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">← ホームに戻る</a>
+  <a href="index.html" class="home-link">← ホームに戻る</a>
   <h1>📋 作業表ツール</h1>
   <p>勤務時間・作業内容の記録管理</p>
 </header>
@@ -130,10 +145,10 @@
   <!-- データ一覧タブ -->
   <div id="list-tab" class="tab-content">
     <div class="section-title"><span class="icon">📋</span> データ一覧</div>
-    <div class="card" style="padding:12px 20px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <label style="font-weight:600;color:var(--text-muted);margin:0;">📅 表示月:</label>
-        <select id="data-month-filter" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.9rem;">
+    <div class="card filter-card">
+      <div class="filter-bar">
+        <label class="filter-label">📅 表示月:</label>
+        <select id="data-month-filter" class="filter-select">
           <option value="">全期間</option>
         </select>
       </div>
@@ -150,14 +165,14 @@
         <tbody id="tbody"></tbody>
       </table>
     </div>
-    <div class="card" style="padding:12px 20px;background:#f8fafc;border:1px solid #cbd5e1;">
-      <div style="font-size:.88em;color:#64748b;line-height:1.6;">
+    <div class="card rule-card">
+      <div class="rule-card-text">
         <strong>💡 作業時間の計算ルール:</strong><br>
         • 作業開始が12:00より前、かつ作業終了が13:00より後の場合、自動的に1時間の昼休憩が差し引かれます<br>
         • 午前のみ・午後のみの勤務の場合は昼休憩なしで計算されます
       </div>
     </div>
-    <div id="work-summary" class="card hidden" style="padding:14px 24px;"></div>
+    <div id="work-summary" class="card hidden"></div>
     <div class="card">
       <div class="btn-row btn-row-grouped">
         <div class="btn-group">
@@ -182,29 +197,29 @@
   <!-- イベント一覧タブ -->
   <div id="event-tab" class="tab-content">
     <div class="section-title"><span class="icon">📅</span> イベント一覧</div>
-    <div class="card" style="padding:12px 20px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <label style="font-weight:600;color:var(--text-muted);margin:0;">📅 表示月:</label>
-        <select id="event-month-filter" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.9rem;">
+    <div class="card filter-card">
+      <div class="filter-bar">
+        <label class="filter-label">📅 表示月:</label>
+        <select id="event-month-filter" class="filter-select">
           <option value="">全期間</option>
         </select>
-        <span style="font-size:0.85em;color:var(--text-muted);margin-left:8px;">※カレンダー表示月にも反映</span>
+        <span class="filter-note">※カレンダー表示月にも反映</span>
       </div>
     </div>
     <div class="card">
       <div class="form-grid form-grid-3">
         <div class="form-item grid-col-span-3">
-          <label style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="event-no-date" style="width:auto;margin:0;">
+          <label class="checkbox-row">
+            <input type="checkbox" id="event-no-date" class="checkbox-inline">
             <span>常時表示（除外日を下のカレンダーで選択）</span>
           </label>
         </div>
         <div class="form-item grid-col-span-3" id="event-field-single-date">
           <label id="event-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
           <div id="event-calendar" class="event-calendar"></div>
-          <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
-            <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;" id="selected-dates-label">選択中の日付:</div>
-            <div id="selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+          <div class="date-selected-info">
+            <div class="date-selected-label" id="selected-dates-label">選択中の日付:</div>
+            <div id="selected-dates-display" class="date-selected-text">なし</div>
           </div>
         </div>
         <div class="form-item" id="event-field-content">
@@ -231,17 +246,17 @@
       <div class="section-title"><span class="icon">📝</span> イベント編集</div>
       <div class="form-grid form-grid-3">
         <div class="form-item grid-col-span-3">
-          <label style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="event-edit-no-date" style="width:auto;margin:0;">
+          <label class="checkbox-row">
+            <input type="checkbox" id="event-edit-no-date" class="checkbox-inline">
             <span>常時表示（除外日を下のカレンダーで選択）</span>
           </label>
         </div>
         <div class="form-item grid-col-span-3" id="event-edit-field-single-date">
           <label id="event-edit-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
           <div id="event-edit-calendar" class="event-calendar"></div>
-          <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
-            <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;" id="event-edit-selected-dates-label">選択中の日付:</div>
-            <div id="event-edit-selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+          <div class="date-selected-info">
+            <div class="date-selected-label" id="event-edit-selected-dates-label">選択中の日付:</div>
+            <div id="event-edit-selected-dates-display" class="date-selected-text">なし</div>
           </div>
         </div>
         <div class="form-item" id="event-edit-field-content">
@@ -342,9 +357,9 @@
 <div id="copyModal" class="hidden">
   <h4>📅 コピー先をカレンダーから選択</h4>
   <div id="copyCalendar"></div>
-  <div style="margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:0.85em;">
-    <div style="color:var(--text-muted);margin-bottom:4px;font-weight:600;">選択中の日付:</div>
-    <div id="copy-selected-dates-display" style="color:var(--primary);font-weight:500;line-height:1.6;">なし</div>
+  <div class="date-selected-info">
+    <div class="date-selected-label">選択中の日付:</div>
+    <div id="copy-selected-dates-display" class="date-selected-text">なし</div>
   </div>
   <div class="btn-row btn-row-mb">
     <button class="btn-secondary btn-sm" onclick="selectWeekdays()">平日</button>
@@ -364,4 +379,3 @@
 <script src="js/workSheet.js?v=20260526-14"></script>
 </body>
 </html>
-1

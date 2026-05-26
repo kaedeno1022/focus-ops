@@ -2,16 +2,16 @@
 
 /* ===== CSS Variables ===== */
 :root {
-  --primary: #3b82f6;
-  --primary-dark: #1d4ed8;
-  --primary-light: #dbeafe;
-  --primary-hover: #2563eb;
+  --primary: #7c3aed;
+  --primary-dark: #5b21b6;
+  --primary-light: #ede9fe;
+  --primary-hover: #6d28d9;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --success: #22c55e;
   --success-light: #dcfce7;
   --warning-light: #fef3c7;
-  --bg: #f0f4f8;
+  --bg: #f1f5f9;
   --card-bg: #ffffff;
   --border: #e2e8f0;
   --border-hover: #cbd5e1;
@@ -25,7 +25,7 @@
   --shadow: 0 4px 16px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
   --shadow-lg: 0 12px 40px rgba(0,0,0,.1), 0 4px 12px rgba(0,0,0,.05);
   --th-bg: #f1f5f9;
-  --checkin-bg: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  --checkin-bg: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
   --checkin-status-in: #dcfce7;
   --checkin-status-out: #fee2e2;
   --transition: .2s cubic-bezier(.4,0,.2,1);
@@ -33,34 +33,39 @@
 
 /* ===== Reset & Base ===== */
 *, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--bg); }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   background: var(--bg);
   color: var(--text);
-  margin: 0;
-  padding: 0;
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1240px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 /* ===== App Header ===== */
 .app-header {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #a78bfa 100%);
   color: #fff;
   padding: 20px 24px;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(30,64,175,.2);
+  text-align: left;
+  box-shadow: 0 2px 12px rgba(76, 29, 149, 0.2);
+  border-radius: 16px;
+  margin: 0 0 20px;
 }
-.app-header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: .04em; }
-.app-header p  { margin: 4px 0 0; font-size: .85rem; opacity: .8; }
+.app-header h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: .02em; }
+.app-header p  { margin: 4px 0 0; font-size: .875rem; opacity: .85; }
 
 /* ===== Tabs ===== */
 .tabs {
   display: flex;
   gap: 6px;
-  max-width: 980px;
+  max-width: 1200px;
   margin: 20px auto 0;
-  padding: 0 16px;
+  padding: 0;
 }
 .tab-btn {
   flex: 1 1 0;
@@ -112,9 +117,9 @@ body {
 
 /* ===== App Container ===== */
 .app-container {
-  max-width: 980px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px 32px;
+  padding: 0 0 32px;
 }
 
 /* ===== Section Title ===== */
@@ -480,13 +485,14 @@ td:last-child { min-width: 150px; text-align: center; }
 
 /* ===== Mode Bar ===== */
 .mode-bar {
-  background: #1e3a8a;
+  background: rgba(124, 58, 237, 0.06);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.15);
   padding: 6px 24px;
   display: flex;
   justify-content: flex-end;
 }
 .mode-bar-inner {
-  max-width: 980px;
+  max-width: 1200px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -495,15 +501,15 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 .mode-bar-label {
   font-size: .82em;
-  color: rgba(255,255,255,.6);
+  color: var(--text-muted);
   margin-right: 2px;
 }
 .mode-btn {
   padding: 4px 14px;
   border-radius: 20px;
-  border: 1.5px solid rgba(255,255,255,.3);
+  border: 1.5px solid var(--border);
   background: transparent;
-  color: rgba(255,255,255,.65);
+  color: var(--text-muted);
   font-size: .8em;
   font-weight: 600;
   cursor: pointer;
@@ -512,15 +518,16 @@ td:last-child { min-width: 150px; text-align: center; }
   letter-spacing: .03em;
 }
 .mode-btn:hover {
-  background: rgba(255,255,255,.12);
-  color: #fff;
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--primary);
+  border-color: var(--primary);
   transform: none;
   box-shadow: none;
 }
 .mode-btn.active {
-  background: rgba(255,255,255,.22);
-  color: #fff;
-  border-color: rgba(255,255,255,.7);
+  background: rgba(124, 58, 237, 0.12);
+  color: var(--primary);
+  border-color: var(--primary);
   transform: none;
   box-shadow: none;
 }
@@ -748,6 +755,53 @@ td:last-child { min-width: 150px; text-align: center; }
   text-align: center;
 }
 
+/* ===== Home Link ===== */
+.home-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.9;
+  transition: opacity var(--transition);
+}
+.home-link:hover { opacity: 1; }
+
+/* ===== Filter Bar ===== */
+.filter-card { padding: 12px 20px; margin-bottom: 12px; }
+.filter-bar { display: flex; align-items: center; gap: 12px; }
+.filter-label { font-weight: 600; color: var(--text-muted); margin: 0; }
+.filter-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.filter-note { font-size: 0.85em; color: var(--text-muted); margin-left: 8px; }
+
+/* ===== Date Selected Info ===== */
+.date-selected-info {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 0.85em;
+}
+.date-selected-label { color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+.date-selected-text { color: var(--primary); font-weight: 500; line-height: 1.6; }
+
+/* ===== Rule Card ===== */
+.rule-card { padding: 12px 20px; background: #f8fafc; border: 1px solid #cbd5e1; }
+.rule-card-text { font-size: 0.88em; color: #64748b; line-height: 1.6; }
+
+/* ===== Checkbox Row ===== */
+.checkbox-row { display: flex; align-items: center; gap: 8px; }
+.checkbox-inline { width: auto !important; margin: 0 !important; }
+
+/* ===== Work Summary Card ===== */
+#work-summary.card { padding: 14px 24px; }
+
 @keyframes scaleIn {
   from {
     opacity: 0;
@@ -799,8 +853,8 @@ td:last-child { min-width: 150px; text-align: center; }
 
 /* ===== Responsive ===== */
 @media (max-width: 700px) {
-  .app-header { padding: 16px 12px; }
-  .app-header h1 { font-size: 1.15rem; }
+  .app-header { padding: 16px 12px; margin: 0 0 16px; }
+  .app-header h1 { font-size: 1.4rem; }
   .app-container { padding: 0 8px 24px; }
   .tabs { padding: 0 8px; gap: 4px; }
   .tab-btn { font-size: .88em; padding: 11px 0; }

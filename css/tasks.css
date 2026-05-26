@@ -8,7 +8,8 @@
 .category-header {
   padding: 12px;
   border-radius: 12px;
-  background: #172036;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -24,16 +25,16 @@
   border-radius: 14px;
   margin-bottom: 10px;
 
-  background: #111827;
-  border: 1px solid #1f2b46;
+  background: var(--card);
+  border: 1px solid var(--line);
 
   transition: all 0.2s ease;
   user-select: none;
 }
 
 .task:hover {
-  border-color: rgba(0, 229, 255, 0.4);
-  background: #151d2e;
+  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(124, 58, 237, 0.03);
 }
 
 .task.done {
@@ -76,21 +77,18 @@
 /* 高優先度: 円形 */
 .high {
   background: var(--high);
-  box-shadow: 0 0 10px var(--high);
   border-radius: 50%;
 }
 
 /* 中優先度: 三角形（clip-pathで実装） */
 .mid {
   background: var(--mid);
-  box-shadow: 0 0 10px var(--mid);
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
 /* 低優先度: 四角形 */
 .low {
   background: var(--low);
-  box-shadow: 0 0 10px var(--low);
   border-radius: 0;
 }
 
@@ -113,8 +111,8 @@
   width: 100%;
   margin-top: 8px;
   padding: 10px 12px;
-  background: rgba(139, 92, 246, 0.1);
-  border-left: 3px solid var(--purple);
+  background: rgba(124, 58, 237, 0.06);
+  border-left: 3px solid var(--neon);
   border-radius: 6px;
   color: var(--text);
   font-size: 13px;

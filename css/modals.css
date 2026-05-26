@@ -17,7 +17,7 @@
 }
 
 .modal-content {
-  background: linear-gradient(180deg, #1a2234 0%, #111827 100%);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 20px;
   width: 100%;
@@ -25,7 +25,7 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .modal-header {
@@ -58,7 +58,7 @@
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.06);
   color: var(--text);
   transform: none;
 }
@@ -70,7 +70,7 @@
   min-height: 0;
   -webkit-overflow-scrolling: touch; /* iOS向けスムーズスクロール */
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 229, 255, 0.3) transparent;
+  scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
 }
 
 .modal-body::-webkit-scrollbar {
@@ -82,12 +82,12 @@
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.3);
+  background: rgba(124, 58, 237, 0.3);
   border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 229, 255, 0.5);
+  background: rgba(124, 58, 237, 0.5);
 }
 
 /* タブ */
@@ -113,7 +113,7 @@
 
 .tab-btn:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(124, 58, 237, 0.05);
   transform: none;
 }
 
@@ -177,15 +177,15 @@
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(124, 58, 237, 0.02);
   border-radius: 8px;
   border: 1px solid var(--line);
   transition: all 0.2s ease;
 }
 
 .visibility-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(0, 229, 255, 0.3);
+  background: rgba(124, 58, 237, 0.05);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
 .visibility-item-header {
@@ -224,7 +224,7 @@
 
 /* カスタムタスクフォーム */
 .add-task-form {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(124, 58, 237, 0.02);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 20px;
@@ -252,7 +252,7 @@
 .form-group textarea {
   width: 100%;
   padding: 10px 14px;
-  background: #0d1117;
+  background: #f8fafc;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
@@ -263,7 +263,8 @@
 
 .form-group select {
   appearance: none;
-  background-image: linear-gradient(to bottom, #111827, #0d1117);
+  background-image: none;
+  background-color: #f8fafc;
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: auto;
@@ -273,8 +274,7 @@
 }
 
 .form-group select:hover {
-  border-color: rgba(0, 229, 255, 0.4);
-  background-image: linear-gradient(to bottom, #151d2e, #0d1117);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 
 /* セレクトボックスの矢印アイコン */
@@ -331,7 +331,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px;
-  background: #0d1117;
+  background: #f8fafc;
   border: 1px solid var(--line);
   border-radius: 8px;
   min-height: 50px;
@@ -369,13 +369,12 @@
 }
 
 .tag-checkbox:checked + span {
-  box-shadow: 0 0 10px currentColor;
   border-width: 2px;
 }
 
 /* セレクトボックスのオプション */
 .form-group select option {
-  background: #0d1117;
+  background: #ffffff;
   color: var(--text);
   padding: 10px;
 }
@@ -388,8 +387,8 @@
 
 .form-group input:hover,
 .form-group textarea:hover {
-  border-color: rgba(0, 229, 255, 0.4);
-  background: #111827;
+  border-color: rgba(124, 58, 237, 0.4);
+  background: #f1f5f9;
 }
 
 .form-group input:focus,
@@ -397,8 +396,8 @@
 .form-group textarea:focus {
   outline: none;
   border-color: var(--neon);
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.2), 0 0 15px rgba(0, 229, 255, 0.1);
-  background: #111827;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  background: #ffffff;
 }
 
 .form-group input::placeholder,
@@ -420,7 +419,7 @@
   align-items: center;
   gap: 16px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(124, 58, 237, 0.02);
   border: 1px solid var(--line);
   border-radius: 10px;
 }
@@ -484,10 +483,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: #ffffff;
   border-top: 2px solid var(--neon);
   padding: 20px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
   z-index: 10000;
   animation: slideUp 0.3s ease-out;
   display: none;

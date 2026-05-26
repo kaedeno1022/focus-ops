@@ -117,29 +117,29 @@ function setupEventListeners() {
     resetAllBtn.addEventListener('click', resetAll);
   }
 
-  // Cookie同意バナー（関数が存在する場合のみ）
-  const acceptCookies = getElement('acceptCookies');
+  // Cookie同意バナー（ページによって存在しない場合あり）
+  const acceptCookies = document.getElementById('acceptCookies');
   if (acceptCookies && typeof handleAcceptCookies === 'function') {
     acceptCookies.addEventListener('click', handleAcceptCookies);
   }
 
-  const declineCookies = getElement('declineCookies');
+  const declineCookies = document.getElementById('declineCookies');
   if (declineCookies && typeof handleDeclineCookies === 'function') {
     declineCookies.addEventListener('click', handleDeclineCookies);
   }
 
-  // プライバシーポリシー（関数が存在する場合のみ）
-  const privacyPolicyBtn = getElement('privacyPolicyBtn');
+  // プライバシーポリシー（ページによって存在しない場合あり）
+  const privacyPolicyBtn = document.getElementById('privacyPolicyBtn');
   if (privacyPolicyBtn && typeof openPrivacyModal === 'function') {
     privacyPolicyBtn.addEventListener('click', openPrivacyModal);
   }
 
-  const closePrivacyBtn = getElement('closePrivacyBtn');
+  const closePrivacyBtn = document.getElementById('closePrivacyBtn');
   if (closePrivacyBtn && typeof closePrivacyModal === 'function') {
     closePrivacyBtn.addEventListener('click', closePrivacyModal);
   }
 
-  const privacyModal = getElement('privacyModal');
+  const privacyModal = document.getElementById('privacyModal');
   if (privacyModal) {
     privacyModal.addEventListener('click', (e) => {
       if (e.target === privacyModal) {

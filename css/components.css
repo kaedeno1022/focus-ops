@@ -14,13 +14,13 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  filter: brightness(1.2);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 button:active {
   transform: translateY(0);
-  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+  box-shadow: none;
 }
 
 .btn-main {
@@ -74,7 +74,7 @@ button:active {
 }
 
 .btn-danger:hover {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 0 40px rgba(220, 38, 38, 0.4);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .btn-danger:hover::before {
@@ -88,13 +88,13 @@ button:active {
 }
 
 .btn-secondary:hover {
-  background: rgba(34, 211, 238, 0.1);
-  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 15px rgba(34, 211, 238, 0.1);
+  background: rgba(124, 58, 237, 0.08);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
 }
 
 .btn-secondary:active {
-  background: rgba(34, 211, 238, 0.2);
-  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+  background: rgba(124, 58, 237, 0.15);
+  box-shadow: none;
 }
 
 .toggle-btn.active {
@@ -106,14 +106,12 @@ button:active {
    カード
    ============================================================================ */
 .card {
-  background: rgba(17, 24, 39, 0.92);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 20px;
 
-  box-shadow:
-    0 0 14px rgba(0, 229, 255, 0.1),
-    inset 0 0 20px rgba(255, 255, 255, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .card h2 {
@@ -138,7 +136,7 @@ button:active {
 
 .progress {
   height: 10px;
-  background: #0f172a;
+  background: #e2e8f0;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -149,7 +147,6 @@ button:active {
   transition: width 0.3s ease;
 
   background: linear-gradient(90deg, var(--neon), var(--purple));
-  box-shadow: 0 0 10px var(--neon);
 }
 
 /* ============================================================================
@@ -167,16 +164,14 @@ button:active {
 }
 
 .toast {
-  background: rgba(17, 24, 39, 0.95);
+  background: #ffffff;
   border: 1px solid var(--neon);
   border-radius: 12px;
   padding: 16px 20px;
   min-width: 280px;
   max-width: 400px;
-  box-shadow: 
-    0 0 20px rgba(34, 211, 238, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.5);
-  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  color: var(--text);
   font-size: 14px;
   line-height: 1.5;
   pointer-events: auto;
@@ -186,23 +181,17 @@ button:active {
 
 .toast.toast-success {
   border-color: #22c55e;
-  box-shadow: 
-    0 0 20px rgba(34, 197, 94, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
 }
 
 .toast.toast-error {
   border-color: #ef4444;
-  box-shadow: 
-    0 0 20px rgba(239, 68, 68, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
 
 .toast.toast-info {
   border-color: #3b82f6;
-  box-shadow: 
-    0 0 20px rgba(59, 130, 246, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .toast.toast-hiding {

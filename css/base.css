@@ -9,10 +9,7 @@ body {
   margin: 0;
   padding: 20px;
 
-  background:
-    radial-gradient(circle at top left, #162042 0%, transparent 30%),
-    radial-gradient(circle at bottom right, #24114d 0%, transparent 30%),
-    var(--bg);
+  background: var(--bg);
 
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
@@ -40,21 +37,21 @@ body.no-scroll {
 button:focus-visible {
   outline: 3px solid var(--neon);
   outline-offset: 3px;
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 /* チェックボックスのフォーカス */
 input[type="checkbox"]:focus-visible {
   outline: 3px solid var(--neon);
   outline-offset: 2px;
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 /* タスク要素全体のフォーカス */
 .task:focus-within {
   border-color: var(--neon);
-  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.3);
-  background: #1a2332;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  background: rgba(124, 58, 237, 0.03);
 }
 
 /* スクリーンリーダー専用テキスト */
