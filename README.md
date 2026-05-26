@@ -162,6 +162,16 @@ https://kaedeno1022.github.io/nte/
 - グローバル状態変数の定義
 - checkedState, minimumMode, taskVisibility, customTasks等
 
+## 🔧 開発環境セットアップ
+
+### Cygwin/WSL環境での設定
+
+Cygwin や WSL 環境では、ファイルモードの差分が誤検知される場合があります。以下のコマンドで無視するよう設定してください：
+
+```bash
+git config core.filemode false
+```
+
 #### **utils.js** (~200行)
 - スクリーンリーダー通知
 - フォーカストラップ

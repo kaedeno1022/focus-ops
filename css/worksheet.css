@@ -1,0 +1,843 @@
+/* ===== Work Sheet Specific Styles ===== */
+
+/* ===== CSS Variables ===== */
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #22c55e;
+  --success-light: #dcfce7;
+  --warning-light: #fef3c7;
+  --bg: #f0f4f8;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 4px 16px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.1), 0 4px 12px rgba(0,0,0,.05);
+  --th-bg: #f1f5f9;
+  --checkin-bg: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  --checkin-status-in: #dcfce7;
+  --checkin-status-out: #fee2e2;
+  --transition: .2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== App Header ===== */
+.app-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  color: #fff;
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(30,64,175,.2);
+}
+.app-header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: .04em; }
+.app-header p  { margin: 4px 0 0; font-size: .85rem; opacity: .8; }
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 6px;
+  max-width: 980px;
+  margin: 20px auto 0;
+  padding: 0 16px;
+}
+.tab-btn {
+  flex: 1 1 0;
+  padding: 13px 0;
+  background: rgba(255,255,255,.5);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  backdrop-filter: blur(4px);
+  position: relative;
+  letter-spacing: .02em;
+}
+.tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,.75);
+  color: var(--primary);
+}
+.tab-btn.active {
+  background: var(--card-bg);
+  color: var(--primary);
+  border-color: var(--border);
+  z-index: 2;
+  box-shadow: 0 -2px 8px rgba(0,0,0,.03);
+}
+.tab-btn.active:hover {
+  background: var(--card-bg);
+  cursor: default;
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 3px 3px 0 0;
+}
+.tab-content { display: none; animation: fadeIn .25s ease; }
+.tab-content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== App Container ===== */
+.app-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+/* ===== Section Title ===== */
+.section-title {
+  font-size: 1.15rem;
+  margin: 24px 0 16px;
+  color: var(--text);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Checkin Card ===== */
+.checkin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 28px;
+  background: var(--checkin-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  margin: 0 auto;
+}
+.checkin-header { width: 100%; display: flex; justify-content: center; margin-bottom: 20px; }
+.checkin-status {
+  font-size: .95em;
+  font-weight: 700;
+  padding: 6px 22px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  transition: all var(--transition);
+  letter-spacing: .04em;
+}
+.checkin-status.in  { background: var(--checkin-status-in);  color: #15803d; border-color: #86efac; }
+.checkin-status.out { background: var(--checkin-status-out); color: #dc2626; border-color: #fca5a5; }
+.checkin-row { display: flex; gap: 16px; margin-bottom: 20px; }
+.checkin-btn {
+  font-size: 1.05em; font-weight: 700;
+  padding: 14px 40px;
+  border-radius: var(--radius);
+  border: none; cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: .03em;
+}
+.checkin-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow); }
+.checkin-btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
+.checkin-btn.in  { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.checkin-btn.in:disabled  { background: #cbd5e1; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-btn.out { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+.checkin-btn.out:disabled { background: #fecaca; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-info {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; margin-bottom: 8px;
+}
+.checkin-time { font-size: .95em; color: var(--primary); font-weight: 600; margin-right: 12px; }
+.checkin-content, .checkin-manual-in {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-size: .95em; background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.checkin-content    { width: 100%; max-width: 280px; }
+.checkin-content-row { display: flex; align-items: center; gap: 8px; width: 90%; max-width: 360px; }
+.checkin-manual-in  { width: 90%; max-width: 200px; }
+.checkin-content:focus, .checkin-manual-in:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+.checkin-guide {
+  font-size: .85em; color: var(--text-light);
+  margin-top: 10px; text-align: center; line-height: 1.5;
+}
+
+/* ===== Form Grid ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px 24px;
+}
+.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-col-1      { grid-column: 1; }
+.grid-col-2      { grid-column: 2; }
+.grid-col-span-3 { grid-column: span 3; }
+.form-item { display: flex; flex-direction: column; gap: 6px; }
+.form-item label {
+  display: block; font-size: .85em; color: var(--text-muted);
+  font-weight: 600; letter-spacing: .02em; text-align: left;
+}
+.label-note {
+  font-size: .82em;
+  color: var(--text-light);
+  font-weight: 400;
+}
+.form-item input, .form-item select {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .95em; background: #fff; color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-item input[type="date"] { width: 180px; }
+.form-item input:hover, .form-item select:hover { border-color: var(--border-hover); }
+.form-item input:focus, .form-item select:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+.form-item input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+.date-row { display: flex; align-items: center; gap: 6px; }
+.weekday-label { font-size: .88em; color: var(--primary); font-weight: 600; }
+
+/* ===== Buttons ===== */
+button {
+  padding: 10px 22px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: .95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: .02em;
+}
+
+button:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(.98);
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #64748b;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #475569;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .88em;
+}
+
+.btn-secondary.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+}
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn-row-grouped { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.btn-group  { display: flex; gap: 6px; }
+.btn-divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; align-self: center; }
+
+/* ===== Card ===== */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* ===== Table ===== */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .9em; table-layout: auto; }
+thead th {
+  background: var(--th-bg); color: var(--text);
+  padding: 12px 10px; border-bottom: 2px solid var(--border);
+  font-weight: 700; font-size: .85em; text-transform: uppercase;
+  letter-spacing: .06em; position: sticky; top: 0; z-index: 1; white-space: nowrap;
+}
+thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:hover { background: var(--primary-light); }
+td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 8px; text-align: center; white-space: nowrap; color: var(--text);
+}
+/* BPモード: 列幅を適切に調整 */
+table.mode-bp tbody tr td:nth-child(1) { min-width: 100px; }  /* 日付 */
+table.mode-bp tbody tr td:nth-child(2) { min-width: 40px; }   /* 曜 */
+table.mode-bp tbody tr td:nth-child(3) { min-width: 70px; }   /* 開始 */
+table.mode-bp tbody tr td:nth-child(4) { min-width: 70px; }   /* 終了 */
+table.mode-bp tbody tr td:nth-child(5) {                       /* 内容 */
+  min-width: 150px; max-width: 300px; white-space: normal; text-align: left; 
+}
+table.mode-bp tbody tr td:nth-child(6) { min-width: 180px; }  /* 操作 */
+
+/* 社員モード: 内容列 */
+table.mode-employee tbody tr td:nth-child(9) { 
+  min-width: 130px; max-width: 240px; white-space: normal; text-align: left; 
+}
+/* 操作列 */
+td:last-child { min-width: 150px; max-width: 230px; }
+.td-ops { display: flex; gap: 6px; justify-content: center; }
+.td-ops button { box-shadow: none; }
+.td-ops button:hover { box-shadow: var(--shadow-sm); }
+
+/* ===== Calendar Grid ===== */
+#calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 40px); gap: 2px;
+  margin-bottom: 10px; background: #f8fafc;
+  padding: 10px 6px; border-radius: var(--radius); border: 1px solid var(--border);
+}
+.calendar-header {
+  display: grid; grid-template-columns: repeat(7, 40px);
+  font-size: .82em; font-weight: 700; color: var(--text-muted);
+  margin-bottom: 2px; text-align: center; letter-spacing: .08em;
+  padding-left: 6px; text-transform: uppercase;
+}
+.calendar-cell { height: 38px; display: flex; align-items: center; justify-content: center; }
+.calendar-cell label {
+  width: 34px; height: 34px;
+  display: flex; justify-content: center; align-items: center;
+  border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); font-size: .9em;
+}
+.calendar-cell label:hover { background: var(--primary-light); }
+.calendar-cell input[type="checkbox"] { accent-color: var(--primary); }
+
+/* Copy Calendar Styles */
+.copy-calendar-title {
+  font-size: .95em;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.copy-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.copy-calendar-th {
+  font-size: .75em;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.copy-calendar-empty {
+  height: 36px;
+}
+
+.copy-calendar-box {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-calendar-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: .88em;
+  background: white;
+  border: 1px solid var(--border);
+  width: 100%;
+  justify-content: center;
+}
+
+.copy-calendar-label:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.copy-calendar-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--primary);
+}
+
+.copy-day-sun .copy-calendar-label {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.copy-day-sat .copy-calendar-label {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.copy-day-sun .copy-calendar-label:hover {
+  background: #fecaca;
+}
+
+.copy-day-sat .copy-calendar-label:hover {
+  background: #bfdbfe;
+}
+
+/* ===== Work Summary ===== */
+.work-summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+}
+.work-summary-sep {
+  width: 1px; height: 28px;
+  background: var(--border);
+}
+.work-summary-item,
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.summary-item-wide {
+  flex-basis: 100%;
+}
+.work-summary-label,
+.summary-label {
+  font-size: .88em;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.work-summary-value,
+.summary-value {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.work-summary-overtime {
+  color: #ef4444;
+}
+.btn-clear-diffs {
+  margin-left: 8px;
+  font-size: .8em;
+  padding: 4px 10px;
+}
+
+/* ===== Mode Bar ===== */
+.mode-bar {
+  background: #1e3a8a;
+  padding: 6px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+.mode-bar-inner {
+  max-width: 980px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.mode-bar-label {
+  font-size: .82em;
+  color: rgba(255,255,255,.6);
+  margin-right: 2px;
+}
+.mode-btn {
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,.3);
+  background: transparent;
+  color: rgba(255,255,255,.65);
+  font-size: .8em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: none;
+  letter-spacing: .03em;
+}
+.mode-btn:hover {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+.mode-btn.active {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+  border-color: rgba(255,255,255,.7);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== Modal & Overlay ===== */
+.hidden {
+  display: none !important;
+}
+
+#overlay {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+}
+
+#editModal,
+#copyModal,
+#eventEditModal {
+  display: block;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 24px;
+  min-width: 340px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 101;
+  border: 1px solid var(--border);
+}
+
+#copyModal {
+  max-width: 400px;
+}
+
+#eventEditModal {
+  z-index: 102;
+}
+
+#copyModal h4 {
+  margin: 0 0 16px 0;
+  font-size: 1.15rem;
+  color: var(--text);
+  text-align: center;
+}
+
+#copyModal .btn-row-mb {
+  margin-bottom: 12px;
+}
+
+/* ===== Toast Notifications ===== */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+.toast {
+  position: relative;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,.15), 0 2px 6px rgba(0,0,0,.08);
+  padding: 14px 16px 8px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 300px;
+  max-width: 420px;
+  pointer-events: auto;
+  animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  border-left: 4px solid;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.toast.toast-out {
+  animation: toastOut 0.25s ease forwards;
+}
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateX(100px) scale(0.9);
+  }
+}
+
+.toast-icon {
+  font-size: 1.4em;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-msg {
+  font-size: .92em;
+  color: var(--text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.toast-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: .9em;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all var(--transition);
+  box-shadow: none;
+}
+
+.toast-close:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--text);
+  transform: none;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  width: 100%;
+  animation: toastProgress var(--toast-duration, 3500ms) linear forwards;
+  opacity: 0.4;
+}
+
+@keyframes toastProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.toast.info {
+  border-left-color: var(--primary);
+}
+
+.toast.info .toast-progress {
+  color: var(--primary);
+}
+
+.toast.success {
+  border-left-color: var(--success);
+}
+
+.toast.success .toast-progress {
+  color: var(--success);
+}
+
+.toast.warning {
+  border-left-color: #f59e0b;
+}
+
+.toast.warning .toast-progress {
+  color: #f59e0b;
+}
+
+.toast.error {
+  border-left-color: var(--danger);
+}
+
+.toast.error .toast-progress {
+  color: var(--danger);
+}
+
+/* ===== Confirm Dialog ===== */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-dialog {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 32px;
+  max-width: 480px;
+  width: 100%;
+  animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: center;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-icon {
+  font-size: 3em;
+  margin-bottom: 12px;
+}
+
+.confirm-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.confirm-msg {
+  font-size: .95em;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.confirm-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-btns button {
+  min-width: 100px;
+}
+
+.confirm-cancel {
+  background: #e2e8f0;
+  color: var(--text);
+}
+
+.confirm-cancel:hover {
+  background: #cbd5e1;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 700px) {
+  .app-header { padding: 16px 12px; }
+  .app-header h1 { font-size: 1.15rem; }
+  .app-container { padding: 0 8px 24px; }
+  .tabs { padding: 0 8px; gap: 4px; }
+  .tab-btn { font-size: .88em; padding: 11px 0; }
+  .form-grid { gap: 12px 10px; grid-template-columns: 1fr 1fr; }
+  th, td { font-size: .85em; padding: 8px 5px; }
+  #copyCalendar .copy-calendar-grid { grid-template-columns: repeat(7, 1fr); }
+  #editModal, #copyModal, #eventEditModal {
+    max-width: 95%;
+    padding: 20px 16px;
+  }
+  .checkin-btn { padding: 12px 28px; font-size: .95em; }
+  .checkin-row { gap: 10px; }
+  .btn-row { gap: 8px; }
+}
+@media (max-width: 440px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-item.grid-col-span-3 { grid-column: span 1 !important; }
+  .checkin-row { flex-direction: column; gap: 10px; }
+  .checkin-btn { width: 100%; }
+}
