@@ -179,7 +179,7 @@ function updateProgressOnly() {
     if (!categories) return;
     
     categories.forEach(group => {
-      // 最低限モードで必須以外をスキップ
+      // 最低限モードで優先度：高以外をスキップ
       if (minimumMode && group.category !== REQUIRED_CATEGORY) {
         return;
       }
@@ -224,7 +224,7 @@ function renderSection(type) {
   }
 
   categories.forEach(group => {
-    // 最低限モードで必須以外をスキップ
+    // 最低限モードで優先度：高以外をスキップ
     if (minimumMode && group.category !== REQUIRED_CATEGORY) {
       return;
     }

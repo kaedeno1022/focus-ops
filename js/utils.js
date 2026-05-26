@@ -108,11 +108,11 @@ function isTaskVisible(key) {
  */
 function getCategoryFromPriority(priority) {
   const categoryMap = {
-    high: '必須',
-    mid: '余裕あれば',
-    low: '確認系'
+    high: '優先度：高',
+    mid: '優先度：中',
+    low: '余裕があれば'
   };
-  return categoryMap[priority] || '必須';
+  return categoryMap[priority] || '優先度：高';
 }
 
 /**

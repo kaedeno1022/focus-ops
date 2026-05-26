@@ -87,7 +87,7 @@ function toggleMinimumMode() {
   
   // スクリーンリーダーへの通知
   announceToScreenReader(
-    minimumMode ? '最低限モードをオンにしました。必須タスクのみ表示されます。' : '最低限モードをオフにしました。全てのタスクが表示されます。'
+    minimumMode ? '最低限モードをオンにしました。優先度：高のタスクのみ表示されます。' : '最低限モードをオフにしました。全てのタスクが表示されます。'
   );
 
   saveState();

@@ -30,7 +30,7 @@ const CATEGORY_LABELS = {
   season: '今月のタスク'
 };
 
-/** 必須カテゴリー名 */
+/** 最低限モードで表示するカテゴリー名 */
 const REQUIRED_CATEGORY = '優先度：高';
 
 /** タスクデータ構造 */

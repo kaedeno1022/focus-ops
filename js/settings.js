@@ -399,6 +399,10 @@ function openTaskEditForm(type, category, title, priority, isCustomTask, origina
   const currentKey = createKey(type, currentCategory, title);
   form.taskComment.value = taskComments[currentKey] || '';
 
+  // メタデータをフォームに反映
+  const metadata = getTaskMetadata(currentKey);
+  setTaskMetadataToForm(metadata);
+
   // 送信ボタンのテキストを変更
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn) {
@@ -559,7 +563,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
     }
   }
 
-  // チェック状態とコメントを移行（currentKeyから新しいキーへ）
+  // チェック状態・コメント・メタデータを移行（currentKeyから新しいキーへ）
   if (currentKey !== newKey) {
     if (checkedState[currentKey]) {
       checkedState[newKey] = checkedState[currentKey];
@@ -573,6 +577,24 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
       }
       delete taskComments[currentKey];
     }
+
+    // メタデータを移行
+    const oldMetadata = getTaskMetadata(currentKey);
+    deleteTaskMetadata(currentKey);
+    
+    // フォームから新しいメタデータを取得してマージ
+    const newMetadata = getTaskMetadataFromForm();
+    const mergedMetadata = {
+      project: newMetadata.project !== undefined ? newMetadata.project : oldMetadata.project,
+      deadline: newMetadata.deadline !== undefined ? newMetadata.deadline : oldMetadata.deadline,
+      tags: newMetadata.tags !== undefined ? newMetadata.tags : oldMetadata.tags,
+      estimatedTime: newMetadata.estimatedTime !== undefined ? newMetadata.estimatedTime : oldMetadata.estimatedTime
+    };
+    saveTaskMetadata(newKey, mergedMetadata);
+  } else {
+    // 同じキーの場合はメタデータを更新
+    const newMetadata = getTaskMetadataFromForm();
+    saveTaskMetadata(newKey, newMetadata);
   }
 
   // 新しいコメントを保存
