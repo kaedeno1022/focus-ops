@@ -15,7 +15,11 @@
     gtag('config', 'G-WPV9BG4YSJ');
   </script>
   
+  <script defer src="./js/cookieConsent.js"></script>
+  
   <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
   <div class="container">
@@ -50,6 +54,57 @@
 
     <div class="footer">
       <p>© 2026 Focus Ops - All rights reserved</p>
+      <div class="footer-links" style="margin-top: 8px;">
+        <button id="privacyPolicyBtn" style="background: none; border: none; color: #8b5cf6; cursor: pointer; text-decoration: underline; font-size: 0.9rem;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#8b5cf6'">プライバシーポリシー</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie同意バナー -->
+  <div id="cookieConsent" class="cookie-consent" role="dialog" aria-labelledby="cookieConsentTitle" aria-describedby="cookieConsentDesc">
+    <div class="cookie-consent-content">
+      <h3 id="cookieConsentTitle">Cookieの使用について</h3>
+      <p id="cookieConsentDesc">このサイトではGoogle Analytics (GA4)を使用して、サイトの利用状況を分析しています。継続してご利用いただくことで、Cookieの使用に同意したものとみなされます。</p>
+      <div class="cookie-consent-actions">
+        <button id="acceptCookies" class="btn-main" type="button">同意する</button>
+        <button id="declineCookies" class="btn-secondary" type="button">拒否する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- プライバシーポリシーモーダル -->
+  <div id="privacyModal" class="modal" role="dialog" aria-labelledby="privacyModalTitle" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="privacyModalTitle">プライバシーポリシー</h2>
+        <button id="closePrivacyBtn" class="close-btn" type="button" aria-label="閉じる">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-content">
+          <h3>個人情報の収集について</h3>
+          <p>当サイトでは、Google Analytics（GA4）を使用して、サイトの利用状況を分析しています。</p>
+          
+          <h3>収集する情報</h3>
+          <ul>
+            <li>ページビュー数</li>
+            <li>アクセス元の地域情報（国・都市レベル）</li>
+            <li>使用デバイス・ブラウザ情報</li>
+            <li>サイト内の行動データ</li>
+          </ul>
+          
+          <h3>情報の利用目的</h3>
+          <p>収集した情報は、サイトの改善およびユーザー体験の向上のためにのみ使用します。</p>
+          
+          <h3>第三者への提供</h3>
+          <p>収集した情報は、Google Analyticsのプライバシーポリシーに従って処理されます。詳細は<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Googleプライバシーポリシー</a>をご確認ください。</p>
+          
+          <h3>Cookieの管理</h3>
+          <p>ブラウザの設定により、Cookieの受け入れを拒否することができます。ただし、一部の機能が正常に動作しない場合があります。</p>
+          
+          <h3>お問い合わせ</h3>
+          <p>プライバシーポリシーに関するご質問は、サイト管理者までお問い合わせください。</p>
+        </div>
+      </div>
     </div>
   </div>
 </body>

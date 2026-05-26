@@ -117,25 +117,25 @@ function setupEventListeners() {
     resetAllBtn.addEventListener('click', resetAll);
   }
 
-  // Cookie同意バナー
+  // Cookie同意バナー（関数が存在する場合のみ）
   const acceptCookies = getElement('acceptCookies');
-  if (acceptCookies) {
+  if (acceptCookies && typeof handleAcceptCookies === 'function') {
     acceptCookies.addEventListener('click', handleAcceptCookies);
   }
 
   const declineCookies = getElement('declineCookies');
-  if (declineCookies) {
+  if (declineCookies && typeof handleDeclineCookies === 'function') {
     declineCookies.addEventListener('click', handleDeclineCookies);
   }
 
-  // プライバシーポリシー
+  // プライバシーポリシー（関数が存在する場合のみ）
   const privacyPolicyBtn = getElement('privacyPolicyBtn');
-  if (privacyPolicyBtn) {
+  if (privacyPolicyBtn && typeof openPrivacyModal === 'function') {
     privacyPolicyBtn.addEventListener('click', openPrivacyModal);
   }
 
   const closePrivacyBtn = getElement('closePrivacyBtn');
-  if (closePrivacyBtn) {
+  if (closePrivacyBtn && typeof closePrivacyModal === 'function') {
     closePrivacyBtn.addEventListener('click', closePrivacyModal);
   }
 

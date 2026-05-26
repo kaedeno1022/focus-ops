@@ -6,8 +6,10 @@
  * アプリケーションを初期化
  */
 function init() {
-  // Cookie同意を初期化
-  initCookieConsent();
+  // Cookie同意を初期化（関数が存在する場合のみ）
+  if (typeof initCookieConsent === 'function') {
+    initCookieConsent();
+  }
   
   // 最低限モードが有効な場合、UIを更新
   if (minimumMode) {
