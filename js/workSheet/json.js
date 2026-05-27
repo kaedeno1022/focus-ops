@@ -28,15 +28,19 @@ export function importJSON() {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const imported = JSON.parse(ev.target.result);
-        if (!Array.isArray(imported)) {
+        const parsed = JSON.parse(ev.target.result);
+        const imported = Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(parsed?.勤務データ) ? parsed.勤務データ : null;
+        if (!imported) {
           showToast('無効なJSONフォーマットです', 'error'); return;
         }
         data.length = 0;
         data.push(...imported);
         sortData(); save(); render();
         showToast('JSONをインポートしました', 'success');
-      } catch {
+      } catch (err) {
+        console.error('[importJSON] parse error:', err);
         showToast('JSONのパースに失敗しました', 'error');
       }
     };
