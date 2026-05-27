@@ -96,12 +96,6 @@ function setupEventListeners() {
     dailyResetBtn.addEventListener('click', () => resetCategory('daily'));
   }
 
-  // モバイル専用デイリーリセットボタン
-  const dailyResetBtnMobile = getElement('dailyResetBtnMobile');
-  if (dailyResetBtnMobile) {
-    dailyResetBtnMobile.addEventListener('click', () => resetCategory('daily'));
-  }
-
   const weeklyResetBtn = getElement('weeklyResetBtn');
   if (weeklyResetBtn) {
     weeklyResetBtn.addEventListener('click', () => resetCategory('weekly'));

@@ -80,14 +80,6 @@
     display: block;
   }
 
-  /* デイリーリセットボタン（モバイル専用） */
-  #dailyResetBtnMobile {
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 10px;
-    white-space: nowrap;
-  }
-
   /* スライドメニュー */
   .topbar {
     position: fixed;
@@ -99,7 +91,7 @@
     background: var(--card);
     border-left: 1px solid var(--line);
     flex-direction: column;
-    padding: 90px 20px 20px;
+    padding: 100px 20px 20px;
     margin: 0;
     z-index: 1000;
     transition: right 0.3s ease;
@@ -354,6 +346,29 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+}
+
+/* 小型スマートフォン対応 */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .topbar {
+    width: 90%;
+  }
+
+  .status-grid {
+    gap: 10px;
+  }
+
+  .status-value {
+    font-size: 14px;
   }
 }
 

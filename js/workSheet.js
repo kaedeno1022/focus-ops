@@ -495,24 +495,24 @@
       const weekday = WEEKDAYS[dateObj.getDay()];
       if (currentMode === 'bp') {
         [
-          d.日付,
-          weekday,
-          d.作業開始,
-          d.作業終了,
-          d.作業内容,
-        ].forEach(text => { const td = document.createElement('td'); td.textContent = text || ''; tr.appendChild(td); });
+          ['日付', d.日付],
+          ['曜', weekday],
+          ['開始', d.作業開始],
+          ['終了', d.作業終了],
+          ['内容', d.作業内容],
+        ].forEach(([label, text]) => { const td = document.createElement('td'); td.dataset.label = label; td.textContent = text || ''; tr.appendChild(td); });
       } else {
         [
-          d.日付,
-          weekday,
-          d.勤務実績,
-          d.作業開始,
-          d.作業終了,
-          d['18時以降休憩'] || '',
-          d.遅刻早退,
-          d.振替代休対象日,
-          d.作業内容,
-        ].forEach(text => { const td = document.createElement('td'); td.textContent = text || ''; tr.appendChild(td); });
+          ['日付', d.日付],
+          ['曜', weekday],
+          ['実績', d.勤務実績],
+          ['開始', d.作業開始],
+          ['終了', d.作業終了],
+          ['18時以降休憩', d['18時以降休憩'] || ''],
+          ['遅刻', d.遅刻早退],
+          ['振替', d.振替代休対象日],
+          ['内容', d.作業内容],
+        ].forEach(([label, text]) => { const td = document.createElement('td'); td.dataset.label = label; td.textContent = text || ''; tr.appendChild(td); });
       }
       const tdOp = document.createElement('td');
       tdOp.className = 'td-ops';
