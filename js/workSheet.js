@@ -127,9 +127,12 @@
   }
 
   function formatHoursMinutes(minutes) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}時間${m}分` : `${h}時間`;
+    const sign = minutes < 0 ? '-' : '';
+    const abs  = Math.abs(minutes);
+    const h    = Math.floor(abs / 60);
+    const m    = abs % 60;
+    if (h === 0) return `${sign}${m}分`;
+    return m > 0 ? `${sign}${h}時間${m}分` : `${sign}${h}時間`;
   }
 
   function calcWorkMinutes(d) {
@@ -809,7 +812,7 @@
             d.作業終了 = roundedEnd;
             
             const roundedWorkMin = calcWorkMinutes(d);
-            const diffMin = roundedWorkMin - originalWorkMin;
+            const diffMin = originalWorkMin - roundedWorkMin;
             
             // 差分を記録
             const existingIdx = roundDiffs.findIndex(r => r.date === d.日付);
@@ -1129,10 +1132,10 @@
     if (outTimeEl) outTimeEl.textContent = '';
   }
 
-  function simpleCheckIn() {
+  async function simpleCheckIn() {
     const info = JSON.parse(localStorage.getItem(CHECKIN_KEY) || 'null');
     if (!info || !info.status) { doCheckIn(); return; }
-    doCheckOut();
+    await doCheckOut();
   }
 
   function doCheckIn() {
@@ -1168,9 +1171,41 @@
     showToast(`出社しました (${now})\n内容: ${matchedContent || '(なし)'}`, 'success', 4000);
   }
 
-  function doCheckOut() {
-    const info = JSON.parse(localStorage.getItem(CHECKIN_KEY) || 'null');
-    if (!info || !info.status) { showToast('出社していません', 'warning'); return; }
+  function showCheckinTimeDialog() {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'confirm-overlay';
+      overlay.innerHTML = `
+        <div class="confirm-dialog">
+          <div class="confirm-icon">🏢</div>
+          <div class="confirm-title">出社時間を入力</div>
+          <div class="confirm-msg">出社履歴がありません。<br>出社時間を入力してください。</div>
+          <input type="time" id="_manual_start_time" value="09:00"
+            style="display:block;margin:16px auto 8px;padding:8px 12px;font-size:1.1rem;border:1px solid #cbd5e1;border-radius:8px;text-align:center;width:140px;">
+          <div class="confirm-btns">
+            <button class="confirm-cancel" id="_cfm_no">キャンセル</button>
+            <button id="_cfm_yes">退勤する</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const close = result => { overlay.remove(); resolve(result); };
+      overlay.querySelector('#_cfm_yes').addEventListener('click', () => {
+        const timeVal = overlay.querySelector('#_manual_start_time').value;
+        close(timeVal || null);
+      });
+      overlay.querySelector('#_cfm_no').addEventListener('click', () => close(null));
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(null); });
+    });
+  }
+
+  async function doCheckOut() {
+    let info = JSON.parse(localStorage.getItem(CHECKIN_KEY) || 'null');
+    if (!info || !info.status) {
+      const manualStartTime = await showCheckinTimeDialog();
+      if (!manualStartTime) return;
+      const today = getTodayJST();
+      info = { startTime: manualStartTime, date: today, content: '' };
+    }
     
     // simple_contentから内容を取得
     const simpleContentEl = document.getElementById('simple_content');
@@ -1207,8 +1242,8 @@
     }
   }
 
-  function simpleCheckOut() {
-    doCheckOut();
+  async function simpleCheckOut() {
+    await doCheckOut();
   }
 
   function applyEventsToCheckin() {
