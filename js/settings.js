@@ -47,17 +47,19 @@ function closeSettingsModal() {
   }
   cancelTagEdit();
   cancelProjectEdit();
+  cancelStatusEdit();
 }
 
 /**
  * タブを切り替える
- * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject')
+ * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject' | 'kanban')
  */
 function switchTab(tabName) {
   const tabs = {
     visibility: { btn: getElement('visibilityTab'),  panel: getElement('visibilityPanel') },
     custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
     tagProject: { btn: getElement('tagProjectTab'),   panel: getElement('tagProjectPanel') },
+    kanban:     { btn: getElement('kanbanTab'),       panel: getElement('kanbanPanel') },
   };
 
   Object.entries(tabs).forEach(([key, { btn, panel }]) => {

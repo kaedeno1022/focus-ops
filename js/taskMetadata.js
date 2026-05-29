@@ -172,11 +172,12 @@ function clearTaskMetadataForm() {
 }
 
 /**
- * メタデータ管理画面（タグ・プロジェクト）を描画
+ * メタデータ管理画面（タグ・プロジェクト・ステータス）を描画
  */
 function renderMetadataManagers() {
   renderTagManagerList();
   renderProjectManagerList();
+  renderStatusManagerList();
 }
 
 /**
@@ -540,4 +541,183 @@ function deleteTaskMetadata(key) {
   delete taskTags[key];
   delete taskEstimatedTime[key];
   saveState();
+}
+
+// ============================================================================
+// カンバンステータス管理
+// ============================================================================
+
+/**
+ * ステータス管理リストを描画
+ */
+function renderStatusManagerList() {
+  const container = document.getElementById('statusManagerList');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  KANBAN_STATUSES.forEach((status, index) => {
+    const item = document.createElement('div');
+    item.className = 'custom-task-item';
+
+    const info = document.createElement('div');
+    info.className = 'task-info';
+    const title = document.createElement('strong');
+    title.className = 'manager-item-title';
+    const colorDot = document.createElement('span');
+    colorDot.className = 'manager-color-dot';
+    colorDot.style.background = status.color;
+    const nameText = document.createElement('span');
+    nameText.textContent = status.name;
+    title.appendChild(colorDot);
+    title.appendChild(nameText);
+    info.appendChild(title);
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn-main btn-small';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', () => startStatusEdit(status.id));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn-danger btn-small';
+    deleteBtn.textContent = '削除';
+    deleteBtn.disabled = KANBAN_STATUSES.length <= 1;
+    deleteBtn.addEventListener('click', () => deleteStatus(status.id));
+
+    buttonGroup.appendChild(editBtn);
+    buttonGroup.appendChild(deleteBtn);
+    item.appendChild(info);
+    item.appendChild(buttonGroup);
+    container.appendChild(item);
+  });
+}
+
+/**
+ * ステータスを作成/更新
+ * @param {Event} e
+ */
+function handleStatusManagerSubmit(e) {
+  e.preventDefault();
+  const nameInput = document.getElementById('statusManagerName');
+  const colorInput = document.getElementById('statusManagerColor');
+  if (!nameInput || !colorInput) return;
+
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
+  if (!name) return;
+
+  if (editingStatusId) {
+    const target = KANBAN_STATUSES.find(s => s.id === editingStatusId);
+    if (target) {
+      target.name = name;
+      target.color = color;
+    }
+    showToast('ステータスを更新しました', 'success');
+  } else {
+    const id = generateMetadataId('status');
+    KANBAN_STATUSES.push({ id, name, color, order: KANBAN_STATUSES.length });
+    showToast('ステータスを追加しました', 'success');
+  }
+
+  saveState();
+  cancelStatusEdit();
+  renderStatusManagerList();
+  renderAll();
+}
+
+/**
+ * ステータス編集開始
+ * @param {string} statusId
+ */
+function startStatusEdit(statusId) {
+  const target = KANBAN_STATUSES.find(s => s.id === statusId);
+  const nameInput = document.getElementById('statusManagerName');
+  const colorInput = document.getElementById('statusManagerColor');
+  const submitBtn = document.querySelector('#statusManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('statusManagerCancelEdit');
+  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  editingStatusId = statusId;
+  nameInput.value = target.name;
+  colorInput.value = target.color;
+  submitBtn.textContent = 'ステータスを更新';
+  cancelBtn.style.display = 'inline-block';
+}
+
+/**
+ * ステータス編集キャンセル
+ */
+function cancelStatusEdit() {
+  const form = document.getElementById('statusManagerForm');
+  const submitBtn = document.querySelector('#statusManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('statusManagerCancelEdit');
+  if (form) form.reset();
+  if (submitBtn) submitBtn.textContent = 'ステータスを追加';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  const colorInput = document.getElementById('statusManagerColor');
+  if (colorInput) colorInput.value = '#6b7280';
+  editingStatusId = null;
+}
+
+/**
+ * ステータス削除
+ * @param {string} statusId
+ */
+function deleteStatus(statusId) {
+  if (KANBAN_STATUSES.length <= 1) {
+    alert('少なくとも1つのステータスが必要です。');
+    return;
+  }
+  const target = KANBAN_STATUSES.find(s => s.id === statusId);
+  if (!target) return;
+  const fallbackId = KANBAN_STATUSES.find(s => s.id !== statusId)?.id;
+  if (!confirm(`「${target.name}」を削除しますか？\nこのステータスのタスクは「${KANBAN_STATUSES.find(s => s.id === fallbackId)?.name}」に移動します。`)) return;
+
+  const index = KANBAN_STATUSES.findIndex(s => s.id === statusId);
+  if (index > -1) KANBAN_STATUSES.splice(index, 1);
+
+  Object.keys(taskStatus).forEach(key => {
+    if (taskStatus[key] === statusId) {
+      if (fallbackId) {
+        taskStatus[key] = fallbackId;
+      } else {
+        delete taskStatus[key];
+      }
+    }
+  });
+
+  if (editingStatusId === statusId) cancelStatusEdit();
+
+  saveState();
+  renderStatusManagerList();
+  renderAll();
+  showToast('ステータスを削除しました', 'success');
+}
+
+/**
+ * ステータスをデフォルトに戻す
+ */
+function resetKanbanStatuses() {
+  if (!confirm('カンバンステータスをデフォルトに戻しますか？\nカスタムステータスは削除されます。')) return;
+
+  const defaultIds = new Set(DEFAULT_KANBAN_STATUSES.map(s => s.id));
+  Object.keys(taskStatus).forEach(key => {
+    if (!defaultIds.has(taskStatus[key])) {
+      taskStatus[key] = DEFAULT_KANBAN_STATUSES[0].id;
+    }
+  });
+
+  KANBAN_STATUSES.length = 0;
+  KANBAN_STATUSES.push(...DEFAULT_KANBAN_STATUSES.map(s => ({ ...s })));
+
+  cancelStatusEdit();
+  saveState();
+  renderStatusManagerList();
+  renderAll();
+  showToast('ステータスをデフォルトに戻しました', 'success');
 }

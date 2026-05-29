@@ -43,6 +43,8 @@ function saveState() {
     const estimatedTimeData = JSON.stringify(taskEstimatedTime);
     const projectMasterData = JSON.stringify(PROJECTS);
     const tagMasterData = JSON.stringify(TAGS);
+    const taskStatusData = JSON.stringify(taskStatus);
+    const statusMasterData = JSON.stringify(KANBAN_STATUSES);
     
     localStorage.setItem(STORAGE_KEYS.CHECKED, checkedData);
     localStorage.setItem(STORAGE_KEYS.MINIMUM, minimumData);
@@ -57,6 +59,8 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.ESTIMATED_TIME, estimatedTimeData);
     localStorage.setItem(STORAGE_KEYS.PROJECT_MASTER, projectMasterData);
     localStorage.setItem(STORAGE_KEYS.TAG_MASTER, tagMasterData);
+    localStorage.setItem(STORAGE_KEYS.TASK_STATUS, taskStatusData);
+    localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     

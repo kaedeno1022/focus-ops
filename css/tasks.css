@@ -215,6 +215,194 @@
 }
 
 /* ============================================================================
+   カンバンステータスバッジ（リストビュー）
+   ============================================================================ */
+.task-status-badge {
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.72em;
+  font-weight: 600;
+  padding: 2px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.task-status-badge:hover {
+  opacity: 0.82;
+}
+
+/* ステータス変更ドロップダウン */
+.status-dropdown {
+  position: fixed;
+  z-index: 9999;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.status-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background 0.15s;
+}
+
+.status-dropdown-item:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.status-dropdown-item.active {
+  font-weight: 700;
+  color: var(--neon);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   カンバンボード
+   ============================================================================ */
+.kanban-board {
+  display: none;
+  flex-direction: row;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 16px 24px 24px;
+  align-items: flex-start;
+  min-height: 400px;
+}
+
+.kanban-column {
+  flex: 0 0 270px;
+  min-width: 220px;
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  max-height: 78vh;
+}
+
+.kanban-column-header {
+  padding: 12px 16px;
+  border-top: 4px solid transparent;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+.kanban-column-title {
+  font-size: 0.95em;
+}
+
+.kanban-count {
+  background: var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--sub);
+}
+
+.kanban-cards {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kanban-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s;
+}
+
+.kanban-card:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+}
+
+.kanban-card.done .kanban-card-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.kanban-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.kanban-type-badge {
+  font-size: 0.72em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.type-daily   { background: rgba(236, 72, 153, 0.15); color: #db2777; }
+.type-weekly  { background: rgba(59, 130, 246, 0.15);  color: #2563eb; }
+.type-season  { background: rgba(16, 185, 129, 0.15);  color: #059669; }
+
+.kanban-card-title {
+  font-size: 0.88em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.kanban-card-comment {
+  font-size: 0.78em;
+  color: var(--sub);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.kanban-card-footer {
+  margin-top: 2px;
+}
+
+.kanban-status-select {
+  width: 100%;
+  font-size: 0.8em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ============================================================================
    ユーティリティクラス
    ============================================================================ */
 .hidden {

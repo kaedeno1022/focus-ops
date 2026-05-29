@@ -39,6 +39,15 @@ let taskTags = loadFromStorage(STORAGE_KEYS.TAGS) || {};
 /** タスクの予想作業時間（分） */
 let taskEstimatedTime = loadFromStorage(STORAGE_KEYS.ESTIMATED_TIME) || {};
 
+/** タスクのカンバンステータス */
+let taskStatus = loadFromStorage(STORAGE_KEYS.TASK_STATUS) || {};
+
+/** カンバンビューモード */
+let kanbanViewMode = false;
+
+/** 現在編集中のカンバンステータスID */
+let editingStatusId = null;
+
 /** 現在編集中のタスク情報 */
 let editingTask = null;
 
@@ -64,6 +73,12 @@ const savedTagMaster = loadFromStorage(STORAGE_KEYS.TAG_MASTER);
 if (Array.isArray(savedTagMaster) && savedTagMaster.length > 0) {
   TAGS.length = 0;
   TAGS.push(...savedTagMaster);
+}
+
+const savedStatusMaster = loadFromStorage(STORAGE_KEYS.STATUS_MASTER);
+if (Array.isArray(savedStatusMaster) && savedStatusMaster.length > 0) {
+  KANBAN_STATUSES.length = 0;
+  KANBAN_STATUSES.push(...savedStatusMaster);
 }
 
 // ============================================================================

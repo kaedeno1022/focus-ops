@@ -167,6 +167,28 @@ function setupEventListeners() {
     });
   }
 
+  // カンバンビュー切り替え
+  const kanbanViewBtn = getElement('kanbanViewBtn');
+  if (kanbanViewBtn) {
+    kanbanViewBtn.addEventListener('click', toggleKanbanView);
+  }
+
+  // ステータス管理フォーム
+  const statusManagerForm = getElement('statusManagerForm');
+  if (statusManagerForm) {
+    statusManagerForm.addEventListener('submit', handleStatusManagerSubmit);
+  }
+
+  const statusManagerCancelEdit = getElement('statusManagerCancelEdit');
+  if (statusManagerCancelEdit) {
+    statusManagerCancelEdit.addEventListener('click', cancelStatusEdit);
+  }
+
+  const kanbanTab = getElement('kanbanTab');
+  if (kanbanTab) {
+    kanbanTab.addEventListener('click', () => switchTab('kanban'));
+  }
+
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -177,4 +199,27 @@ function setupEventListeners() {
       }
     }, 250);
   });
+}
+
+/**
+ * カンバンビューを切り替える
+ */
+function toggleKanbanView() {
+  kanbanViewMode = !kanbanViewMode;
+
+  const mainGrid = document.querySelector('.grid');
+  const kanbanBoard = getElement('kanbanBoard');
+  const btn = getElement('kanbanViewBtn');
+
+  if (kanbanViewMode) {
+    if (mainGrid) mainGrid.style.display = 'none';
+    if (kanbanBoard) kanbanBoard.style.display = 'flex';
+    if (btn) { btn.textContent = 'リストビュー'; btn.classList.add('active'); }
+    renderKanbanView();
+  } else {
+    if (mainGrid) mainGrid.style.display = '';
+    if (kanbanBoard) kanbanBoard.style.display = 'none';
+    if (btn) { btn.textContent = 'カンバンビュー'; btn.classList.remove('active'); }
+    renderAll();
+  }
 }
