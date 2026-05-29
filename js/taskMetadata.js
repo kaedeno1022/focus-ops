@@ -548,6 +548,23 @@ function deleteTaskMetadata(key) {
 // ============================================================================
 
 /**
+ * ステータスの並び順を変更
+ * @param {string} statusId
+ * @param {'up'|'down'} direction
+ */
+function moveStatus(statusId, direction) {
+  const index = KANBAN_STATUSES.findIndex(s => s.id === statusId);
+  if (index < 0) return;
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= KANBAN_STATUSES.length) return;
+  [KANBAN_STATUSES[index], KANBAN_STATUSES[targetIndex]] = [KANBAN_STATUSES[targetIndex], KANBAN_STATUSES[index]];
+  KANBAN_STATUSES.forEach((s, i) => { s.order = i; });
+  saveState();
+  renderStatusManagerList();
+  renderAll();
+}
+
+/**
  * ステータス管理リストを描画
  */
 function renderStatusManagerList() {
@@ -578,6 +595,23 @@ function renderStatusManagerList() {
     const buttonGroup = document.createElement('div');
     buttonGroup.className = 'button-group';
 
+    // 並び替えボタン
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.className = 'btn-main btn-small';
+    upBtn.textContent = '▲';
+    upBtn.title = '上に移動';
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener('click', () => moveStatus(status.id, 'up'));
+
+    const downBtn = document.createElement('button');
+    downBtn.type = 'button';
+    downBtn.className = 'btn-main btn-small';
+    downBtn.textContent = '▼';
+    downBtn.title = '下に移動';
+    downBtn.disabled = index === KANBAN_STATUSES.length - 1;
+    downBtn.addEventListener('click', () => moveStatus(status.id, 'down'));
+
     if (!isDoneStatus) {
       const editBtn = document.createElement('button');
       editBtn.type = 'button';
@@ -595,6 +629,9 @@ function renderStatusManagerList() {
       buttonGroup.appendChild(editBtn);
       buttonGroup.appendChild(deleteBtn);
     }
+
+    buttonGroup.appendChild(upBtn);
+    buttonGroup.appendChild(downBtn);
     item.appendChild(info);
     item.appendChild(buttonGroup);
     container.appendChild(item);
