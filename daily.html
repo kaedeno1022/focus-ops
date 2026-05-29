@@ -65,23 +65,28 @@
         ⚙ 設定
       </button>
 
-      <button
-        id="minimumBtn"
-        class="btn-main toggle-btn"
-        type="button"
-        aria-pressed="false"
-      >
-        最低限モード OFF
-      </button>
-
-      <button
-        id="displayModeBtn"
-        class="btn-main toggle-btn"
-        type="button"
-        aria-pressed="false"
-      >
-        シンプルモード
-      </button>
+      <div class="reset-dropdown-wrap mode-dropdown-wrap">
+        <button
+          id="modeMenuBtn"
+          class="btn-main"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          モード ▾
+        </button>
+        <div id="modeDropdown" class="reset-dropdown mode-dropdown" hidden>
+          <button class="reset-dropdown-item mode-toggle-item" type="button" id="minimumBtn" aria-pressed="false">
+            <span class="reset-item-label">最低限モード</span>
+            <span class="mode-state-badge" id="minimumModeBadge">OFF</span>
+          </button>
+          <div class="reset-dropdown-divider"></div>
+          <button class="reset-dropdown-item mode-toggle-item" type="button" id="displayModeBtn" aria-pressed="false">
+            <span class="reset-item-label">表示モード</span>
+            <span class="mode-state-badge" id="displayModeBadge">シンプル</span>
+          </button>
+        </div>
+      </div>
 
       <div class="reset-dropdown-wrap">
         <button

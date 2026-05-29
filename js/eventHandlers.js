@@ -107,19 +107,36 @@ function setupEventListeners() {
       closeSettingsModal();
       closePrivacyModal();
       closeResetDropdown();
+      closeModeDropdown();
     }
   });
 
-  // 最低限モードボタン
+  // 最低限モードボタン（モードドロップダウン内）
   const minimumBtn = getElement('minimumBtn');
   if (minimumBtn) {
     minimumBtn.addEventListener('click', toggleMinimumMode);
   }
 
-  // 表示モードボタン
+  // 表示モードボタン（モードドロップダウン内）
   const displayModeBtn = getElement('displayModeBtn');
   if (displayModeBtn) {
     displayModeBtn.addEventListener('click', toggleDisplayMode);
+  }
+
+  // モードドロップダウン
+  const modeMenuBtn = getElement('modeMenuBtn');
+  if (modeMenuBtn) {
+    modeMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = getElement('modeDropdown');
+      const isOpen = !dropdown.hidden;
+      closeModeDropdown();
+      closeResetDropdown();
+      if (!isOpen) {
+        dropdown.hidden = false;
+        modeMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
   }
 
   // リセットドロップダウン
@@ -161,9 +178,13 @@ function setupEventListeners() {
 
   // ドロップダウン外クリックで閉じる
   document.addEventListener('click', (e) => {
-    const wrap = document.querySelector('.reset-dropdown-wrap');
-    if (wrap && !wrap.contains(e.target)) {
+    const resetWrap = document.querySelector('.reset-dropdown-wrap:not(.mode-dropdown-wrap)');
+    if (resetWrap && !resetWrap.contains(e.target)) {
       closeResetDropdown();
+    }
+    const modeWrap = document.querySelector('.mode-dropdown-wrap');
+    if (modeWrap && !modeWrap.contains(e.target)) {
+      closeModeDropdown();
     }
   });
 
@@ -238,6 +259,16 @@ function setupEventListeners() {
 function closeResetDropdown() {
   const dropdown = getElement('resetDropdown');
   const btn = getElement('resetMenuBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+/**
+ * モードドロップダウンを閉じる
+ */
+function closeModeDropdown() {
+  const dropdown = getElement('modeDropdown');
+  const btn = getElement('modeMenuBtn');
   if (dropdown) dropdown.hidden = true;
   if (btn) btn.setAttribute('aria-expanded', 'false');
 }

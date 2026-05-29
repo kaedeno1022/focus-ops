@@ -11,25 +11,24 @@ function init() {
     initCookieConsent();
   }
   
-  // 最低限モードが有効な場合、UIを更新
+  // 最低限モードの初期化
   if (minimumMode) {
+    const badge = document.getElementById('minimumModeBadge');
+    if (badge) badge.textContent = 'ON';
     const btn = getElement('minimumBtn');
-    if (btn) {
-      btn.textContent = '最低限モード ON';
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
-    }
+    if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
   }
 
   // 表示モードの初期化
   if (displayMode === 'detail') {
+    const badge = document.getElementById('displayModeBadge');
+    if (badge) badge.textContent = '詳細';
     const btn = getElement('displayModeBtn');
-    if (btn) {
-      btn.textContent = '詳細モード';
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
-    }
+    if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
   }
+
+  // モードメニューボタンの初期状態
+  if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
 
   // プロジェクトとタグのセレクタを初期化
   initProjectSelector();

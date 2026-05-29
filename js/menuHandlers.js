@@ -78,13 +78,15 @@ function closeMenu() {
 function toggleMinimumMode() {
   minimumMode = !minimumMode;
 
+  const badge = document.getElementById('minimumModeBadge');
+  if (badge) badge.textContent = minimumMode ? 'ON' : 'OFF';
   const btn = getElement('minimumBtn');
   if (btn) {
-    btn.textContent = minimumMode ? '最低限モード ON' : '最低限モード OFF';
     btn.classList.toggle('active', minimumMode);
     btn.setAttribute('aria-pressed', minimumMode.toString());
   }
-  
+  updateModeMenuBtn();
+
   // スクリーンリーダーへの通知
   announceToScreenReader(
     minimumMode ? '最低限モードをオンにしました。優先度：高のタスクのみ表示されます。' : '最低限モードをオフにしました。全てのタスクが表示されます。'
@@ -101,12 +103,14 @@ function toggleMinimumMode() {
  */
 function toggleDisplayMode() {
   displayMode = displayMode === 'simple' ? 'detail' : 'simple';
+  const badge = document.getElementById('displayModeBadge');
+  if (badge) badge.textContent = displayMode === 'detail' ? '詳細' : 'シンプル';
   const btn = getElement('displayModeBtn');
   if (btn) {
-    btn.textContent = displayMode === 'detail' ? '詳細モード' : 'シンプルモード';
     btn.classList.toggle('active', displayMode === 'detail');
     btn.setAttribute('aria-pressed', (displayMode === 'detail').toString());
   }
+  updateModeMenuBtn();
   announceToScreenReader(
     displayMode === 'detail'
       ? '詳細モードに切り替えました。着手状況が完了になるとタスクが完了扱いになります。'
@@ -115,6 +119,16 @@ function toggleDisplayMode() {
   saveState();
   renderAll();
   closeMenu();
+}
+
+/**
+ * モードメニューボタンのアクティブ状態を更新
+ */
+function updateModeMenuBtn() {
+  const btn = getElement('modeMenuBtn');
+  if (!btn) return;
+  const anyActive = minimumMode || displayMode === 'detail';
+  btn.classList.toggle('active', anyActive);
 }
 
 /**
