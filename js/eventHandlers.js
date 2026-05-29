@@ -38,6 +38,11 @@ function setupEventListeners() {
   if (customTaskTab) {
     customTaskTab.addEventListener('click', () => switchTab('custom'));
   }
+
+  const tagProjectTab = getElement('tagProjectTab');
+  if (tagProjectTab) {
+    tagProjectTab.addEventListener('click', () => switchTab('tagProject'));
+  }
   
   // カスタムタスク追加フォーム
   const addTaskForm = getElement('addTaskForm');

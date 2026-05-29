@@ -51,25 +51,20 @@ function closeSettingsModal() {
 
 /**
  * タブを切り替える
- * @param {string} tabName - タブ名 ('visibility' or 'custom')
+ * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject')
  */
 function switchTab(tabName) {
-  const visibilityTab = getElement('visibilityTab');
-  const customTaskTab = getElement('customTaskTab');
-  const visibilityPanel = getElement('visibilityPanel');
-  const customTaskPanel = getElement('customTaskPanel');
-  
-  if (tabName === 'visibility') {
-    visibilityTab?.classList.add('active');
-    customTaskTab?.classList.remove('active');
-    visibilityPanel?.classList.add('active');
-    customTaskPanel?.classList.remove('active');
-  } else {
-    visibilityTab?.classList.remove('active');
-    customTaskTab?.classList.add('active');
-    visibilityPanel?.classList.remove('active');
-    customTaskPanel?.classList.add('active');
-  }
+  const tabs = {
+    visibility: { btn: getElement('visibilityTab'),  panel: getElement('visibilityPanel') },
+    custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
+    tagProject: { btn: getElement('tagProjectTab'),   panel: getElement('tagProjectPanel') },
+  };
+
+  Object.entries(tabs).forEach(([key, { btn, panel }]) => {
+    const isActive = key === tabName;
+    btn?.classList.toggle('active', isActive);
+    panel?.classList.toggle('active', isActive);
+  });
 }
 
 /**
@@ -170,19 +165,54 @@ function renderVisibilitySettings() {
             openTaskEditForm(type, group.category, title, priority, true);
           }
         });
-        
-        // 2行レイアウト: 1行目にチェックボックス+ラベル、2行目に編集ボタン
+
+        // 2行レイアウト: 1行目にチェックボックス+ラベル、2行目にボタン群
         const header = document.createElement('div');
         header.className = 'visibility-item-header';
         header.appendChild(checkbox);
         header.appendChild(label);
-        
+
+        const actions = document.createElement('div');
+        actions.className = 'visibility-item-actions';
+        actions.appendChild(editBtn);
+
+        // デフォルトタスクのみ削除ボタンを表示
+        if (!isCustomTask) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn-danger btn-small';
+          deleteBtn.textContent = '削除';
+          deleteBtn.type = 'button';
+          deleteBtn.addEventListener('click', () => deleteDefaultTask(type, group.category, title));
+          actions.appendChild(deleteBtn);
+        }
+
         item.appendChild(header);
-        item.appendChild(editBtn);
+        item.appendChild(actions);
         container.appendChild(item);
       });
     });
   });
+}
+
+/**
+ * デフォルトタスクを削除（非表示ではなく完全除外）
+ * @param {string} type - タスクタイプ
+ * @param {string} category - カテゴリ
+ * @param {string} title - タスクタイトル
+ */
+function deleteDefaultTask(type, category, title) {
+  const key = createKey(type, category, title);
+  deletedDefaultTasks.add(key);
+
+  // チェック状態・表示設定など関連データも削除
+  delete checkedState[key];
+  delete taskVisibility[key];
+
+  saveState();
+  renderAll();
+  updateSystemStatus();
+  renderVisibilitySettings();
+  showToast(`「${title}」を削除しました`, 'success');
 }
 
 /**

@@ -222,6 +222,13 @@
   align-self: center;
 }
 
+.visibility-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* カスタムタスクフォーム */
 .add-task-form {
   background: rgba(124, 58, 237, 0.02);

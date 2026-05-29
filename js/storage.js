@@ -36,6 +36,7 @@ function saveState() {
     
     const commentsData = JSON.stringify(taskComments);
     const editedDefaultData = JSON.stringify(editedDefaultTasks);
+    const deletedDefaultData = JSON.stringify([...deletedDefaultTasks]);
     const projectsData = JSON.stringify(taskProjects);
     const deadlinesData = JSON.stringify(taskDeadlines);
     const tagsData = JSON.stringify(taskTags);
@@ -49,6 +50,7 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.CUSTOM_TASKS, customData);
     localStorage.setItem(STORAGE_KEYS.COMMENTS, commentsData);
     localStorage.setItem(STORAGE_KEYS.EDITED_DEFAULT_TASKS, editedDefaultData);
+    localStorage.setItem(STORAGE_KEYS.DELETED_DEFAULT_TASKS, deletedDefaultData);
     localStorage.setItem(STORAGE_KEYS.PROJECTS, projectsData);
     localStorage.setItem(STORAGE_KEYS.DEADLINES, deadlinesData);
     localStorage.setItem(STORAGE_KEYS.TAGS, tagsData);

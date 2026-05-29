@@ -24,6 +24,9 @@ let taskComments = loadFromStorage(STORAGE_KEYS.COMMENTS) || {};
 /** 編集されたデフォルトタスク */
 let editedDefaultTasks = loadFromStorage(STORAGE_KEYS.EDITED_DEFAULT_TASKS) || {};
 
+/** 削除されたデフォルトタスクのキーセット */
+let deletedDefaultTasks = new Set(loadFromStorage(STORAGE_KEYS.DELETED_DEFAULT_TASKS) || []);
+
 /** タスクのプロジェクト紐付け */
 let taskProjects = loadFromStorage(STORAGE_KEYS.PROJECTS) || {};
 

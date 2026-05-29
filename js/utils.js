@@ -143,6 +143,10 @@ function getAllTasks(type) {
   const result = defaultTasks.map(group => {
     const tasks = group.tasks.map(([title, priority]) => {
       const key = createKey(type, group.category, title);
+      // 削除済みのデフォルトタスクはスキップ
+      if (deletedDefaultTasks.has(key)) {
+        return null;
+      }
       if (edited[key]) {
         const newCategory = getCategoryFromPriority(edited[key].priority);
         // カテゴリが変更された場合

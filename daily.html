@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="業務タスク管理Pro - プロジェクトとタスクを一元管理する高機能ツール">
-  <title>業務タスク管理 Pro | Focus Ops</title>
+  <meta name="description" content="業務タスク管理 - プロジェクトとタスクを一元管理する高機能ツール">
+  <title>業務タスク管理 | Focus Ops</title>
   
   <!-- CSS Modules -->
   <link rel="stylesheet" href="./css/variables.css?v=2.0.0">
@@ -37,7 +37,7 @@
       <div class="header-content">
         <div>
           <a href="index.html" class="home-link">← ホームに戻る</a>
-          <h1 class="title">業務タスク管理 Pro</h1>
+          <h1 class="title">業務タスク管理</h1>
           <p class="subtitle">プロジェクトとタスクを一元管理</p>
         </div>
         <div class="mobile-actions">
@@ -197,6 +197,7 @@
         <div class="tabs">
           <button id="visibilityTab" class="tab-btn active" type="button">表示設定</button>
           <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
+          <button id="tagProjectTab" class="tab-btn" type="button">タグ・プロジェクト</button>
         </div>
 
         <!-- 表示設定タブ -->
@@ -296,6 +297,10 @@
             <div id="customTaskList" class="custom-task-list"></div>
           </div>
 
+        </div>
+
+        <!-- タグ・プロジェクトタブ -->
+        <div id="tagProjectPanel" class="tab-panel">
           <div class="settings-section">
             <h3>タグ管理</h3>
             <form id="tagManagerForm" class="add-task-form">
