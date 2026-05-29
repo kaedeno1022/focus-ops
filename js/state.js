@@ -49,14 +49,18 @@ let editingProjectId = null;
 let cleanupFocusTrap = null;
 
 // タグ/プロジェクトマスターをストレージから復元
+// state.js は他モジュール初期化前に読み込まれる。
+// 配列参照を維持するため再代入せず、length=0→push で中身のみ差し替える。
 const savedProjectMaster = loadFromStorage(STORAGE_KEYS.PROJECT_MASTER);
 if (Array.isArray(savedProjectMaster) && savedProjectMaster.length > 0) {
-  PROJECTS.splice(0, PROJECTS.length, ...savedProjectMaster);
+  PROJECTS.length = 0;
+  PROJECTS.push(...savedProjectMaster);
 }
 
 const savedTagMaster = loadFromStorage(STORAGE_KEYS.TAG_MASTER);
 if (Array.isArray(savedTagMaster) && savedTagMaster.length > 0) {
-  TAGS.splice(0, TAGS.length, ...savedTagMaster);
+  TAGS.length = 0;
+  TAGS.push(...savedTagMaster);
 }
 
 // ============================================================================

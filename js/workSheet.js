@@ -1019,16 +1019,18 @@
         selectedDates = [start];
         if (start !== end) selectedDates.push(end);
       }
+    }
 
-      const firstDate = (ev.dates && ev.dates.length > 0) ? ev.dates[0] : (ev.startDate || ev.date || '');
-      if (firstDate) {
-        editEventCalendarMonth = firstDate.slice(0, 7);
-      } else if (selectedEventMonth) {
-        editEventCalendarMonth = selectedEventMonth;
-      } else {
-        const now = new Date();
-        editEventCalendarMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      }
+    const primaryEventDate = Array.isArray(ev.dates) && ev.dates.length > 0
+      ? ev.dates[0]
+      : (ev.startDate || ev.date || '');
+    if (primaryEventDate) {
+      editEventCalendarMonth = primaryEventDate.slice(0, 7);
+    } else if (selectedEventMonth) {
+      editEventCalendarMonth = selectedEventMonth;
+    } else {
+      const now = new Date();
+      editEventCalendarMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
     
     // カレンダーをレンダリング

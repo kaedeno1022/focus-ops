@@ -2,6 +2,18 @@
 // タスクメタデータ管理（プロジェクト、締め切り、タグ、予想時間）
 // ============================================================================
 
+const DEFAULT_PROJECT_ID = 'proj-none';
+let metadataIdCounter = 0;
+
+function getManagedProjects() {
+  return PROJECTS.filter(project => project.id !== DEFAULT_PROJECT_ID);
+}
+
+function generateMetadataId(prefix) {
+  metadataIdCounter += 1;
+  return `${prefix}-${Date.now()}-${metadataIdCounter}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
 /**
  * プロジェクトセレクタを初期化
  */
@@ -15,7 +27,7 @@ function initProjectSelector() {
   }
   
   // プロジェクトオプションを追加
-  PROJECTS.filter(project => project.id !== 'proj-none').forEach(project => {
+  getManagedProjects().forEach(project => {
     const option = document.createElement('option');
     option.value = project.id;
     option.textContent = project.name;
@@ -230,7 +242,7 @@ function renderProjectManagerList() {
   const container = document.getElementById('projectManagerList');
   if (!container) return;
 
-  const projects = PROJECTS.filter(project => project.id !== 'proj-none');
+  const projects = getManagedProjects();
   container.innerHTML = '';
   if (projects.length === 0) {
     container.innerHTML = '<p class="empty-message">プロジェクトはまだ登録されていません。</p>';
@@ -302,7 +314,7 @@ function handleTagManagerSubmit(e) {
     }
     showToast('タグを更新しました', 'success');
   } else {
-    const id = `tag-${Date.now()}`;
+    const id = generateMetadataId('tag');
     TAGS.push({ id, name, color });
     showToast('タグを追加しました', 'success');
   }
@@ -336,7 +348,7 @@ function handleProjectManagerSubmit(e) {
     }
     showToast('プロジェクトを更新しました', 'success');
   } else {
-    const id = `proj-${Date.now()}`;
+    const id = generateMetadataId('proj');
     PROJECTS.push({ id, name, color });
     showToast('プロジェクトを追加しました', 'success');
   }
@@ -454,7 +466,7 @@ function deleteTag(tagId) {
  */
 function deleteProject(projectId) {
   const target = PROJECTS.find(project => project.id === projectId);
-  if (!target || projectId === 'proj-none') return;
+  if (!target || projectId === DEFAULT_PROJECT_ID) return;
   if (!confirm(`プロジェクト「${target.name}」を削除しますか？`)) return;
 
   const index = PROJECTS.findIndex(project => project.id === projectId);
