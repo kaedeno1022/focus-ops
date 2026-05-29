@@ -170,8 +170,11 @@
     border: 1px solid var(--line);
     border-radius: 10px;
     text-align: center;
-    padding: 12px 8px;
-    font-size: 14px;
+    padding: 10px 6px;
+    font-size: 13px;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: break-all;
   }
 
   .tab-btn.active {
@@ -182,7 +185,7 @@
 
   .panel-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 12px;
     margin-bottom: 24px;
   }
@@ -191,6 +194,13 @@
     font-size: 14px;
     min-width: 100%;
     line-height: 1.5;
+  }
+
+  .panel-header .btn-main,
+  .panel-header .btn-danger,
+  .panel-header .btn-small {
+    width: 100%;
+    text-align: center;
   }
 
   .button-group {
@@ -303,6 +313,19 @@
     font-size: 13px;
     width: 100%;
     margin-left: 0;
+  }
+
+  /* アクションボタン群を全幅に展開 */
+  .visibility-item-actions {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .visibility-item-actions .btn-small,
+  .visibility-item-actions .btn-danger {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 13px;
   }
 
   .btn-small {
