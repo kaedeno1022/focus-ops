@@ -74,14 +74,36 @@
         最低限モード OFF
       </button>
 
-      <button
-        id="dailyResetBtn"
-        class="btn-main"
-        type="button"
-        data-category="daily"
-      >
-        今日リセット
-      </button>
+      <div class="reset-dropdown-wrap">
+        <button
+          id="resetMenuBtn"
+          class="btn-main"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          🔄 リセット ▾
+        </button>
+        <div id="resetDropdown" class="reset-dropdown" hidden>
+          <button class="reset-dropdown-item" type="button" id="dailyResetBtn" data-category="daily">
+            <span class="reset-item-label">今日リセット</span>
+            <span class="reset-item-desc">今日のチェックを解除</span>
+          </button>
+          <button class="reset-dropdown-item" type="button" id="weeklyResetBtn" data-category="weekly">
+            <span class="reset-item-label">今週リセット</span>
+            <span class="reset-item-desc">今週のチェックを解除</span>
+          </button>
+          <button class="reset-dropdown-item" type="button" id="seasonResetBtn" data-category="season">
+            <span class="reset-item-label">長期リセット</span>
+            <span class="reset-item-desc">長期タスクのチェックを解除</span>
+          </button>
+          <div class="reset-dropdown-divider"></div>
+          <button class="reset-dropdown-item reset-dropdown-item--danger" type="button" id="resetAllBtn">
+            <span class="reset-item-label">全リセット</span>
+            <span class="reset-item-desc">全てのデータを初期化</span>
+          </button>
+        </div>
+      </div>
 
       <button
         id="kanbanViewBtn"
@@ -184,7 +206,6 @@
           <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
           <button id="tagProjectTab" class="tab-btn" type="button">タグ・プロジェクト</button>
           <button id="kanbanTab" class="tab-btn" type="button">カンバン管理</button>
-          <button id="resetTab" class="tab-btn" type="button">リセット</button>
         </div>
 
         <!-- 表示設定タブ -->
@@ -344,30 +365,6 @@
               <button type="button" id="statusManagerCancelEdit" class="btn-secondary cancel-edit-btn" style="display:none;">編集をキャンセル</button>
             </form>
             <div id="statusManagerList" class="custom-task-list"></div>
-          </div>
-        </div>
-
-        <!-- リセットタブ -->
-        <div id="resetPanel" class="tab-panel">
-          <div class="settings-section">
-            <p class="panel-description">リセットは元に戻せません。慢重に操作してください。</p>
-            <div class="reset-panel-grid">
-              <div class="reset-panel-item">
-                <h3>今週リセット</h3>
-                <p>今週のタスクのチェックを全て解除します。</p>
-                <button id="weeklyResetBtn" class="btn-main" type="button" data-category="weekly">今週リセット</button>
-              </div>
-              <div class="reset-panel-item">
-                <h3>長期リセット</h3>
-                <p>長期タスクのチェックを全て解除します。</p>
-                <button id="seasonResetBtn" class="btn-main" type="button" data-category="season">長期リセット</button>
-              </div>
-              <div class="reset-panel-item">
-                <h3>全リセット</h3>
-                <p>全てのチェック・カスタムタスク・設定を初期化します。</p>
-                <button id="resetAllBtn" class="btn-danger" type="button">全リセット</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

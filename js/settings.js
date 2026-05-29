@@ -60,7 +60,6 @@ function switchTab(tabName) {
     custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
     tagProject: { btn: getElement('tagProjectTab'),   panel: getElement('tagProjectPanel') },
     kanban:     { btn: getElement('kanbanTab'),       panel: getElement('kanbanPanel') },
-    reset:      { btn: getElement('resetTab'),        panel: getElement('resetPanel') },
   };
 
   Object.entries(tabs).forEach(([key, { btn, panel }]) => {

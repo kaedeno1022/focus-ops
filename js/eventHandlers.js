@@ -106,6 +106,7 @@ function setupEventListeners() {
       closeMenu();
       closeSettingsModal();
       closePrivacyModal();
+      closeResetDropdown();
     }
   });
 
@@ -115,26 +116,50 @@ function setupEventListeners() {
     minimumBtn.addEventListener('click', toggleMinimumMode);
   }
 
-  // リセットボタン
+  // リセットドロップダウン
+  const resetMenuBtn = getElement('resetMenuBtn');
+  if (resetMenuBtn) {
+    resetMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = getElement('resetDropdown');
+      const isOpen = !dropdown.hidden;
+      if (isOpen) {
+        closeResetDropdown();
+      } else {
+        dropdown.hidden = false;
+        resetMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  // リセットボタン（ドロップダウン内）
   const dailyResetBtn = getElement('dailyResetBtn');
   if (dailyResetBtn) {
-    dailyResetBtn.addEventListener('click', () => resetCategory('daily'));
+    dailyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('daily'); });
   }
 
   const weeklyResetBtn = getElement('weeklyResetBtn');
   if (weeklyResetBtn) {
-    weeklyResetBtn.addEventListener('click', () => resetCategory('weekly'));
+    weeklyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('weekly'); });
   }
 
   const seasonResetBtn = getElement('seasonResetBtn');
   if (seasonResetBtn) {
-    seasonResetBtn.addEventListener('click', () => resetCategory('season'));
+    seasonResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('season'); });
   }
 
   const resetAllBtn = getElement('resetAllBtn');
   if (resetAllBtn) {
-    resetAllBtn.addEventListener('click', resetAll);
+    resetAllBtn.addEventListener('click', () => { closeResetDropdown(); resetAll(); });
   }
+
+  // ドロップダウン外クリックで閉じる
+  document.addEventListener('click', (e) => {
+    const wrap = document.querySelector('.reset-dropdown-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      closeResetDropdown();
+    }
+  });
 
   // Cookie同意バナー（ページによって存在しない場合あり）
   const acceptCookies = document.getElementById('acceptCookies');
@@ -189,11 +214,6 @@ function setupEventListeners() {
     kanbanTab.addEventListener('click', () => switchTab('kanban'));
   }
 
-  const resetTab = getElement('resetTab');
-  if (resetTab) {
-    resetTab.addEventListener('click', () => switchTab('reset'));
-  }
-
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -204,6 +224,16 @@ function setupEventListeners() {
       }
     }, 250);
   });
+}
+
+/**
+ * リセットドロップダウンを閉じる
+ */
+function closeResetDropdown() {
+  const dropdown = getElement('resetDropdown');
+  const btn = getElement('resetMenuBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
 /**
