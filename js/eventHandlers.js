@@ -189,6 +189,11 @@ function setupEventListeners() {
     kanbanTab.addEventListener('click', () => switchTab('kanban'));
   }
 
+  const resetTab = getElement('resetTab');
+  if (resetTab) {
+    resetTab.addEventListener('click', () => switchTab('reset'));
+  }
+
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）
   let resizeTimer;
   window.addEventListener('resize', () => {

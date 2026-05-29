@@ -398,6 +398,41 @@
   background: #f1f5f9;
 }
 
+/* リセットパネル */
+.reset-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.reset-panel-item {
+  background: rgba(124, 58, 237, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reset-panel-item h3 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.reset-panel-item p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sub);
+  flex: 1;
+}
+
+.reset-panel-item button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {

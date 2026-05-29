@@ -84,32 +84,6 @@
       </button>
 
       <button
-        id="weeklyResetBtn"
-        class="btn-main"
-        type="button"
-        data-category="weekly"
-      >
-        今週リセット
-      </button>
-
-      <button
-        id="seasonResetBtn"
-        class="btn-main"
-        type="button"
-        data-category="season"
-      >
-        長期リセット
-      </button>
-
-      <button
-        id="resetAllBtn"
-        class="btn-danger"
-        type="button"
-      >
-        全リセット
-      </button>
-
-      <button
         id="kanbanViewBtn"
         class="btn-main toggle-btn"
         type="button"
@@ -210,6 +184,7 @@
           <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
           <button id="tagProjectTab" class="tab-btn" type="button">タグ・プロジェクト</button>
           <button id="kanbanTab" class="tab-btn" type="button">カンバン管理</button>
+          <button id="resetTab" class="tab-btn" type="button">リセット</button>
         </div>
 
         <!-- 表示設定タブ -->
@@ -369,6 +344,30 @@
               <button type="button" id="statusManagerCancelEdit" class="btn-secondary cancel-edit-btn" style="display:none;">編集をキャンセル</button>
             </form>
             <div id="statusManagerList" class="custom-task-list"></div>
+          </div>
+        </div>
+
+        <!-- リセットタブ -->
+        <div id="resetPanel" class="tab-panel">
+          <div class="settings-section">
+            <p class="panel-description">リセットは元に戻せません。慢重に操作してください。</p>
+            <div class="reset-panel-grid">
+              <div class="reset-panel-item">
+                <h3>今週リセット</h3>
+                <p>今週のタスクのチェックを全て解除します。</p>
+                <button id="weeklyResetBtn" class="btn-main" type="button" data-category="weekly">今週リセット</button>
+              </div>
+              <div class="reset-panel-item">
+                <h3>長期リセット</h3>
+                <p>長期タスクのチェックを全て解除します。</p>
+                <button id="seasonResetBtn" class="btn-main" type="button" data-category="season">長期リセット</button>
+              </div>
+              <div class="reset-panel-item">
+                <h3>全リセット</h3>
+                <p>全てのチェック・カスタムタスク・設定を初期化します。</p>
+                <button id="resetAllBtn" class="btn-danger" type="button">全リセット</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
