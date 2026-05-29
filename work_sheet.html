@@ -135,10 +135,9 @@
     <div class="section-title"><span class="icon">📋</span> データ一覧</div>
     <div class="card filter-card">
       <div class="filter-bar">
-        <label class="filter-label">📅 表示月:</label>
-        <select id="data-month-filter" class="filter-select">
-          <option value="">全期間</option>
-        </select>
+        <label class="filter-label" for="data-month-filter">📅 表示月:</label>
+        <input type="month" id="data-month-filter" class="filter-select month-input" />
+        <button type="button" id="data-month-clear" class="btn-secondary btn-sm">全期間</button>
       </div>
     </div>
     <div class="card table-wrap">
@@ -187,10 +186,9 @@
     <div class="section-title"><span class="icon">📅</span> イベント一覧</div>
     <div class="card filter-card">
       <div class="filter-bar">
-        <label class="filter-label">📅 表示月:</label>
-        <select id="event-month-filter" class="filter-select">
-          <option value="">全期間</option>
-        </select>
+        <label class="filter-label" for="event-month-filter">📅 表示月:</label>
+        <input type="month" id="event-month-filter" class="filter-select month-input" />
+        <button type="button" id="event-month-clear" class="btn-secondary btn-sm">全期間</button>
         <span class="filter-note">※カレンダー表示月にも反映</span>
       </div>
     </div>

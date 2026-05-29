@@ -24,6 +24,7 @@ function openSettingsModal() {
   
   renderVisibilitySettings();
   renderCustomTaskList();
+  renderMetadataManagers();
   closeMenu();
 }
 
@@ -44,6 +45,8 @@ function closeSettingsModal() {
   if (editingTask) {
     cancelTaskEdit();
   }
+  cancelTagEdit();
+  cancelProjectEdit();
 }
 
 /**

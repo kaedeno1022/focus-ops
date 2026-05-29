@@ -475,6 +475,20 @@
   display: block;
 }
 
+.manager-item-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manager-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  flex-shrink: 0;
+}
+
 /* ============================================================================
    Cookie同意バナー
    ============================================================================ */

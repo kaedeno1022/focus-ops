@@ -55,6 +55,7 @@
   let selectedEventMonth = ''; // イベント一覧の選択月 (YYYY-MM)
   let selectedDates = []; // 複数日選択用 (イベント)
   let copySelectedDates = []; // 複数日選択用 (コピー)
+  let editEventCalendarMonth = ''; // イベント編集モーダルの表示月 (YYYY-MM)
 
   function setData(newData) {
     data = newData;
@@ -1018,6 +1019,16 @@
         selectedDates = [start];
         if (start !== end) selectedDates.push(end);
       }
+
+      const firstDate = (ev.dates && ev.dates.length > 0) ? ev.dates[0] : (ev.startDate || ev.date || '');
+      if (firstDate) {
+        editEventCalendarMonth = firstDate.slice(0, 7);
+      } else if (selectedEventMonth) {
+        editEventCalendarMonth = selectedEventMonth;
+      } else {
+        const now = new Date();
+        editEventCalendarMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      }
     }
     
     // カレンダーをレンダリング
@@ -1033,6 +1044,7 @@
     document.getElementById('eventEditModal').classList.add('hidden');
     setEditEventIndex(null);
     selectedDates = [];
+    editEventCalendarMonth = '';
     document.getElementById('event-edit-no-date').checked = false;
     document.getElementById('event-edit-calendar-label').innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
     document.getElementById('event-edit-selected-dates-label').textContent = '選択中の日付:';
@@ -1658,44 +1670,43 @@
   function initMonthFilters() {
     const dataMonthSelect = document.getElementById('data-month-filter');
     const eventMonthSelect = document.getElementById('event-month-filter');
+    const dataMonthClearBtn = document.getElementById('data-month-clear');
+    const eventMonthClearBtn = document.getElementById('event-month-clear');
     
     if (dataMonthSelect) {
-      populateMonthOptions(dataMonthSelect);
+      dataMonthSelect.value = getCurrentMonthValue();
       dataMonthSelect.addEventListener('change', () => filterDataByMonth());
       // 初期表示時に当月で絞り込み
       filterDataByMonth();
     }
     
     if (eventMonthSelect) {
-      populateMonthOptions(eventMonthSelect);
+      eventMonthSelect.value = getCurrentMonthValue();
       eventMonthSelect.addEventListener('change', () => filterEventsByMonth());
       // 初期表示時に当月で絞り込み
       filterEventsByMonth();
     }
+
+    if (dataMonthClearBtn) {
+      dataMonthClearBtn.addEventListener('click', () => {
+        if (!dataMonthSelect) return;
+        dataMonthSelect.value = '';
+        filterDataByMonth();
+      });
+    }
+
+    if (eventMonthClearBtn) {
+      eventMonthClearBtn.addEventListener('click', () => {
+        if (!eventMonthSelect) return;
+        eventMonthSelect.value = '';
+        filterEventsByMonth();
+      });
+    }
   }
 
-  function populateMonthOptions(selectElement) {
-    if (!selectElement) return;
-    
-    selectElement.innerHTML = '<option value="">全期間</option>';
-    
+  function getCurrentMonthValue() {
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    
-    for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-      for (let m = 1; m <= 12; m++) {
-        const monthStr = `${y}-${String(m).padStart(2, '0')}`;
-        const option = document.createElement('option');
-        option.value = monthStr;
-        option.textContent = `${y}年${m}月`;
-        selectElement.appendChild(option);
-      }
-    }
-    
-    // 当月をデフォルト選択
-    const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-    selectElement.value = currentMonthStr;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 
   function filterDataByMonth() {
@@ -1817,9 +1828,13 @@
     
     calendarDiv.innerHTML = '';
     
-    // 選択された日付から月を判定（なければ現在月）
+    // 編集対象の表示月を優先し、なければ選択日付→現在月の順で判定
     let year, month;
-    if (selectedDates.length > 0) {
+    if (editEventCalendarMonth) {
+      const [y, m] = editEventCalendarMonth.split('-');
+      year = parseInt(y);
+      month = parseInt(m) - 1;
+    } else if (selectedDates.length > 0) {
       const firstDate = selectedDates[0];
       const [y, m] = firstDate.split('-');
       year = parseInt(y);

@@ -12,8 +12,10 @@ const STORAGE_KEYS = {
   EDITED_DEFAULT_TASKS: 'work_tasks_edited',
   COOKIE_CONSENT: 'work_tasks_cookie_consent',
   PROJECTS: 'work_tasks_projects',
+  PROJECT_MASTER: 'work_tasks_project_master',
   DEADLINES: 'work_tasks_deadlines',
   TAGS: 'work_tasks_tags',
+  TAG_MASTER: 'work_tasks_tag_master',
   ESTIMATED_TIME: 'work_tasks_estimated_time'
 };
 

@@ -39,8 +39,25 @@ let taskEstimatedTime = loadFromStorage(STORAGE_KEYS.ESTIMATED_TIME) || {};
 /** 現在編集中のタスク情報 */
 let editingTask = null;
 
+/** 現在編集中のタグID */
+let editingTagId = null;
+
+/** 現在編集中のプロジェクトID */
+let editingProjectId = null;
+
 /** フォーカストラップのクリーンアップ関数 */
 let cleanupFocusTrap = null;
+
+// タグ/プロジェクトマスターをストレージから復元
+const savedProjectMaster = loadFromStorage(STORAGE_KEYS.PROJECT_MASTER);
+if (Array.isArray(savedProjectMaster) && savedProjectMaster.length > 0) {
+  PROJECTS.splice(0, PROJECTS.length, ...savedProjectMaster);
+}
+
+const savedTagMaster = loadFromStorage(STORAGE_KEYS.TAG_MASTER);
+if (Array.isArray(savedTagMaster) && savedTagMaster.length > 0) {
+  TAGS.splice(0, TAGS.length, ...savedTagMaster);
+}
 
 // ============================================================================
 // システムステータス管理

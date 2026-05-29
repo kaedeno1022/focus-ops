@@ -295,6 +295,40 @@
             <h3>追加済みカスタムタスク</h3>
             <div id="customTaskList" class="custom-task-list"></div>
           </div>
+
+          <div class="settings-section">
+            <h3>タグ管理</h3>
+            <form id="tagManagerForm" class="add-task-form">
+              <div class="form-group">
+                <label for="tagManagerName">タグ名</label>
+                <input type="text" id="tagManagerName" maxlength="20" placeholder="例: 顧客対応" required>
+              </div>
+              <div class="form-group">
+                <label for="tagManagerColor">色</label>
+                <input type="color" id="tagManagerColor" value="#3b82f6" required>
+              </div>
+              <button type="submit" class="btn-main">タグを追加</button>
+              <button type="button" id="tagManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
+            </form>
+            <div id="tagManagerList" class="custom-task-list"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>プロジェクト管理</h3>
+            <form id="projectManagerForm" class="add-task-form">
+              <div class="form-group">
+                <label for="projectManagerName">プロジェクト名</label>
+                <input type="text" id="projectManagerName" maxlength="20" placeholder="例: 新規施策" required>
+              </div>
+              <div class="form-group">
+                <label for="projectManagerColor">色</label>
+                <input type="color" id="projectManagerColor" value="#8b5cf6" required>
+              </div>
+              <button type="submit" class="btn-main">プロジェクトを追加</button>
+              <button type="button" id="projectManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
+            </form>
+            <div id="projectManagerList" class="custom-task-list"></div>
+          </div>
         </div>
       </div>
     </div>

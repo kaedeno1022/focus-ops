@@ -15,7 +15,7 @@ function initProjectSelector() {
   }
   
   // プロジェクトオプションを追加
-  PROJECTS.forEach(project => {
+  PROJECTS.filter(project => project.id !== 'proj-none').forEach(project => {
     const option = document.createElement('option');
     option.value = project.id;
     option.textContent = project.name;
@@ -157,6 +157,326 @@ function clearTaskMetadataForm() {
   if (hoursInput) hoursInput.value = '';
   if (minutesInput) minutesInput.value = '';
   tagCheckboxes.forEach(cb => cb.checked = false);
+}
+
+/**
+ * メタデータ管理画面（タグ・プロジェクト）を描画
+ */
+function renderMetadataManagers() {
+  renderTagManagerList();
+  renderProjectManagerList();
+}
+
+/**
+ * タグ管理リストを描画
+ */
+function renderTagManagerList() {
+  const container = document.getElementById('tagManagerList');
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (TAGS.length === 0) {
+    container.innerHTML = '<p class="empty-message">タグはまだ登録されていません。</p>';
+    return;
+  }
+
+  TAGS.forEach(tag => {
+    const item = document.createElement('div');
+    item.className = 'custom-task-item';
+
+    const info = document.createElement('div');
+    info.className = 'task-info';
+    const title = document.createElement('strong');
+    title.className = 'manager-item-title';
+    const colorDot = document.createElement('span');
+    colorDot.className = 'manager-color-dot';
+    colorDot.style.background = tag.color;
+    const nameText = document.createElement('span');
+    nameText.textContent = tag.name;
+    title.appendChild(colorDot);
+    title.appendChild(nameText);
+    const detail = document.createElement('small');
+    detail.textContent = `ID: ${tag.id}`;
+    info.appendChild(title);
+    info.appendChild(detail);
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn-main btn-small';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', () => startTagEdit(tag.id));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn-danger btn-small';
+    deleteBtn.textContent = '削除';
+    deleteBtn.addEventListener('click', () => deleteTag(tag.id));
+
+    buttonGroup.appendChild(editBtn);
+    buttonGroup.appendChild(deleteBtn);
+    item.appendChild(info);
+    item.appendChild(buttonGroup);
+    container.appendChild(item);
+  });
+}
+
+/**
+ * プロジェクト管理リストを描画
+ */
+function renderProjectManagerList() {
+  const container = document.getElementById('projectManagerList');
+  if (!container) return;
+
+  const projects = PROJECTS.filter(project => project.id !== 'proj-none');
+  container.innerHTML = '';
+  if (projects.length === 0) {
+    container.innerHTML = '<p class="empty-message">プロジェクトはまだ登録されていません。</p>';
+    return;
+  }
+
+  projects.forEach(project => {
+    const item = document.createElement('div');
+    item.className = 'custom-task-item';
+
+    const info = document.createElement('div');
+    info.className = 'task-info';
+    const title = document.createElement('strong');
+    title.className = 'manager-item-title';
+    const colorDot = document.createElement('span');
+    colorDot.className = 'manager-color-dot';
+    colorDot.style.background = project.color;
+    const nameText = document.createElement('span');
+    nameText.textContent = project.name;
+    title.appendChild(colorDot);
+    title.appendChild(nameText);
+    const detail = document.createElement('small');
+    detail.textContent = `ID: ${project.id}`;
+    info.appendChild(title);
+    info.appendChild(detail);
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn-main btn-small';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', () => startProjectEdit(project.id));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn-danger btn-small';
+    deleteBtn.textContent = '削除';
+    deleteBtn.addEventListener('click', () => deleteProject(project.id));
+
+    buttonGroup.appendChild(editBtn);
+    buttonGroup.appendChild(deleteBtn);
+    item.appendChild(info);
+    item.appendChild(buttonGroup);
+    container.appendChild(item);
+  });
+}
+
+/**
+ * タグを作成/更新
+ * @param {Event} e
+ */
+function handleTagManagerSubmit(e) {
+  e.preventDefault();
+  const nameInput = document.getElementById('tagManagerName');
+  const colorInput = document.getElementById('tagManagerColor');
+  if (!nameInput || !colorInput) return;
+
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
+  if (!name) return;
+
+  if (editingTagId) {
+    const target = TAGS.find(tag => tag.id === editingTagId);
+    if (target) {
+      target.name = name;
+      target.color = color;
+    }
+    showToast('タグを更新しました', 'success');
+  } else {
+    const id = `tag-${Date.now()}`;
+    TAGS.push({ id, name, color });
+    showToast('タグを追加しました', 'success');
+  }
+
+  saveState();
+  cancelTagEdit();
+  initTagSelector();
+  renderMetadataManagers();
+  renderAll();
+}
+
+/**
+ * プロジェクトを作成/更新
+ * @param {Event} e
+ */
+function handleProjectManagerSubmit(e) {
+  e.preventDefault();
+  const nameInput = document.getElementById('projectManagerName');
+  const colorInput = document.getElementById('projectManagerColor');
+  if (!nameInput || !colorInput) return;
+
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
+  if (!name) return;
+
+  if (editingProjectId) {
+    const target = PROJECTS.find(project => project.id === editingProjectId);
+    if (target) {
+      target.name = name;
+      target.color = color;
+    }
+    showToast('プロジェクトを更新しました', 'success');
+  } else {
+    const id = `proj-${Date.now()}`;
+    PROJECTS.push({ id, name, color });
+    showToast('プロジェクトを追加しました', 'success');
+  }
+
+  saveState();
+  cancelProjectEdit();
+  initProjectSelector();
+  renderMetadataManagers();
+  renderAll();
+}
+
+/**
+ * タグ編集開始
+ * @param {string} tagId
+ */
+function startTagEdit(tagId) {
+  const target = TAGS.find(tag => tag.id === tagId);
+  const nameInput = document.getElementById('tagManagerName');
+  const colorInput = document.getElementById('tagManagerColor');
+  const submitBtn = document.querySelector('#tagManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('tagManagerCancelEdit');
+  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  editingTagId = tagId;
+  nameInput.value = target.name;
+  colorInput.value = target.color;
+  submitBtn.textContent = 'タグを更新';
+  cancelBtn.style.display = 'inline-block';
+}
+
+/**
+ * プロジェクト編集開始
+ * @param {string} projectId
+ */
+function startProjectEdit(projectId) {
+  const target = PROJECTS.find(project => project.id === projectId);
+  const nameInput = document.getElementById('projectManagerName');
+  const colorInput = document.getElementById('projectManagerColor');
+  const submitBtn = document.querySelector('#projectManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('projectManagerCancelEdit');
+  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  editingProjectId = projectId;
+  nameInput.value = target.name;
+  colorInput.value = target.color;
+  submitBtn.textContent = 'プロジェクトを更新';
+  cancelBtn.style.display = 'inline-block';
+}
+
+/**
+ * タグ編集キャンセル
+ */
+function cancelTagEdit() {
+  const form = document.getElementById('tagManagerForm');
+  const submitBtn = document.querySelector('#tagManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('tagManagerCancelEdit');
+  if (form) form.reset();
+  if (submitBtn) submitBtn.textContent = 'タグを追加';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  const colorInput = document.getElementById('tagManagerColor');
+  if (colorInput) colorInput.value = '#3b82f6';
+  editingTagId = null;
+}
+
+/**
+ * プロジェクト編集キャンセル
+ */
+function cancelProjectEdit() {
+  const form = document.getElementById('projectManagerForm');
+  const submitBtn = document.querySelector('#projectManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('projectManagerCancelEdit');
+  if (form) form.reset();
+  if (submitBtn) submitBtn.textContent = 'プロジェクトを追加';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  const colorInput = document.getElementById('projectManagerColor');
+  if (colorInput) colorInput.value = '#8b5cf6';
+  editingProjectId = null;
+}
+
+/**
+ * タグ削除
+ * @param {string} tagId
+ */
+function deleteTag(tagId) {
+  const target = TAGS.find(tag => tag.id === tagId);
+  if (!target) return;
+  if (!confirm(`タグ「${target.name}」を削除しますか？`)) return;
+
+  const index = TAGS.findIndex(tag => tag.id === tagId);
+  if (index > -1) {
+    TAGS.splice(index, 1);
+  }
+
+  Object.keys(taskTags).forEach(key => {
+    taskTags[key] = (taskTags[key] || []).filter(id => id !== tagId);
+    if (taskTags[key].length === 0) {
+      delete taskTags[key];
+    }
+  });
+
+  if (editingTagId === tagId) {
+    cancelTagEdit();
+  }
+
+  saveState();
+  initTagSelector();
+  renderMetadataManagers();
+  renderAll();
+  showToast('タグを削除しました', 'success');
+}
+
+/**
+ * プロジェクト削除
+ * @param {string} projectId
+ */
+function deleteProject(projectId) {
+  const target = PROJECTS.find(project => project.id === projectId);
+  if (!target || projectId === 'proj-none') return;
+  if (!confirm(`プロジェクト「${target.name}」を削除しますか？`)) return;
+
+  const index = PROJECTS.findIndex(project => project.id === projectId);
+  if (index > -1) {
+    PROJECTS.splice(index, 1);
+  }
+
+  Object.keys(taskProjects).forEach(key => {
+    if (taskProjects[key] === projectId) {
+      delete taskProjects[key];
+    }
+  });
+
+  if (editingProjectId === projectId) {
+    cancelProjectEdit();
+  }
+
+  saveState();
+  initProjectSelector();
+  renderMetadataManagers();
+  renderAll();
+  showToast('プロジェクトを削除しました', 'success');
 }
 
 /**

@@ -45,6 +45,26 @@ function setupEventListeners() {
     addTaskForm.addEventListener('submit', addCustomTask);
   }
 
+  const tagManagerForm = getElement('tagManagerForm');
+  if (tagManagerForm) {
+    tagManagerForm.addEventListener('submit', handleTagManagerSubmit);
+  }
+
+  const projectManagerForm = getElement('projectManagerForm');
+  if (projectManagerForm) {
+    projectManagerForm.addEventListener('submit', handleProjectManagerSubmit);
+  }
+
+  const tagManagerCancelEdit = getElement('tagManagerCancelEdit');
+  if (tagManagerCancelEdit) {
+    tagManagerCancelEdit.addEventListener('click', cancelTagEdit);
+  }
+
+  const projectManagerCancelEdit = getElement('projectManagerCancelEdit');
+  if (projectManagerCancelEdit) {
+    projectManagerCancelEdit.addEventListener('click', cancelProjectEdit);
+  }
+
   // 表示設定リセットボタン
   const resetVisibilityBtn = getElement('resetVisibilityBtn');
   if (resetVisibilityBtn) {
