@@ -149,11 +149,12 @@ function resetAll() {
  * 表示設定をリセット（全タスクを表示状態に戻す）
  */
 function resetVisibility() {
-  if (!confirm('全てのタスクを表示状態に戻しますか？')) {
+  if (!confirm('全てのタスクを表示状態に戻しますか？\n（削除したデフォルトタスクも復元されます）')) {
     return;
   }
 
   taskVisibility = {};
+  deletedDefaultTasks.clear();
   
   // トーストメッセージを表示
   showToast('表示設定をリセットしました', 'success');

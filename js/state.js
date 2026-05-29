@@ -24,6 +24,9 @@ let taskComments = loadFromStorage(STORAGE_KEYS.COMMENTS) || {};
 /** 編集されたデフォルトタスク */
 let editedDefaultTasks = loadFromStorage(STORAGE_KEYS.EDITED_DEFAULT_TASKS) || {};
 
+/** 削除されたデフォルトタスクのキーセット */
+let deletedDefaultTasks = new Set(loadFromStorage(STORAGE_KEYS.DELETED_DEFAULT_TASKS) || []);
+
 /** タスクのプロジェクト紐付け */
 let taskProjects = loadFromStorage(STORAGE_KEYS.PROJECTS) || {};
 
@@ -36,11 +39,47 @@ let taskTags = loadFromStorage(STORAGE_KEYS.TAGS) || {};
 /** タスクの予想作業時間（分） */
 let taskEstimatedTime = loadFromStorage(STORAGE_KEYS.ESTIMATED_TIME) || {};
 
+/** タスクのカンバンステータス */
+let taskStatus = loadFromStorage(STORAGE_KEYS.TASK_STATUS) || {};
+
+/** カンバンビューモード */
+let kanbanViewMode = false;
+
+/** 現在編集中のカンバンステータスID */
+let editingStatusId = null;
+
 /** 現在編集中のタスク情報 */
 let editingTask = null;
 
+/** 現在編集中のタグID */
+let editingTagId = null;
+
+/** 現在編集中のプロジェクトID */
+let editingProjectId = null;
+
 /** フォーカストラップのクリーンアップ関数 */
 let cleanupFocusTrap = null;
+
+// タグ/プロジェクトマスターをストレージから復元
+// state.js は他モジュール初期化前に読み込まれる。
+// 配列参照を維持するため再代入せず、length=0→push で中身のみ差し替える。
+const savedProjectMaster = loadFromStorage(STORAGE_KEYS.PROJECT_MASTER);
+if (Array.isArray(savedProjectMaster) && savedProjectMaster.length > 0) {
+  PROJECTS.length = 0;
+  PROJECTS.push(...savedProjectMaster);
+}
+
+const savedTagMaster = loadFromStorage(STORAGE_KEYS.TAG_MASTER);
+if (Array.isArray(savedTagMaster) && savedTagMaster.length > 0) {
+  TAGS.length = 0;
+  TAGS.push(...savedTagMaster);
+}
+
+const savedStatusMaster = loadFromStorage(STORAGE_KEYS.STATUS_MASTER);
+if (Array.isArray(savedStatusMaster) && savedStatusMaster.length > 0) {
+  KANBAN_STATUSES.length = 0;
+  KANBAN_STATUSES.push(...savedStatusMaster);
+}
 
 // ============================================================================
 // システムステータス管理

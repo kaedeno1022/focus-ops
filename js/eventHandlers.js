@@ -38,11 +38,36 @@ function setupEventListeners() {
   if (customTaskTab) {
     customTaskTab.addEventListener('click', () => switchTab('custom'));
   }
+
+  const tagProjectTab = getElement('tagProjectTab');
+  if (tagProjectTab) {
+    tagProjectTab.addEventListener('click', () => switchTab('tagProject'));
+  }
   
   // カスタムタスク追加フォーム
   const addTaskForm = getElement('addTaskForm');
   if (addTaskForm) {
     addTaskForm.addEventListener('submit', addCustomTask);
+  }
+
+  const tagManagerForm = getElement('tagManagerForm');
+  if (tagManagerForm) {
+    tagManagerForm.addEventListener('submit', handleTagManagerSubmit);
+  }
+
+  const projectManagerForm = getElement('projectManagerForm');
+  if (projectManagerForm) {
+    projectManagerForm.addEventListener('submit', handleProjectManagerSubmit);
+  }
+
+  const tagManagerCancelEdit = getElement('tagManagerCancelEdit');
+  if (tagManagerCancelEdit) {
+    tagManagerCancelEdit.addEventListener('click', cancelTagEdit);
+  }
+
+  const projectManagerCancelEdit = getElement('projectManagerCancelEdit');
+  if (projectManagerCancelEdit) {
+    projectManagerCancelEdit.addEventListener('click', cancelProjectEdit);
   }
 
   // 表示設定リセットボタン
@@ -81,6 +106,7 @@ function setupEventListeners() {
       closeMenu();
       closeSettingsModal();
       closePrivacyModal();
+      closeResetDropdown();
     }
   });
 
@@ -90,26 +116,50 @@ function setupEventListeners() {
     minimumBtn.addEventListener('click', toggleMinimumMode);
   }
 
-  // リセットボタン
+  // リセットドロップダウン
+  const resetMenuBtn = getElement('resetMenuBtn');
+  if (resetMenuBtn) {
+    resetMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = getElement('resetDropdown');
+      const isOpen = !dropdown.hidden;
+      if (isOpen) {
+        closeResetDropdown();
+      } else {
+        dropdown.hidden = false;
+        resetMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  // リセットボタン（ドロップダウン内）
   const dailyResetBtn = getElement('dailyResetBtn');
   if (dailyResetBtn) {
-    dailyResetBtn.addEventListener('click', () => resetCategory('daily'));
+    dailyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('daily'); });
   }
 
   const weeklyResetBtn = getElement('weeklyResetBtn');
   if (weeklyResetBtn) {
-    weeklyResetBtn.addEventListener('click', () => resetCategory('weekly'));
+    weeklyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('weekly'); });
   }
 
   const seasonResetBtn = getElement('seasonResetBtn');
   if (seasonResetBtn) {
-    seasonResetBtn.addEventListener('click', () => resetCategory('season'));
+    seasonResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('season'); });
   }
 
   const resetAllBtn = getElement('resetAllBtn');
   if (resetAllBtn) {
-    resetAllBtn.addEventListener('click', resetAll);
+    resetAllBtn.addEventListener('click', () => { closeResetDropdown(); resetAll(); });
   }
+
+  // ドロップダウン外クリックで閉じる
+  document.addEventListener('click', (e) => {
+    const wrap = document.querySelector('.reset-dropdown-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      closeResetDropdown();
+    }
+  });
 
   // Cookie同意バナー（ページによって存在しない場合あり）
   const acceptCookies = document.getElementById('acceptCookies');
@@ -142,6 +192,28 @@ function setupEventListeners() {
     });
   }
 
+  // カンバンビュー切り替え
+  const kanbanViewBtn = getElement('kanbanViewBtn');
+  if (kanbanViewBtn) {
+    kanbanViewBtn.addEventListener('click', toggleKanbanView);
+  }
+
+  // ステータス管理フォーム
+  const statusManagerForm = getElement('statusManagerForm');
+  if (statusManagerForm) {
+    statusManagerForm.addEventListener('submit', handleStatusManagerSubmit);
+  }
+
+  const statusManagerCancelEdit = getElement('statusManagerCancelEdit');
+  if (statusManagerCancelEdit) {
+    statusManagerCancelEdit.addEventListener('click', cancelStatusEdit);
+  }
+
+  const kanbanTab = getElement('kanbanTab');
+  if (kanbanTab) {
+    kanbanTab.addEventListener('click', () => switchTab('kanban'));
+  }
+
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -152,4 +224,37 @@ function setupEventListeners() {
       }
     }, 250);
   });
+}
+
+/**
+ * リセットドロップダウンを閉じる
+ */
+function closeResetDropdown() {
+  const dropdown = getElement('resetDropdown');
+  const btn = getElement('resetMenuBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+/**
+ * カンバンビューを切り替える
+ */
+function toggleKanbanView() {
+  kanbanViewMode = !kanbanViewMode;
+
+  const mainGrid = document.querySelector('.grid');
+  const kanbanBoard = getElement('kanbanBoard');
+  const btn = getElement('kanbanViewBtn');
+
+  if (kanbanViewMode) {
+    if (mainGrid) mainGrid.style.display = 'none';
+    if (kanbanBoard) kanbanBoard.style.display = 'flex';
+    if (btn) { btn.textContent = 'リストビュー'; btn.classList.add('active'); }
+    renderKanbanView();
+  } else {
+    if (mainGrid) mainGrid.style.display = '';
+    if (kanbanBoard) kanbanBoard.style.display = 'none';
+    if (btn) { btn.textContent = 'カンバンビュー'; btn.classList.remove('active'); }
+    renderAll();
+  }
 }

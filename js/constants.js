@@ -12,10 +12,26 @@ const STORAGE_KEYS = {
   EDITED_DEFAULT_TASKS: 'work_tasks_edited',
   COOKIE_CONSENT: 'work_tasks_cookie_consent',
   PROJECTS: 'work_tasks_projects',
+  PROJECT_MASTER: 'work_tasks_project_master',
   DEADLINES: 'work_tasks_deadlines',
   TAGS: 'work_tasks_tags',
-  ESTIMATED_TIME: 'work_tasks_estimated_time'
+  TAG_MASTER: 'work_tasks_tag_master',
+  ESTIMATED_TIME: 'work_tasks_estimated_time',
+  DELETED_DEFAULT_TASKS: 'work_tasks_deleted_defaults',
+  TASK_STATUS: 'work_tasks_kanban_status',
+  STATUS_MASTER: 'work_tasks_status_master'
 };
+
+/** デフォルトカンバンステータス */
+const DEFAULT_KANBAN_STATUSES = [
+  { id: 'status-todo',   name: '未着手',    color: '#6b7280', order: 0 },
+  { id: 'status-doing',  name: '進行中',    color: '#3b82f6', order: 1 },
+  { id: 'status-review', name: 'レビュー中', color: '#f59e0b', order: 2 },
+  { id: 'status-done',   name: '完了',      color: '#10b981', order: 3 },
+];
+
+/** カンバンステータスマスター（カスタマイズ可能） */
+const KANBAN_STATUSES = [...DEFAULT_KANBAN_STATUSES];
 
 /** LocalStorageの最大サイズ（5MB程度を目安） */
 const MAX_STORAGE_SIZE = 5 * 1024 * 1024;

@@ -125,9 +125,25 @@ function createTaskElement(type, category, title, priority) {
     metaContainer.appendChild(timeElem);
   }
 
-  if (metaContainer.children.length > 0) {
-    task.appendChild(metaContainer);
+  // カンバンステータスバッジ
+  if (KANBAN_STATUSES.length > 0) {
+    const currentStatusId = taskStatus[key] || KANBAN_STATUSES[0].id;
+    const currentStatus = KANBAN_STATUSES.find(s => s.id === currentStatusId) || KANBAN_STATUSES[0];
+    const statusBadge = document.createElement('button');
+    statusBadge.type = 'button';
+    statusBadge.className = 'task-status-badge';
+    statusBadge.textContent = currentStatus.name;
+    statusBadge.style.backgroundColor = currentStatus.color;
+    statusBadge.title = 'クリックしてステータスを変更';
+    statusBadge.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showStatusDropdown(statusBadge, key);
+    });
+    metaContainer.insertBefore(statusBadge, metaContainer.firstChild);
   }
+
+  task.appendChild(metaContainer);
 
   // コメント表示（コメントがある場合のみ）
   const comment = taskComments[key];
@@ -308,8 +324,184 @@ function updateProgress(type, total, done) {
 function renderAll() {
   // パフォーマンス最適化: requestAnimationFrame で描画を最適化
   requestAnimationFrame(() => {
-    renderSection('daily');
-    renderSection('weekly');
-    renderSection('season');
+    if (kanbanViewMode) {
+      renderKanbanView();
+    } else {
+      renderSection('daily');
+      renderSection('weekly');
+      renderSection('season');
+    }
   });
+}
+
+/**
+ * ステータス変更ドロップダウンを表示
+ * @param {HTMLElement} anchor - ドロップダウンを表示する基準要素
+ * @param {string} key - タスクキー
+ */
+function showStatusDropdown(anchor, key) {
+  document.querySelectorAll('.status-dropdown').forEach(d => d.remove());
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'status-dropdown';
+  const currentStatusId = taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+
+  KANBAN_STATUSES.forEach(status => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'status-dropdown-item' + (status.id === currentStatusId ? ' active' : '');
+
+    const dot = document.createElement('span');
+    dot.className = 'status-dot';
+    dot.style.backgroundColor = status.color;
+    item.appendChild(dot);
+    item.append(status.name);
+
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      taskStatus[key] = status.id;
+      saveState();
+      dropdown.remove();
+      if (kanbanViewMode) {
+        renderKanbanView();
+      } else {
+        anchor.textContent = status.name;
+        anchor.style.backgroundColor = status.color;
+      }
+    });
+    dropdown.appendChild(item);
+  });
+
+  document.body.appendChild(dropdown);
+  const rect = anchor.getBoundingClientRect();
+  dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', () => dropdown.remove(), { once: true });
+  }, 0);
+}
+
+/**
+ * カンバンボードをレンダリング
+ */
+function renderKanbanView() {
+  const board = document.getElementById('kanbanBoard');
+  if (!board) return;
+
+  board.innerHTML = '';
+
+  const allTasks = [];
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const categories = getAllTasks(type);
+    if (!categories) return;
+    categories.forEach(group => {
+      if (minimumMode && group.category !== REQUIRED_CATEGORY) return;
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        if (!isTaskVisible(key)) return;
+        allTasks.push({ type, category: group.category, title, priority, key });
+      });
+    });
+  });
+
+  KANBAN_STATUSES.forEach(status => {
+    const column = document.createElement('div');
+    column.className = 'kanban-column';
+
+    const header = document.createElement('div');
+    header.className = 'kanban-column-header';
+    header.style.borderTopColor = status.color;
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'kanban-column-title';
+    titleSpan.textContent = status.name;
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'kanban-count';
+
+    header.appendChild(titleSpan);
+    header.appendChild(countSpan);
+    column.appendChild(header);
+
+    const cards = document.createElement('div');
+    cards.className = 'kanban-cards';
+
+    const tasksInColumn = allTasks.filter(t => {
+      const sid = taskStatus[t.key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+      return sid === status.id;
+    });
+
+    countSpan.textContent = tasksInColumn.length;
+    tasksInColumn.forEach(({ type, category, title, priority, key }) => {
+      cards.appendChild(createKanbanCard(type, category, title, priority, key));
+    });
+
+    column.appendChild(cards);
+    board.appendChild(column);
+  });
+}
+
+/**
+ * カンバンカードを作成
+ * @param {string} type - タスクタイプ
+ * @param {string} category - カテゴリー
+ * @param {string} title - タイトル
+ * @param {string} priority - 優先度
+ * @param {string} key - タスクキー
+ * @returns {HTMLElement}
+ */
+function createKanbanCard(type, category, title, priority, key) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card' + (checkedState[key] ? ' done' : '');
+
+  const topRow = document.createElement('div');
+  topRow.className = 'kanban-card-top';
+
+  const typeBadge = document.createElement('span');
+  typeBadge.className = `kanban-type-badge type-${type}`;
+  typeBadge.textContent = { daily: '今日', weekly: '今週', season: '今月' }[type];
+
+  const priorityDot = document.createElement('div');
+  priorityDot.className = `priority ${priority}`;
+
+  topRow.appendChild(typeBadge);
+  topRow.appendChild(priorityDot);
+  card.appendChild(topRow);
+
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'kanban-card-title';
+  titleDiv.textContent = title;
+  card.appendChild(titleDiv);
+
+  const comment = taskComments[key];
+  if (comment) {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'kanban-card-comment';
+    commentDiv.textContent = comment;
+    card.appendChild(commentDiv);
+  }
+
+  const footer = document.createElement('div');
+  footer.className = 'kanban-card-footer';
+
+  const statusSelect = document.createElement('select');
+  statusSelect.className = 'kanban-status-select';
+  KANBAN_STATUSES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    opt.selected = (taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id)) === s.id;
+    statusSelect.appendChild(opt);
+  });
+  statusSelect.addEventListener('change', () => {
+    taskStatus[key] = statusSelect.value;
+    saveState();
+    renderKanbanView();
+  });
+
+  footer.appendChild(statusSelect);
+  card.appendChild(footer);
+
+  return card;
 }
