@@ -21,6 +21,16 @@ function init() {
     }
   }
 
+  // 表示モードの初期化
+  if (displayMode === 'detail') {
+    const btn = getElement('displayModeBtn');
+    if (btn) {
+      btn.textContent = '詳細モード';
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+    }
+  }
+
   // プロジェクトとタグのセレクタを初期化
   initProjectSelector();
   initTagSelector();

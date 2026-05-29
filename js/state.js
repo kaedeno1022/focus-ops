@@ -45,6 +45,9 @@ let taskStatus = loadFromStorage(STORAGE_KEYS.TASK_STATUS) || {};
 /** カンバンビューモード */
 let kanbanViewMode = false;
 
+/** タスク表示モード ('simple' | 'detail') */
+let displayMode = loadFromStorage(STORAGE_KEYS.DISPLAY_MODE) || 'simple';
+
 /** 現在編集中のカンバンステータスID */
 let editingStatusId = null;
 

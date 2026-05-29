@@ -19,8 +19,12 @@ const STORAGE_KEYS = {
   ESTIMATED_TIME: 'work_tasks_estimated_time',
   DELETED_DEFAULT_TASKS: 'work_tasks_deleted_defaults',
   TASK_STATUS: 'work_tasks_kanban_status',
-  STATUS_MASTER: 'work_tasks_status_master'
+  STATUS_MASTER: 'work_tasks_status_master',
+  DISPLAY_MODE: 'work_tasks_display_mode'
 };
+
+/** 完了ステータスのID（変更不可の固定値） */
+const DONE_STATUS_ID = 'status-done';
 
 /** デフォルトカンバンステータス */
 const DEFAULT_KANBAN_STATUSES = [

@@ -3,6 +3,30 @@
 // ============================================================================
 
 /**
+ * 完了ステータスIDを返す（固定）
+ */
+function getDoneStatusId() {
+  return DONE_STATUS_ID;
+}
+
+/**
+ * 未着手ステータスIDを返す（最小order）
+ */
+function getTodoStatusId() {
+  return KANBAN_STATUSES.reduce((min, s) => s.order < min.order ? s : min, KANBAN_STATUSES[0]).id;
+}
+
+/**
+ * 詳細モードでのタスク完了判定（taskStatusの最終ステータスかどうか）
+ * @param {string} key - タスクキー
+ * @returns {boolean}
+ */
+function isTaskDetailDone(key) {
+  const currentStatusId = taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+  return currentStatusId === DONE_STATUS_ID;
+}
+
+/**
  * タスク要素を作成
  * @param {string} type - タスクタイプ
  * @param {string} category - カテゴリー名
@@ -12,6 +36,7 @@
  */
 function createTaskElement(type, category, title, priority) {
   const key = createKey(type, category, title);
+  const isDetail = displayMode === 'detail';
   const checked = checkedState[key] || false;
 
   const task = document.createElement('div');
@@ -20,8 +45,13 @@ function createTaskElement(type, category, title, priority) {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = checked;
-  checkbox.id = `task_${key}`;
-  checkbox.setAttribute('aria-label', title);
+  if (isDetail) {
+    checkbox.setAttribute('aria-hidden', 'true');
+    checkbox.style.display = 'none';
+  } else {
+    checkbox.id = `task_${key}`;
+    checkbox.setAttribute('aria-label', title);
+  }
 
   const priorityDiv = document.createElement('div');
   priorityDiv.className = `priority ${priority}`;
@@ -44,7 +74,9 @@ function createTaskElement(type, category, title, priority) {
   titleDiv.textContent = title;
 
   const label = document.createElement('label');
-  label.htmlFor = checkbox.id;
+  if (!isDetail) {
+    label.htmlFor = checkbox.id;
+  }
   label.className = 'task-label';
 
   task.appendChild(checkbox);
@@ -125,8 +157,8 @@ function createTaskElement(type, category, title, priority) {
     metaContainer.appendChild(timeElem);
   }
 
-  // カンバンステータスバッジ
-  if (KANBAN_STATUSES.length > 0) {
+  // カンバンステータスバッジ（詳細モード時のみ表示）
+  if (KANBAN_STATUSES.length > 0 && isDetail) {
     const currentStatusId = taskStatus[key] || KANBAN_STATUSES[0].id;
     const currentStatus = KANBAN_STATUSES.find(s => s.id === currentStatusId) || KANBAN_STATUSES[0];
     const statusBadge = document.createElement('button');
@@ -151,31 +183,31 @@ function createTaskElement(type, category, title, priority) {
     const commentDisplay = document.createElement('div');
     commentDisplay.className = 'comment-display';
     commentDisplay.textContent = comment;
-    commentDisplay.style.cursor = 'pointer';
-    commentDisplay.addEventListener('click', () => {
-      checkbox.click();
-    });
+    if (!isDetail) {
+      commentDisplay.style.cursor = 'pointer';
+      commentDisplay.addEventListener('click', () => {
+        checkbox.click();
+      });
+    }
     task.appendChild(commentDisplay);
   }
 
-  checkbox.addEventListener('change', () => {
-    checkedState[key] = checkbox.checked;
-    
-    // スクリーンリーダーへの通知
-    const statusText = checkbox.checked ? '完了' : '未完了';
-    announceToScreenReader(`${title}を${statusText}にしました`);
-    
-    saveState();
-    
-    // パフォーマンス最適化: 個別の状態更新のみ行う
-    task.classList.toggle('done', checkbox.checked);
-    
-    // 進捗バーのみ更新（全体の再レンダリングを避ける）
-    updateProgressOnly();
-    
-    // システムステータス更新
-    updateSystemStatus();
-  });
+  // チェックボックスのchangeイベント（シンプルモードのみ）
+  if (!isDetail) {
+    checkbox.addEventListener('change', () => {
+      checkedState[key] = checkbox.checked;
+      // taskStatusも連動
+      if (KANBAN_STATUSES.length > 0) {
+        taskStatus[key] = checkbox.checked ? getDoneStatusId() : getTodoStatusId();
+      }
+      const statusText = checkbox.checked ? '完了' : '未完了';
+      announceToScreenReader(`${title}を${statusText}にしました`);
+      saveState();
+      task.classList.toggle('done', checkbox.checked);
+      updateProgressOnly();
+      updateSystemStatus();
+    });
+  }
 
   return {
     element: task,
@@ -360,6 +392,16 @@ function showStatusDropdown(anchor, key) {
     item.addEventListener('click', (e) => {
       e.stopPropagation();
       taskStatus[key] = status.id;
+
+      // checkedStateも連動（完了ステータス↔チェック状態の双方向同期）
+      const isDone = isTaskDetailDone(key);
+      checkedState[key] = isDone;
+      const taskEl = anchor.closest('.task');
+      if (taskEl) taskEl.classList.toggle('done', isDone);
+      announceToScreenReader(`ステータスを${status.name}に変更しました`);
+      updateProgressOnly();
+      updateSystemStatus();
+
       saveState();
       dropdown.remove();
       if (kanbanViewMode) {

@@ -560,6 +560,8 @@ function renderStatusManagerList() {
     const item = document.createElement('div');
     item.className = 'custom-task-item';
 
+    const isDoneStatus = status.id === DONE_STATUS_ID;
+
     const info = document.createElement('div');
     info.className = 'task-info';
     const title = document.createElement('strong');
@@ -576,21 +578,23 @@ function renderStatusManagerList() {
     const buttonGroup = document.createElement('div');
     buttonGroup.className = 'button-group';
 
-    const editBtn = document.createElement('button');
-    editBtn.type = 'button';
-    editBtn.className = 'btn-main btn-small';
-    editBtn.textContent = '編集';
-    editBtn.addEventListener('click', () => startStatusEdit(status.id));
+    if (!isDoneStatus) {
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn-main btn-small';
+      editBtn.textContent = '編集';
+      editBtn.addEventListener('click', () => startStatusEdit(status.id));
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.type = 'button';
-    deleteBtn.className = 'btn-danger btn-small';
-    deleteBtn.textContent = '削除';
-    deleteBtn.disabled = KANBAN_STATUSES.length <= 1;
-    deleteBtn.addEventListener('click', () => deleteStatus(status.id));
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn-danger btn-small';
+      deleteBtn.textContent = '削除';
+      deleteBtn.disabled = KANBAN_STATUSES.length <= 1;
+      deleteBtn.addEventListener('click', () => deleteStatus(status.id));
 
-    buttonGroup.appendChild(editBtn);
-    buttonGroup.appendChild(deleteBtn);
+      buttonGroup.appendChild(editBtn);
+      buttonGroup.appendChild(deleteBtn);
+    }
     item.appendChild(info);
     item.appendChild(buttonGroup);
     container.appendChild(item);
@@ -612,6 +616,10 @@ function handleStatusManagerSubmit(e) {
   if (!name) return;
 
   if (editingStatusId) {
+    if (editingStatusId === DONE_STATUS_ID) {
+      showToast('完了ステータスは編集できません。', 'warning');
+      return;
+    }
     const target = KANBAN_STATUSES.find(s => s.id === editingStatusId);
     if (target) {
       target.name = name;
@@ -669,6 +677,10 @@ function cancelStatusEdit() {
  * @param {string} statusId
  */
 function deleteStatus(statusId) {
+  if (statusId === DONE_STATUS_ID) {
+    alert('完了ステータスは削除できません。');
+    return;
+  }
   if (KANBAN_STATUSES.length <= 1) {
     alert('少なくとも1つのステータスが必要です。');
     return;

@@ -61,6 +61,7 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.TAG_MASTER, tagMasterData);
     localStorage.setItem(STORAGE_KEYS.TASK_STATUS, taskStatusData);
     localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
+    localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     

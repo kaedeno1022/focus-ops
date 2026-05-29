@@ -116,6 +116,12 @@ function setupEventListeners() {
     minimumBtn.addEventListener('click', toggleMinimumMode);
   }
 
+  // 表示モードボタン
+  const displayModeBtn = getElement('displayModeBtn');
+  if (displayModeBtn) {
+    displayModeBtn.addEventListener('click', toggleDisplayMode);
+  }
+
   // リセットドロップダウン
   const resetMenuBtn = getElement('resetMenuBtn');
   if (resetMenuBtn) {

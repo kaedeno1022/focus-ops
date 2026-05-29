@@ -97,6 +97,27 @@ function toggleMinimumMode() {
 }
 
 /**
+ * 表示モードをトグル（シンプルモード ⇔ 詳細モード）
+ */
+function toggleDisplayMode() {
+  displayMode = displayMode === 'simple' ? 'detail' : 'simple';
+  const btn = getElement('displayModeBtn');
+  if (btn) {
+    btn.textContent = displayMode === 'detail' ? '詳細モード' : 'シンプルモード';
+    btn.classList.toggle('active', displayMode === 'detail');
+    btn.setAttribute('aria-pressed', (displayMode === 'detail').toString());
+  }
+  announceToScreenReader(
+    displayMode === 'detail'
+      ? '詳細モードに切り替えました。着手状況が完了になるとタスクが完了扱いになります。'
+      : 'シンプルモードに切り替えました。チェックボックスで完了管理します。'
+  );
+  saveState();
+  renderAll();
+  closeMenu();
+}
+
+/**
  * カテゴリーをリセット
  * @param {string} type - タスクタイプ (daily/weekly/season)
  */
