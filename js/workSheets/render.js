@@ -1,54 +1,63 @@
 // ============================================================
-// レンダリング（テーブル表示）
+// レンダリング（テーブル表示・サマリー）
 // ============================================================
-import { ROUND_DIFFS_KEY, OFF_STATUSES, WEEKDAYS } from './constants.js';
-import { data, currentMode, selectedMonth } from './state.js';
-import { calcWorkMinutes, formatHoursMinutes, groupByWeek, calculateOvertime } from './utils.js';
 
-export function render() {
-  // ヘッダー更新
+function render() {
   const thead = document.getElementById('list-thead-tr');
+  const table = thead.closest('table');
   if (currentMode === 'bp') {
     thead.innerHTML = '<th>日付</th><th>曜</th><th>開始</th><th>終了</th><th>内容</th><th>操作</th>';
+    if (table) { table.classList.add('mode-bp'); table.classList.remove('mode-employee'); }
   } else {
     thead.innerHTML = '<th>日付</th><th>曜</th><th>実績</th><th>開始</th><th>終了</th><th>18時以降休憩</th><th>遅刻</th><th>振替</th><th>内容</th><th>操作</th>';
+    if (table) { table.classList.add('mode-employee'); table.classList.remove('mode-bp'); }
   }
 
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
-  
-  // 月フィルタリング
-  const filteredData = selectedMonth 
-    ? data.filter(d => d.日付.startsWith(selectedMonth))
+
+  const filteredData = selectedMonth
+    ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
     : data;
-  
+
   filteredData.forEach(d => {
     const actualIndex = data.indexOf(d);
     const tr = document.createElement('tr');
-    const dateObj = new Date(d.日付);
-    const weekday = WEEKDAYS[dateObj.getDay()];
+    const weekday = WEEKDAYS[new Date(d.日付).getDay()];
+
     if (currentMode === 'bp') {
       [
-        d.日付,
-        weekday,
-        d.作業開始,
-        d.作業終了,
-        d.作業内容,
-      ].forEach(text => { const td = document.createElement('td'); td.textContent = text || ''; tr.appendChild(td); });
+        ['日付', d.日付],
+        ['曜', weekday],
+        ['開始', d.作業開始],
+        ['終了', d.作業終了],
+        ['内容', d.作業内容],
+      ].forEach(([label, text]) => {
+        const td = document.createElement('td');
+        td.dataset.label = label;
+        td.textContent = text || '';
+        tr.appendChild(td);
+      });
     } else {
       [
-        d.日付,
-        weekday,
-        d.勤務実績,
-        d.作業開始,
-        d.作業終了,
-        d['18時以降休憩'] || '',
-        d.遅刻早退,
-        d.振替代休対象日,
-        d.作業内容,
-      ].forEach(text => { const td = document.createElement('td'); td.textContent = text || ''; tr.appendChild(td); });
+        ['日付', d.日付],
+        ['曜', weekday],
+        ['実績', d.勤務実績],
+        ['開始', d.作業開始],
+        ['終了', d.作業終了],
+        ['18時以降休憩', d['18時以降休憩'] || ''],
+        ['遅刻', d.遅刻早退],
+        ['振替', d.振替代休対象日],
+        ['内容', d.作業内容],
+      ].forEach(([label, text]) => {
+        const td = document.createElement('td');
+        td.dataset.label = label;
+        td.textContent = text || '';
+        tr.appendChild(td);
+      });
     }
+
     const tdOp = document.createElement('td');
     tdOp.className = 'td-ops';
     const editBtn = document.createElement('button');
@@ -68,18 +77,22 @@ export function render() {
   updateWorkSummary();
 }
 
-export function updateWorkSummary() {
+function updateWorkSummary() {
   const sumArea = document.getElementById('work-summary');
   sumArea.innerHTML = '';
 
-  if (!data.length) {
+  const filteredData = selectedMonth
+    ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+    : data;
+
+  if (!filteredData.length) {
     sumArea.classList.add('hidden');
     return;
   }
   sumArea.classList.remove('hidden');
 
   if (currentMode === 'bp') {
-    const totalWorkMinutes = data.reduce((sum, d) => {
+    const totalWorkMinutes = filteredData.reduce((sum, d) => {
       const w = calcWorkMinutes(d);
       return sum + (w !== null ? w : 0);
     }, 0);
@@ -87,25 +100,29 @@ export function updateWorkSummary() {
     return;
   }
 
-  const workDays  = data.filter(d => d.作業開始 && d.作業終了);
-  const offDays   = data.filter(d => OFF_STATUSES.includes(d.勤務実績));
+  const workDays  = filteredData.filter(d => d.作業開始 && d.作業終了);
+  const offDays   = filteredData.filter(d => OFF_STATUSES.includes(d.勤務実績));
   let totalWorkMinutes = 0;
-  let offCount = offDays.length;
   workDays.forEach(d => {
     const w = calcWorkMinutes(d);
     if (w !== null) totalWorkMinutes += w;
   });
+
   let roundDiffTotalMin = 0;
   const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
   if (roundDiffs.length) {
-    roundDiffTotalMin = roundDiffs.reduce((s, r) => s + r.diffMinutes, 0);
+    const filteredDiffs = selectedMonth
+      ? roundDiffs.filter(r => r.date && r.date.startsWith(selectedMonth))
+      : roundDiffs;
+    roundDiffTotalMin = filteredDiffs.reduce((s, r) => s + r.diffMinutes, 0);
   }
+
   const overtimeMin = calculateOvertime(groupByWeek(workDays));
-  const html = `
+  sumArea.innerHTML = `
     <div class="summary-item"><span class="summary-label">総作業時間:</span><span class="summary-value">${formatHoursMinutes(totalWorkMinutes)}</span></div>
     <div class="summary-item"><span class="summary-label">残業時間:</span><span class="summary-value">${formatHoursMinutes(overtimeMin)}</span></div>
-    <div class="summary-item"><span class="summary-label">休日取得:</span><span class="summary-value">${offCount}日</span></div>
+    <div class="summary-item"><span class="summary-label">休日取得:</span><span class="summary-value">${offDays.length}日</span></div>
     <div class="summary-item summary-item-wide"><span class="summary-label">15分調整差分:</span><span class="summary-value">${formatHoursMinutes(roundDiffTotalMin)} <button class="btn-clear-diffs" onclick="clearRoundDiffs()">クリア</button></span></div>
   `;
-  sumArea.innerHTML = html;
 }
+

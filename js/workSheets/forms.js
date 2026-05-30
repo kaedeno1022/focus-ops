@@ -1,16 +1,12 @@
 // ============================================================
 // フォーム制御
 // ============================================================
-import { STATUS, SUBSTITUTE_VISIBLE_STATUSES, OFF_STATUSES } from './constants.js';
-import { currentMode, eventData } from './state.js';
-import { getWeekdayLabel, isTimeReversed, timeToMinutes } from './utils.js';
-import { showToast } from './ui.js';
 
-export function getFormEl(prefix, id) {
+function getFormEl(prefix, id) {
   return document.getElementById(prefix ? `${prefix}-${id}` : id);
 }
 
-export function controlTime(prefix = '') {
+function controlTime(prefix = '') {
   if (currentMode === 'bp') return;
   const off   = OFF_STATUSES.includes(getFormEl(prefix, 'status').value);
   const start = getFormEl(prefix, 'start');
@@ -26,7 +22,7 @@ export function controlTime(prefix = '') {
   }
 }
 
-export function updateSubstituteVisibility(prefix = '') {
+function updateSubstituteVisibility(prefix = '') {
   if (currentMode === 'bp') return;
   const v       = getFormEl(prefix, 'status').value;
   const wrap    = document.getElementById(prefix ? `${prefix}-substitute-wrap` : 'substitute-wrap');
@@ -43,7 +39,7 @@ export function updateSubstituteVisibility(prefix = '') {
   }
 }
 
-export function updateBreakOptions(prefix = '') {
+function updateBreakOptions(prefix = '') {
   const status   = getFormEl(prefix, 'status').value;
   const startVal = getFormEl(prefix, 'start').value || '00:00';
   const endVal   = getFormEl(prefix, 'end').value;
@@ -66,7 +62,7 @@ export function updateBreakOptions(prefix = '') {
     allowed.map(v => `<option${current === v ? ' selected' : ''}>${v}</option>`).join('');
 }
 
-export function controlBreakDisplay(prefix = '') {
+function controlBreakDisplay(prefix = '') {
   const breakSel  = getFormEl(prefix, 'break');
   const breakWrap = breakSel.closest('.form-item');
   if (!breakWrap) return;
@@ -89,38 +85,15 @@ export function controlBreakDisplay(prefix = '') {
   }
 }
 
-export function initInputForm() {
-  document.getElementById('date').addEventListener('change', () => {
-    const dateVal = document.getElementById('date').value;
-    document.getElementById('weekday').textContent = getWeekdayLabel(dateVal);
-    applyEventsToContentField(dateVal);
-  });
-  document.getElementById('substitute').addEventListener('change', () => {
-    document.getElementById('substitute-weekday').textContent = getWeekdayLabel(document.getElementById('substitute').value);
-  });
-  document.getElementById('status').addEventListener('change', () => {
-    controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
-  });
-  document.getElementById('end').addEventListener('change', () => controlBreakDisplay());
-  controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
-}
-
-export function initEditModalListeners() {
-  document.getElementById('edit-status').addEventListener('change', () => {
-    controlTime('edit'); controlBreakDisplay('edit'); updateSubstituteVisibility('edit');
-  });
-  document.getElementById('edit-end').addEventListener('change', () => controlBreakDisplay('edit'));
-  document.getElementById('edit-date').addEventListener('change', () => {
-    document.getElementById('edit-weekday').textContent = getWeekdayLabel(document.getElementById('edit-date').value);
-  });
-  document.getElementById('edit-substitute').addEventListener('change', () => {
-    document.getElementById('edit-substitute-weekday').textContent = getWeekdayLabel(document.getElementById('edit-substitute').value);
-  });
-}
-
 function applyEventsToContentField(dateStr) {
   if (!dateStr || !eventData?.length) return;
   const matched = eventData.filter(ev => {
+    if (ev.alwaysShow) {
+      return !ev.dates || !ev.dates.includes(dateStr);
+    }
+    if (ev.dates) {
+      return ev.dates.includes(dateStr);
+    }
     const start    = ev.startDate || ev.date || null;
     const end      = ev.endDate   || ev.date || null;
     const excludes = ev.excludeDates
@@ -143,3 +116,69 @@ function applyEventsToContentField(dateStr) {
     showToast(`イベントから内容を自動反映しました`, 'info', 2500);
   }
 }
+
+function initInputForm() {
+  document.getElementById('date').addEventListener('change', () => {
+    const dateVal = document.getElementById('date').value;
+    document.getElementById('weekday').textContent = getWeekdayLabel(dateVal);
+    applyEventsToContentField(dateVal);
+  });
+  document.getElementById('substitute').addEventListener('change', () => {
+    document.getElementById('substitute-weekday').textContent = getWeekdayLabel(document.getElementById('substitute').value);
+  });
+  document.getElementById('status').addEventListener('change', () => {
+    controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
+  });
+  document.getElementById('end').addEventListener('change', () => controlBreakDisplay());
+  controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
+}
+
+function initEditModalListeners() {
+  document.getElementById('edit-status').addEventListener('change', () => {
+    controlTime('edit'); controlBreakDisplay('edit'); updateSubstituteVisibility('edit');
+  });
+  document.getElementById('edit-end').addEventListener('change', () => controlBreakDisplay('edit'));
+  document.getElementById('edit-date').addEventListener('change', () => {
+    document.getElementById('edit-weekday').textContent = getWeekdayLabel(document.getElementById('edit-date').value);
+  });
+  document.getElementById('edit-substitute').addEventListener('change', () => {
+    document.getElementById('edit-substitute-weekday').textContent = getWeekdayLabel(document.getElementById('edit-substitute').value);
+  });
+
+  document.getElementById('event-no-date').addEventListener('change', (e) => {
+    const label = document.getElementById('event-calendar-label');
+    const dateLabel = document.getElementById('selected-dates-label');
+    if (e.target.checked) {
+      label.innerHTML = '除外日選択 <span class="label-note">（除外する日付をクリック選択）</span>';
+      dateLabel.textContent = '除外中の日付:';
+    } else {
+      label.innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
+      dateLabel.textContent = '選択中の日付:';
+    }
+  });
+
+  document.getElementById('event-edit-no-date').addEventListener('change', (e) => {
+    const label = document.getElementById('event-edit-calendar-label');
+    const dateLabel = document.getElementById('event-edit-selected-dates-label');
+    if (e.target.checked) {
+      label.innerHTML = '除外日選択 <span class="label-note">（除外する日付をクリック選択）</span>';
+      dateLabel.textContent = '除外中の日付:';
+    } else {
+      label.innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
+      dateLabel.textContent = '選択中の日付:';
+    }
+  });
+}
+
+function clearForm() {
+  ['status', 'late'].forEach(id => document.getElementById(id).value = '');
+  ['date', 'substitute', 'content', 'break'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('start').value    = '09:00';
+  document.getElementById('end').value      = '18:00';
+  document.getElementById('start').disabled = false;
+  document.getElementById('end').disabled   = false;
+  document.getElementById('weekday').textContent             = '';
+  document.getElementById('substitute-weekday').textContent  = '';
+  updateSubstituteVisibility(); controlBreakDisplay();
+}
+

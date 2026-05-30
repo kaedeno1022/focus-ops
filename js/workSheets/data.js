@@ -1,15 +1,12 @@
 // ============================================================
 // データCRUD操作
 // ============================================================
-import { SUBSTITUTE_VISIBLE_STATUSES } from './constants.js';
-import { data, editIndex, currentMode, eventData, setEditIndex } from './state.js';
-import { getFormEl, controlTime, controlBreakDisplay, updateSubstituteVisibility } from './forms.js';
-import { save, sortData } from './storage.js';
-import { render } from './render.js';
-import { showToast, showConfirm } from './ui.js';
-import { getWeekdayLabel, timeToMinutes } from './utils.js';
 
-export function validateWorkItem(prefix = '') {
+function getFormEl(prefix, id) {
+  return document.getElementById(prefix ? `${prefix}-${id}` : id);
+}
+
+function validateWorkItem(prefix = '') {
   const dateVal    = getFormEl(prefix, 'date').value;
   const contentVal = getFormEl(prefix, 'content').value.trim();
   const startEl    = getFormEl(prefix, 'start');
@@ -35,7 +32,7 @@ export function validateWorkItem(prefix = '') {
   return true;
 }
 
-export function buildWorkItem(prefix = '') {
+function buildWorkItem(prefix = '') {
   const p = prefix ? `${prefix}-` : '';
   const base = {
     日付:     document.getElementById(`${p}date`).value,
@@ -53,7 +50,7 @@ export function buildWorkItem(prefix = '') {
   };
 }
 
-export async function addData() {
+async function addData() {
   if (!validateWorkItem()) return;
   const item = buildWorkItem();
   const idx  = data.findIndex(d => d.日付 === item.日付);
@@ -67,7 +64,7 @@ export async function addData() {
   showToast('登録が完了しました', 'success');
 }
 
-export function editRow(i) {
+function editRow(i) {
   setEditIndex(i);
   const d = data[i];
   document.getElementById('edit-date').value        = d.日付;
@@ -78,6 +75,7 @@ export function editRow(i) {
   document.getElementById('edit-late').value        = d.遅刻早退       || '';
   document.getElementById('edit-substitute').value  = d.振替代休対象日  || '';
   document.getElementById('edit-content').value     = d.作業内容;
+
   document.getElementById('edit-weekday').textContent           = getWeekdayLabel(d.日付);
   document.getElementById('edit-substitute-weekday').textContent = getWeekdayLabel(d.振替代休対象日 || '');
 
@@ -87,7 +85,7 @@ export function editRow(i) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-export function saveEditData() {
+function saveEditData() {
   if (!validateWorkItem('edit')) return;
   if (editIndex === null) return;
   data[editIndex] = buildWorkItem('edit');
@@ -96,7 +94,7 @@ export function saveEditData() {
   showToast('編集内容を更新しました', 'success');
 }
 
-export function closeEditModal() {
+function closeEditModal() {
   document.getElementById('editModal').classList.add('hidden');
   setEditIndex(null);
   if (document.getElementById('copyModal').classList.contains('hidden')) {
@@ -104,54 +102,57 @@ export function closeEditModal() {
   }
 }
 
-export async function del(i) {
+async function del(i) {
   if (!await showConfirm('このデータを削除しますか？', { danger: true })) return;
   data.splice(i, 1);
   save(); render();
   showToast('削除しました', 'success');
 }
 
-export function clearForm() {
-  ['status', 'late'].forEach(id => document.getElementById(id).value = '');
-  ['date', 'substitute', 'content', 'break'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('start').value    = '09:00';
-  document.getElementById('end').value      = '18:00';
-  document.getElementById('start').disabled = false;
-  document.getElementById('end').disabled   = false;
-  document.getElementById('weekday').textContent             = '';
-  document.getElementById('substitute-weekday').textContent  = '';
-  setEditIndex(null);
-  updateSubstituteVisibility(); controlBreakDisplay();
+async function clearAll() {
+  const confirmMsg = selectedMonth
+    ? `${selectedMonth}月のデータを削除しますか？\nこの操作は取り消せません。`
+    : '全データを削除しますか？\nこの操作は取り消せません。';
+
+  if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true })) return;
+
+  if (selectedMonth) {
+    const beforeCount = data.length;
+    data.splice(0, data.length, ...data.filter(d => !d.日付 || !d.日付.startsWith(selectedMonth)));
+    const deletedCount = beforeCount - data.length;
+    const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
+    localStorage.setItem(key, JSON.stringify(data));
+    render();
+    showToast(`${selectedMonth}月のデータ ${deletedCount}件を削除しました`, 'success');
+  } else {
+    const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
+    localStorage.removeItem(key);
+    if (currentMode === 'employee') localStorage.removeItem('roundDiffs');
+    data.length = 0;
+    render();
+    showToast('全データを削除しました', 'success');
+  }
 }
 
-export async function clearAll() {
-  if (!await showConfirm('全データを削除しますか？\nこの操作は取り消せません。', { title: '全削除', danger: true })) return;
-  const key = currentMode === 'bp' ? 'workData_bp' : 'workData';
-  localStorage.removeItem(key);
-  if (currentMode === 'employee') localStorage.removeItem('roundDiffs');
-  data.length = 0;
-  render();
-  showToast('全データを削除しました', 'success');
-}
-
-export function clearRoundDiffs() {
+function clearRoundDiffs() {
   localStorage.removeItem('roundDiffs');
   render();
   showToast('調整差分をクリアしました', 'success');
 }
 
-export async function importEventsToContents() {
+async function importEventsToContents(eventData) {
   if (!eventData?.length) { showToast('イベントデータがありません', 'warning'); return; }
   if (!await showConfirm('各日付にイベント内容を反映しますか？\n既存の内容は上書きされません。')) return;
   let count = 0;
   data.forEach(d => {
     if (!d.日付) return;
     const matched = eventData.filter(ev => {
-      // 複数日選択の場合
-      if (ev.dates && Array.isArray(ev.dates)) {
+      if (ev.alwaysShow) {
+        return !ev.dates || !ev.dates.includes(d.日付);
+      }
+      if (ev.dates) {
         return ev.dates.includes(d.日付);
       }
-      // 期間指定の場合
       const st = ev.startDate || ev.date || null;
       const ed = ev.endDate   || ev.date || null;
       const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -177,33 +178,62 @@ export async function importEventsToContents() {
   }
 }
 
-export function formatTimes() {
-  let count = 0;
-  data.forEach(d => {
-    if (d.作業開始 && d.作業開始.length === 4 && !d.作業開始.includes(':')) {
+function formatTimes() {
+  const targetData = selectedMonth
+    ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+    : data;
+
+  const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
+  let formatCount = 0;
+  let roundCount = 0;
+
+  targetData.forEach(d => {
+    if (d.作業開始 && /^\d{4}$/.test(d.作業開始)) {
       d.作業開始 = d.作業開始.slice(0, 2) + ':' + d.作業開始.slice(2);
-      count++;
+      formatCount++;
     }
-    if (d.作業終了 && d.作業終了.length === 4 && !d.作業終了.includes(':')) {
+    if (d.作業終了 && /^\d{4}$/.test(d.作業終了)) {
       d.作業終了 = d.作業終了.slice(0, 2) + ':' + d.作業終了.slice(2);
-      count++;
+      formatCount++;
+    }
+
+    if (d.作業開始 && d.作業終了) {
+      const originalWorkMin = calcWorkMinutes(d);
+      if (originalWorkMin !== null) {
+        const roundedStart = roundToQuarter(d.作業開始, 'nearest');
+        const roundedEnd   = roundToQuarter(d.作業終了, 'nearest');
+
+        if (roundedStart !== d.作業開始 || roundedEnd !== d.作業終了) {
+          d.作業開始 = roundedStart;
+          d.作業終了 = roundedEnd;
+
+          const roundedWorkMin = calcWorkMinutes(d);
+          const diffMin = originalWorkMin - roundedWorkMin;
+
+          const existingIdx = roundDiffs.findIndex(r => r.date === d.日付);
+          if (existingIdx >= 0) {
+            roundDiffs[existingIdx].diffMinutes += diffMin;
+          } else {
+            roundDiffs.push({ date: d.日付, diffMinutes: diffMin });
+          }
+          roundCount++;
+        }
+      }
     }
   });
-  if (count > 0) {
+
+  const totalCount = formatCount + roundCount;
+  if (totalCount > 0) {
+    localStorage.setItem(ROUND_DIFFS_KEY, JSON.stringify(roundDiffs));
     save(); render();
-    showToast(`${count}件の時間フォーマットを修正しました`, 'success');
+    const monthText = selectedMonth ? `${selectedMonth}月の` : '';
+    const messages = [];
+    if (formatCount > 0) messages.push(`フォーマット修正${formatCount}件`);
+    if (roundCount > 0) messages.push(`15分単位丸め${roundCount}件`);
+    showToast(`${monthText}${messages.join('、')}を実行しました`, 'success');
   } else {
-    showToast('修正が必要な項目はありませんでした', 'info');
+    const monthText = selectedMonth ? `${selectedMonth}月は` : '';
+    showToast(`${monthText}修正が必要な項目はありませんでした`, 'info');
   }
 }
 
-window.addData = addData;
-window.editRow = editRow;
-window.saveEditData = saveEditData;
-window.closeEditModal = closeEditModal;
-window.del = del;
-window.clearForm = clearForm;
-window.clearAll = clearAll;
-window.clearRoundDiffs = clearRoundDiffs;
-window.importEventsToContents = importEventsToContents;
-window.formatTimes = formatTimes;

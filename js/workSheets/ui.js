@@ -1,9 +1,8 @@
 // ============================================================
-// UI: Toast & Confirm Dialog
+// UI: Toast & Confirm Dialog & タブ
 // ============================================================
-import { TOAST_ICONS } from './constants.js';
 
-export function showToast(msg, type = 'info', duration = 3500) {
+function showToast(msg, type = 'info', duration = 3500) {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
@@ -11,7 +10,6 @@ export function showToast(msg, type = 'info', duration = 3500) {
   toast.innerHTML = `
     <span class="toast-icon">${TOAST_ICONS[type] ?? TOAST_ICONS.info}</span>
     <div class="toast-body"><div class="toast-msg">${msg.replace(/\n/g, '<br>')}</div></div>
-    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
     <div class="toast-progress"></div>
   `;
   container.appendChild(toast);
@@ -21,7 +19,7 @@ export function showToast(msg, type = 'info', duration = 3500) {
   }, duration);
 }
 
-export function showConfirm(msg, { title = '確認', danger = false } = {}) {
+function showConfirm(msg, { title = '確認', danger = false } = {}) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
@@ -43,7 +41,7 @@ export function showConfirm(msg, { title = '確認', danger = false } = {}) {
   });
 }
 
-export function initTabs() {
+function initTabs() {
   const tabBtns     = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
   tabBtns.forEach(btn => {
@@ -55,3 +53,4 @@ export function initTabs() {
     });
   });
 }
+
