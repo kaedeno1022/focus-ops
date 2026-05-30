@@ -16,14 +16,42 @@
   <p>勤務時間・作業内容の記録管理</p>
 </header>
 
-<!-- モード切り替えバー -->
-<div class="mode-bar">
-  <div class="mode-bar-inner">
-    <span class="mode-bar-label">モード：</span>
-    <button id="mode-employee" class="mode-btn active" onclick="switchMode('employee')">👤 社員用</button>
-    <button id="mode-bp" class="mode-btn" onclick="switchMode('bp')">🤝 BP用</button>
+<!-- モード切り替え -->
+<nav class="worksheet-topbar" role="navigation" aria-label="作業表モード切り替え">
+  <div class="mode-dropdown-wrap">
+    <button
+      id="modeMenuBtn"
+      class="btn-main"
+      type="button"
+      aria-haspopup="true"
+      aria-expanded="false"
+    >
+      モード: 社員用 ▾
+    </button>
+    <div id="modeDropdown" class="mode-dropdown" hidden>
+      <button
+        id="mode-employee"
+        class="mode-dropdown-item active"
+        type="button"
+        aria-pressed="true"
+        onclick="switchMode('employee')"
+      >
+        <span class="mode-item-label">👤 社員用</span>
+        <span class="mode-state-badge">現在</span>
+      </button>
+      <button
+        id="mode-bp"
+        class="mode-dropdown-item"
+        type="button"
+        aria-pressed="false"
+        onclick="switchMode('bp')"
+      >
+        <span class="mode-item-label">🤝 BP用</span>
+        <span class="mode-state-badge">現在</span>
+      </button>
+    </div>
   </div>
-</div>
+</nav>
 
 <!-- タブ -->
 <div class="tabs">

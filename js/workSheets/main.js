@@ -15,13 +15,57 @@
 // ============================================================
 // モード切り替え
 // ============================================================
+function closeModeDropdown() {
+  const dropdown = document.getElementById('modeDropdown');
+  const btn = document.getElementById('modeMenuBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function updateModeMenuButtonLabel(mode) {
+  const btn = document.getElementById('modeMenuBtn');
+  if (!btn) return;
+  btn.textContent = `モード: ${mode === 'bp' ? 'BP用' : '社員用'} ▾`;
+}
+
+function initModeMenu() {
+  const btn = document.getElementById('modeMenuBtn');
+  const dropdown = document.getElementById('modeDropdown');
+  if (!btn || !dropdown) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = dropdown.hidden;
+    dropdown.hidden = !willOpen;
+    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  });
+
+  dropdown.addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', closeModeDropdown);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModeDropdown();
+  });
+}
+
 function switchMode(mode) {
   setCurrentMode(mode);
   localStorage.setItem(MODE_KEY, mode);
   load(); render();
 
-  document.getElementById('mode-employee').classList.toggle('active', mode === 'employee');
-  document.getElementById('mode-bp').classList.toggle('active', mode === 'bp');
+  const employeeBtn = document.getElementById('mode-employee');
+  const bpBtn = document.getElementById('mode-bp');
+
+  if (employeeBtn) {
+    employeeBtn.classList.toggle('active', mode === 'employee');
+    employeeBtn.setAttribute('aria-pressed', mode === 'employee' ? 'true' : 'false');
+  }
+  if (bpBtn) {
+    bpBtn.classList.toggle('active', mode === 'bp');
+    bpBtn.setAttribute('aria-pressed', mode === 'bp' ? 'true' : 'false');
+  }
+
+  updateModeMenuButtonLabel(mode);
+  closeModeDropdown();
 
   document.querySelectorAll('.mode-employee-only').forEach(el => el.classList.toggle('hidden', mode !== 'employee'));
   document.querySelectorAll('.mode-bp-only').forEach(el  => el.classList.toggle('hidden', mode !== 'bp'));
@@ -85,6 +129,7 @@ function filterEventsByMonth() {
 // ============================================================
 function init() {
   const saved = localStorage.getItem(MODE_KEY);
+  initModeMenu();
   if (saved) setCurrentMode(saved);
   switchMode(saved || 'employee');
   loadEventData(); renderEventTable();
