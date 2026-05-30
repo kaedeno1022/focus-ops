@@ -95,7 +95,7 @@ function toggleMinimumMode() {
   saveState();
   renderAll();
   updateSystemStatus();
-  closeMenu(); // モバイルでメニューを閉じる
+  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu(); // デスクトップのみ閉じる
 }
 
 /**
@@ -110,6 +110,19 @@ function toggleDisplayMode() {
     btn.classList.toggle('active', displayMode === 'detail');
     btn.setAttribute('aria-pressed', (displayMode === 'detail').toString());
   }
+  // カンバンビューボタンの表示制御
+  const kanbanViewBtn = getElement('kanbanViewBtn');
+  if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
+
+  // シンプルモードへの切り替え時、カンバンビューが起動中なら終了
+  if (displayMode === 'simple' && kanbanViewMode) {
+    kanbanViewMode = false;
+    const mainGrid = document.querySelector('.grid');
+    const kanbanBoard = getElement('kanbanBoard');
+    if (mainGrid) mainGrid.style.display = '';
+    if (kanbanBoard) kanbanBoard.style.display = 'none';
+  }
+
   updateModeMenuBtn();
   announceToScreenReader(
     displayMode === 'detail'
@@ -118,7 +131,7 @@ function toggleDisplayMode() {
   );
   saveState();
   renderAll();
-  closeMenu();
+  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu(); // デスクトップのみ閉じる
 }
 
 /**

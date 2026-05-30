@@ -306,3 +306,14 @@ header .subtitle {
   color: var(--sub);
   transition: background 0.2s, color 0.2s;
 }
+
+/* 表示モードバッジ: シンプル=青、詳細=緑 (常に色付き) */
+#displayModeBadge {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.mode-toggle-item.active #displayModeBadge {
+  background: var(--neon);
+  color: #fff;
+}

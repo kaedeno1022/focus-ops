@@ -108,7 +108,20 @@
     margin-bottom: 10px;
   }
 
-  .topbar button:last-child {
+  .topbar .reset-dropdown-wrap,
+  .topbar .mode-dropdown-wrap {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .topbar .reset-dropdown-wrap > button,
+  .topbar .mode-dropdown-wrap > button {
+    margin-bottom: 0;
+  }
+
+  .topbar button:last-child,
+  .topbar .reset-dropdown-wrap:last-child,
+  .topbar .mode-dropdown-wrap:last-child {
     margin-bottom: 0;
   }
 

@@ -30,6 +30,10 @@ function init() {
   // モードメニューボタンの初期状態
   if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
 
+  // シンプルモード時はカンバンビューボタンを非表示
+  const kanbanViewBtn = getElement('kanbanViewBtn');
+  if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
+
   // プロジェクトとタグのセレクタを初期化
   initProjectSelector();
   initTagSelector();

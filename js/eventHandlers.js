@@ -277,6 +277,7 @@ function closeModeDropdown() {
  * カンバンビューを切り替える
  */
 function toggleKanbanView() {
+  if (displayMode === 'simple') return; // シンプルモードでは無効
   kanbanViewMode = !kanbanViewMode;
 
   const mainGrid = document.querySelector('.grid');
