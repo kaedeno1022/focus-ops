@@ -59,7 +59,7 @@ header .subtitle {
   opacity: 0.9;
 }
 
-/* モバイルアクション（デイリーリセット + メニュー） */
+/* モバイルアクション（今日のタスクリセット + メニュー） */
 .mobile-actions {
   display: flex;
   gap: 10px;

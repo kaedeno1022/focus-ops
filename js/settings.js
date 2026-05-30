@@ -241,9 +241,9 @@ function renderCustomTaskList() {
       info.className = 'task-info';
       
       const typeLabel = {
-        daily: 'デイリー',
-        weekly: 'ウィークリー',
-        season: 'シーズン'
+        daily: '今日のタスク',
+        weekly: '今週のタスク',
+        season: '長期のタスク'
       }[type];
       
       const priorityLabel = {
