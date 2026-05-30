@@ -19,6 +19,22 @@ function updateCheckinUI() {
   if (outTimeEl) outTimeEl.textContent = '';
 }
 
+function getTodayEventContents() {
+  const today = getTodayJST();
+  if (!eventData?.length) return [];
+  return eventData.filter(ev => {
+    if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(today);
+    if (ev.dates) return ev.dates.includes(today);
+    const st  = ev.startDate || ev.date || null;
+    const ed  = ev.endDate   || ev.date || null;
+    const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (exc.includes(today)) return false;
+    if (st && today < st) return false;
+    if (ed && today > ed) return false;
+    return true;
+  }).map(ev => ev.content);
+}
+
 async function simpleCheckIn() {
   const info = JSON.parse(localStorage.getItem(CHECKIN_KEY) || 'null');
   if (!info || !info.status) { doCheckIn(); return; }
@@ -56,24 +72,46 @@ function doCheckIn() {
 function showCheckinTimeDialog() {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
+    const existingContentEl = document.getElementById('simple_content');
+    const existingContent = existingContentEl ? existingContentEl.value.trim() : '';
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = `
       <div class="confirm-dialog">
         <div class="confirm-icon">🏢</div>
         <div class="confirm-title">出社時間を入力</div>
-        <div class="confirm-msg">出社履歴がありません。<br>出社時間を入力してください。</div>
+        <div class="confirm-msg">出社履歴がありません。<br>出社時間と作業内容を入力してください。</div>
         <input type="time" id="_manual_start_time" value="09:00"
           style="display:block;margin:16px auto 8px;padding:8px 12px;font-size:1.1rem;border:1px solid #cbd5e1;border-radius:8px;text-align:center;width:140px;">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 14px;max-width:320px;">
+          <input type="text" id="_manual_content" maxlength="27" placeholder="作業内容（最大27文字）" value="${existingContent.replace(/"/g, '&quot;')}"
+            style="display:block;padding:8px 12px;font-size:1rem;border:1px solid #cbd5e1;border-radius:8px;flex:1;min-width:0;">
+          <button type="button" id="_manual_event_btn" class="btn-secondary btn-sm" title="今日のイベントを内容に反映">📅</button>
+        </div>
         <div class="confirm-btns">
           <button class="confirm-cancel" id="_cfm_no">キャンセル</button>
           <button id="_cfm_yes">退勤する</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
+    const manualContentEl = overlay.querySelector('#_manual_content');
+    overlay.querySelector('#_manual_event_btn').addEventListener('click', () => {
+      const matched = getTodayEventContents();
+      if (!matched.length) {
+        showToast('今日のイベントはありません', 'info');
+        return;
+      }
+      manualContentEl.value = matched.join(',').slice(0, 27);
+      showToast('イベントを反映しました', 'success', 2500);
+    });
     const close = result => { overlay.remove(); resolve(result); };
     overlay.querySelector('#_cfm_yes').addEventListener('click', () => {
       const timeVal = overlay.querySelector('#_manual_start_time').value;
-      close(timeVal || null);
+      const contentVal = manualContentEl.value.trim();
+      if (!contentVal) {
+        showToast('作業内容を入力してください', 'warning', 2500);
+        return;
+      }
+      close({ startTime: timeVal || null, content: contentVal });
     });
     overlay.querySelector('#_cfm_no').addEventListener('click', () => close(null));
     overlay.addEventListener('click', e => { if (e.target === overlay) close(null); });
@@ -82,15 +120,17 @@ function showCheckinTimeDialog() {
 
 async function doCheckOut() {
   let info = JSON.parse(localStorage.getItem(CHECKIN_KEY) || 'null');
+  let manualContent = '';
   if (!info || !info.status) {
-    const manualStartTime = await showCheckinTimeDialog();
-    if (!manualStartTime) return;
+    const manualInput = await showCheckinTimeDialog();
+    if (!manualInput || !manualInput.startTime) return;
     const today = getTodayJST();
-    info = { startTime: manualStartTime, date: today, content: '' };
+    manualContent = manualInput.content || '';
+    info = { startTime: manualInput.startTime, date: today, content: manualContent };
   }
 
   const simpleContentEl = document.getElementById('simple_content');
-  const content = simpleContentEl ? simpleContentEl.value.trim() : (info.content || '');
+  const content = manualContent || (simpleContentEl ? simpleContentEl.value.trim() : (info.content || ''));
   if (!content) {
     showToast('作業内容を入力してから退勤してください', 'warning', 4000);
     return;
@@ -122,19 +162,7 @@ async function simpleCheckOut() {
 }
 
 function applyEventsToCheckin() {
-  const today = getTodayJST();
-  if (!eventData?.length) { showToast('イベントデータがありません', 'info'); return; }
-  const matched = eventData.filter(ev => {
-    if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(today);
-    if (ev.dates) return ev.dates.includes(today);
-    const st  = ev.startDate || ev.date || null;
-    const ed  = ev.endDate   || ev.date || null;
-    const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
-    if (exc.includes(today)) return false;
-    if (st && today < st)   return false;
-    if (ed && today > ed)   return false;
-    return true;
-  }).map(ev => ev.content);
+  const matched = getTodayEventContents();
   if (!matched.length) { showToast('今日のイベントはありません', 'info'); return; }
   const contentEl = document.getElementById('simple_content');
   if (contentEl) {
