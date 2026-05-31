@@ -95,7 +95,7 @@ function toggleMinimumMode() {
   saveState();
   renderAll();
   updateSystemStatus();
-  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu(); // デスクトップのみ閉じる
+  if (!window.matchMedia('(max-width: 700px)').matches) closeMenu(); // デスクトップのみ閉じる
 }
 
 /**
@@ -131,7 +131,7 @@ function toggleDisplayMode() {
   );
   saveState();
   renderAll();
-  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu(); // デスクトップのみ閉じる
+  if (!window.matchMedia('(max-width: 700px)').matches) closeMenu(); // デスクトップのみ閉じる
 }
 
 /**
@@ -192,7 +192,7 @@ function toggleAdminMode() {
 
   saveState();
   renderAll();
-  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu();
+  if (!window.matchMedia('(max-width: 700px)').matches) closeMenu();
 }
 
 /**
