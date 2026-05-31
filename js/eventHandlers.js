@@ -179,7 +179,7 @@ function setupEventListeners() {
     if (e.key === 'Escape') {
       closeMenu();
       closeSettingsModal();
-      closePrivacyModal();
+      if (typeof window.closePrivacyModal === 'function') window.closePrivacyModal();
       closeResetDropdown();
       closeModeDropdown();
     }
@@ -351,6 +351,7 @@ function setupEventListeners() {
   if (statusManagerForm) {
     statusManagerForm.addEventListener('submit', handleStatusManagerSubmit);
   }
+
 
   const statusManagerCancelEdit = getElement('statusManagerCancelEdit');
   if (statusManagerCancelEdit) {

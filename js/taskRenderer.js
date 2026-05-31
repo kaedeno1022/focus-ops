@@ -149,6 +149,7 @@ function createTaskElement(type, category, title, priority) {
   const taskEditIcon = document.createElement('span');
   taskEditIcon.className = 'edit-icon';
   taskEditIcon.setAttribute('aria-hidden', 'true');
+  taskEditIcon.textContent = '✏';
   editBtn.appendChild(taskEditIcon);
   editBtn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -653,6 +654,7 @@ function createKanbanCard(type, category, title, priority, key) {
   const kanbanEditIcon = document.createElement('span');
   kanbanEditIcon.className = 'edit-icon';
   kanbanEditIcon.setAttribute('aria-hidden', 'true');
+  kanbanEditIcon.textContent = '✏';
   editBtn.appendChild(kanbanEditIcon);
   editBtn.addEventListener('click', (e) => {
     e.preventDefault();

@@ -218,15 +218,33 @@ function renderVisibilitySettings() {
         actions.className = 'visibility-item-actions';
         actions.appendChild(editBtn);
 
-        // デフォルトタスクのみ削除ボタンを表示
+        // 削除ボタン（デフォルト・カスタム共通）
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-danger btn-small';
+        deleteBtn.textContent = '削除';
+        deleteBtn.type = 'button';
         if (!isCustomTask) {
-          const deleteBtn = document.createElement('button');
-          deleteBtn.className = 'btn-danger btn-small';
-          deleteBtn.textContent = '削除';
-          deleteBtn.type = 'button';
           deleteBtn.addEventListener('click', () => deleteDefaultTask(type, group.category, title));
-          actions.appendChild(deleteBtn);
+        } else {
+          deleteBtn.addEventListener('click', () => {
+            if (confirm(`「${title}」を削除しますか？`)) {
+              const idx = customTasks[type]?.findIndex(t => t.title === title);
+              if (idx !== undefined && idx !== -1) {
+                customTasks[type].splice(idx, 1);
+                const key = createKey(type, group.category, title);
+                if (taskComments[key]) delete taskComments[key];
+                deleteTaskMetadata(key);
+                delete checkedState[key];
+                delete taskVisibility[key];
+                saveState();
+                renderAll();
+                renderVisibilitySettings();
+                showToast(`「${title}」を削除しました`, 'success');
+              }
+            }
+          });
         }
+        actions.appendChild(deleteBtn);
 
         item.appendChild(header);
         item.appendChild(actions);

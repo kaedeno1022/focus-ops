@@ -300,6 +300,7 @@
   margin-bottom: 16px;
 }
 
+
 .form-group:last-of-type {
   margin-bottom: 20px;
 }
@@ -324,6 +325,13 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s ease;
+}
+
+.form-group input[type="color"] {
+  width: 56px;
+  height: 36px;
+  padding: 2px 4px;
+  cursor: pointer;
 }
 
 .form-group select {
