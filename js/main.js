@@ -5,7 +5,7 @@
 /**
  * アプリケーションを初期化
  */
-function init() {
+async function init() {
   // Cookie同意を初期化（関数が存在する場合のみ）
   if (typeof initCookieConsent === 'function') {
     initCookieConsent();
@@ -13,7 +13,7 @@ function init() {
 
   // 共有リンクがある場合は起動時に取り込み
   if (typeof importStateFromShareUrl === 'function') {
-    importStateFromShareUrl();
+    await importStateFromShareUrl();
   }
   
   // 最低限モードの初期化
@@ -60,7 +60,9 @@ function init() {
 
 // DOMの準備完了後に初期化
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+  });
 } else {
   init();
 }

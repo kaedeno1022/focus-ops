@@ -78,16 +78,19 @@ function saveState() {
 }
 
 /**
- * Base64URL形式でエンコード
- * @param {string} value - エンコード対象文字列
+ * Uint8ArrayをBase64URL文字列へ変換
+ * @param {Uint8Array} bytes
  * @returns {string}
  */
-function toBase64Url(value) {
-  const bytes = new TextEncoder().encode(value);
+function uint8ArrayToBase64Url(bytes) {
+  const chunkSize = 0x8000;
   let binary = '';
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
   return btoa(binary)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -95,18 +98,57 @@ function toBase64Url(value) {
 }
 
 /**
- * Base64URL形式をデコード
- * @param {string} value - デコード対象文字列
- * @returns {string}
+ * Base64URL文字列をUint8Arrayへ変換
+ * @param {string} value
+ * @returns {Uint8Array}
  */
-function fromBase64Url(value) {
+function base64UrlToUint8Array(value) {
   const padded = value
     .replace(/-/g, '+')
     .replace(/_/g, '/')
     .padEnd(Math.ceil(value.length / 4) * 4, '=');
+
   const binary = atob(padded);
-  const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+/**
+ * 文字列をgzip圧縮してBase64URL文字列へ変換
+ * @param {string} value
+ * @returns {Promise<string>}
+ */
+async function compressTextToBase64Url(value) {
+  if (typeof CompressionStream !== 'function') {
+    throw new Error('CompressionStream is not supported in this browser');
+  }
+
+  const sourceStream = new Blob([value]).stream();
+  const compressedStream = sourceStream.pipeThrough(new CompressionStream('gzip'));
+  const compressed = new Uint8Array(await new Response(compressedStream).arrayBuffer());
+  return uint8ArrayToBase64Url(compressed);
+}
+
+/**
+ * Base64URL文字列をgzip展開して文字列へ戻す
+ * @param {string} value
+ * @returns {Promise<string>}
+ */
+async function decompressBase64UrlToText(value) {
+  if (typeof DecompressionStream !== 'function') {
+    throw new Error('DecompressionStream is not supported in this browser');
+  }
+
+  const compressed = base64UrlToUint8Array(value);
+  const sourceStream = new Blob([compressed]).stream();
+  const decompressedStream = sourceStream.pipeThrough(new DecompressionStream('gzip'));
+  const decompressed = new Uint8Array(await new Response(decompressedStream).arrayBuffer());
+  return new TextDecoder().decode(decompressed);
 }
 
 /**
@@ -114,86 +156,122 @@ function fromBase64Url(value) {
  * @returns {object}
  */
 function buildSharePayload() {
+  const hasOwnValues = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
+  const isJsonEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const omitEmptyStringValues = (obj) => Object.fromEntries(
+    Object.entries(obj || {}).filter(([, value]) => {
+      if (typeof value === 'string') return value.trim() !== '';
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== undefined && value !== null;
+    })
+  );
+
+  const checkedDoneKeys = Object.keys(checkedState).filter((key) => checkedState[key] === true);
+  const hiddenTaskKeys = Object.keys(taskVisibility).filter((key) => taskVisibility[key] === false);
+
+  const compactCustomTasks = {};
+  if (Array.isArray(customTasks.daily) && customTasks.daily.length > 0) compactCustomTasks.d = customTasks.daily;
+  if (Array.isArray(customTasks.weekly) && customTasks.weekly.length > 0) compactCustomTasks.w = customTasks.weekly;
+  if (Array.isArray(customTasks.season) && customTasks.season.length > 0) compactCustomTasks.s = customTasks.season;
+
+  const compactState = {};
+
+  if (checkedDoneKeys.length > 0) compactState.c = checkedDoneKeys;
+  if (minimumMode) compactState.m = 1;
+  if (hiddenTaskKeys.length > 0) compactState.v = hiddenTaskKeys;
+  if (hasOwnValues(compactCustomTasks)) compactState.u = compactCustomTasks;
+
+  const compactComments = omitEmptyStringValues(taskComments);
+  if (hasOwnValues(compactComments)) compactState.o = compactComments;
+
+  if (hasOwnValues(editedDefaultTasks)) compactState.e = editedDefaultTasks;
+
+  const deletedKeys = [...deletedDefaultTasks];
+  if (deletedKeys.length > 0) compactState.x = deletedKeys;
+
+  if (hasOwnValues(taskProjects)) compactState.p = taskProjects;
+  if (hasOwnValues(taskDeadlines)) compactState.l = taskDeadlines;
+  if (hasOwnValues(taskTags)) compactState.g = taskTags;
+  if (hasOwnValues(taskEstimatedTime)) compactState.t = taskEstimatedTime;
+  if (hasOwnValues(taskAssignees)) compactState.a = taskAssignees;
+  if (hasOwnValues(taskStatus)) compactState.k = taskStatus;
+
+  if (!isJsonEqual(PROJECTS, DEFAULT_PROJECTS)) compactState.pm = PROJECTS;
+  if (!isJsonEqual(TAGS, DEFAULT_TAGS)) compactState.tm = TAGS;
+  if (!isJsonEqual(ASSIGNEE_MASTER, DEFAULT_ASSIGNEE_MASTER)) compactState.am = ASSIGNEE_MASTER;
+  if (!isJsonEqual(KANBAN_STATUSES, DEFAULT_KANBAN_STATUSES)) compactState.sm = KANBAN_STATUSES;
+
+  if (displayMode === 'detail') compactState.d = 1;
+  if (adminMode) compactState.r = 1;
+
   return {
-    version: 1,
-    savedAt: new Date().toISOString(),
-    state: {
-      checkedState,
-      minimumMode,
-      taskVisibility,
-      customTasks,
-      taskComments,
-      editedDefaultTasks,
-      deletedDefaultTasks: [...deletedDefaultTasks],
-      taskProjects,
-      taskDeadlines,
-      taskTags,
-      taskEstimatedTime,
-      taskAssignees,
-      assigneeMaster: ASSIGNEE_MASTER,
-      projectMaster: PROJECTS,
-      tagMaster: TAGS,
-      taskStatus,
-      statusMaster: KANBAN_STATUSES,
-      displayMode,
-      adminMode
-    }
+    version: 2,
+    state: compactState
   };
 }
 
 /**
- * 共有状態をアプリ状態へ反映
+ * 軽量化された共有状態(v2)をアプリ状態へ反映
  * @param {object} state - 共有状態
  */
-function applySharedState(state) {
+function applySharedStateV2(state) {
   const toBooleanFlag = (value) => value === true || value === 'true' || value === 1 || value === '1';
 
-  checkedState = state.checkedState && typeof state.checkedState === 'object' ? state.checkedState : {};
-  minimumMode = toBooleanFlag(state.minimumMode);
-  taskVisibility = state.taskVisibility && typeof state.taskVisibility === 'object' ? state.taskVisibility : {};
-  customTasks = state.customTasks && typeof state.customTasks === 'object'
-    ? state.customTasks
-    : { daily: [], weekly: [], season: [] };
-  taskComments = state.taskComments && typeof state.taskComments === 'object' ? state.taskComments : {};
-  editedDefaultTasks = state.editedDefaultTasks && typeof state.editedDefaultTasks === 'object' ? state.editedDefaultTasks : {};
-  deletedDefaultTasks = new Set(Array.isArray(state.deletedDefaultTasks) ? state.deletedDefaultTasks : []);
-  taskProjects = state.taskProjects && typeof state.taskProjects === 'object' ? state.taskProjects : {};
-  taskDeadlines = state.taskDeadlines && typeof state.taskDeadlines === 'object' ? state.taskDeadlines : {};
-  taskTags = state.taskTags && typeof state.taskTags === 'object' ? state.taskTags : {};
-  taskEstimatedTime = state.taskEstimatedTime && typeof state.taskEstimatedTime === 'object' ? state.taskEstimatedTime : {};
-  taskAssignees = state.taskAssignees && typeof state.taskAssignees === 'object' ? state.taskAssignees : {};
-  taskStatus = state.taskStatus && typeof state.taskStatus === 'object' ? state.taskStatus : {};
-  displayMode = state.displayMode === 'detail' ? 'detail' : 'simple';
-  adminMode = toBooleanFlag(state.adminMode);
-
-  if (Array.isArray(state.projectMaster) && state.projectMaster.length > 0) {
-    PROJECTS.length = 0;
-    PROJECTS.push(...state.projectMaster);
+  checkedState = {};
+  if (Array.isArray(state.c)) {
+    state.c.forEach((key) => {
+      checkedState[key] = true;
+    });
   }
 
-  if (Array.isArray(state.tagMaster) && state.tagMaster.length > 0) {
-    TAGS.length = 0;
-    TAGS.push(...state.tagMaster);
+  minimumMode = toBooleanFlag(state.m);
+
+  taskVisibility = {};
+  if (Array.isArray(state.v)) {
+    state.v.forEach((key) => {
+      taskVisibility[key] = false;
+    });
   }
 
-  if (Array.isArray(state.statusMaster) && state.statusMaster.length > 0) {
-    KANBAN_STATUSES.length = 0;
-    KANBAN_STATUSES.push(...state.statusMaster);
+  customTasks = { daily: [], weekly: [], season: [] };
+  if (state.u && typeof state.u === 'object') {
+    if (Array.isArray(state.u.d)) customTasks.daily = state.u.d;
+    if (Array.isArray(state.u.w)) customTasks.weekly = state.u.w;
+    if (Array.isArray(state.u.s)) customTasks.season = state.u.s;
   }
 
-  if (Array.isArray(state.assigneeMaster)) {
-    ASSIGNEE_MASTER.length = 0;
-    ASSIGNEE_MASTER.push(...state.assigneeMaster);
-  }
+  taskComments = state.o && typeof state.o === 'object' ? state.o : {};
+  editedDefaultTasks = state.e && typeof state.e === 'object' ? state.e : {};
+  deletedDefaultTasks = new Set(Array.isArray(state.x) ? state.x : []);
+  taskProjects = state.p && typeof state.p === 'object' ? state.p : {};
+  taskDeadlines = state.l && typeof state.l === 'object' ? state.l : {};
+  taskTags = state.g && typeof state.g === 'object' ? state.g : {};
+  taskEstimatedTime = state.t && typeof state.t === 'object' ? state.t : {};
+  taskAssignees = state.a && typeof state.a === 'object' ? state.a : {};
+  taskStatus = state.k && typeof state.k === 'object' ? state.k : {};
+  displayMode = toBooleanFlag(state.d) ? 'detail' : 'simple';
+  adminMode = toBooleanFlag(state.r);
+
+  PROJECTS.length = 0;
+  PROJECTS.push(...(Array.isArray(state.pm) ? state.pm : DEFAULT_PROJECTS.map(project => ({ ...project }))));
+
+  TAGS.length = 0;
+  TAGS.push(...(Array.isArray(state.tm) ? state.tm : DEFAULT_TAGS.map(tag => ({ ...tag }))));
+
+  ASSIGNEE_MASTER.length = 0;
+  ASSIGNEE_MASTER.push(...(Array.isArray(state.am) ? state.am : DEFAULT_ASSIGNEE_MASTER.map(assignee => ({ ...assignee }))));
+
+  KANBAN_STATUSES.length = 0;
+  KANBAN_STATUSES.push(...(Array.isArray(state.sm) ? state.sm : DEFAULT_KANBAN_STATUSES.map(status => ({ ...status }))));
 }
 
 /**
  * 共有リンクを生成
- * @returns {string}
+ * @returns {Promise<string>}
  */
-function buildShareUrl() {
+async function buildShareUrl() {
   const payloadJson = JSON.stringify(buildSharePayload());
-  const encoded = toBase64Url(payloadJson);
+  const encoded = await compressTextToBase64Url(payloadJson);
   const url = new URL(window.location.href);
 
   url.searchParams.set('share', encoded);
@@ -218,10 +296,26 @@ function clearShareParamFromUrl() {
  * @returns {Promise<boolean>}
  */
 async function copyTextToClipboard(text) {
+  const normalize = (value) => (value || '').replace(/\r\n/g, '\n').trim();
+
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
-      return true;
+
+      // 書き込み成功扱いでも環境によって実際に反映されない場合があるため検証する。
+      if (navigator.clipboard.readText) {
+        try {
+          const copiedText = await navigator.clipboard.readText();
+          if (normalize(copiedText) === normalize(text)) {
+            return true;
+          }
+        } catch (readError) {
+          // readTextが許可されない環境ではwriteTextの成功を採用
+          return true;
+        }
+      } else {
+        return true;
+      }
     }
   } catch (error) {
     console.warn('Clipboard API failed:', error);
@@ -244,7 +338,19 @@ async function copyTextToClipboard(text) {
     textarea.remove();
   }
 
-  return copied;
+  if (!copied) return false;
+
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    try {
+      const copiedText = await navigator.clipboard.readText();
+      return normalize(copiedText) === normalize(text);
+    } catch (readError) {
+      // readTextが使えない場合はexecCommand結果を採用
+      return true;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -252,12 +358,13 @@ async function copyTextToClipboard(text) {
  */
 async function handleShareTasks() {
   try {
-    const shareUrl = buildShareUrl();
+    const shareUrl = await buildShareUrl();
     const copied = await copyTextToClipboard(shareUrl);
 
     if (copied) {
       showToast('共有リンクをコピーしました', 'success');
     } else {
+      showToast('自動コピーできないため、表示されたリンクを手動でコピーしてください', 'info', 5000);
       window.prompt('共有リンクをコピーしてください', shareUrl);
     }
 
@@ -273,16 +380,16 @@ async function handleShareTasks() {
 /**
  * URLの共有データを取り込む（必要時のみ）
  */
-function importStateFromShareUrl() {
+async function importStateFromShareUrl() {
   const url = new URL(window.location.href);
   const encoded = url.searchParams.get('share');
   if (!encoded) return;
 
   try {
-    const decoded = fromBase64Url(encoded);
+    const decoded = await decompressBase64UrlToText(encoded);
     const payload = JSON.parse(decoded);
 
-    if (!payload || payload.version !== 1 || !payload.state) {
+    if (!payload || !payload.state || payload.version !== 2) {
       throw new Error('Invalid payload format');
     }
 
@@ -292,7 +399,7 @@ function importStateFromShareUrl() {
       return;
     }
 
-    applySharedState(payload.state);
+    applySharedStateV2(payload.state);
     saveState();
     clearShareParamFromUrl();
     showToast('共有データを取り込みました', 'success');
