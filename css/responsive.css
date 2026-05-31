@@ -42,26 +42,6 @@
     flex-shrink: 0;
   }
 
-  /* システムステータス（モバイル） */
-  .system-status {
-    padding: 14px;
-    margin-bottom: 18px;
-  }
-
-  .status-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .status-label {
-    font-size: 9px;
-    margin-bottom: 4px;
-  }
-
-  .status-value {
-    font-size: 16px;
-  }
-
   /* 表示切り替え */
   .mobile-only {
     display: inline-block;

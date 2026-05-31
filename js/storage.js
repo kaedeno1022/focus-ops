@@ -101,7 +101,6 @@ function restorePreImportBackup() {
     applySharedStateV2(backup.state);
     saveState();
     renderAll();
-    updateSystemStatus();
     if (typeof updateAdminModeUI === 'function') updateAdminModeUI();
     if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
 

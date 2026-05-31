@@ -94,7 +94,6 @@ function toggleMinimumMode() {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   if (!window.matchMedia('(max-width: 700px)').matches) closeMenu(); // デスクトップのみ閉じる
 }
 
@@ -227,7 +226,6 @@ function resetCategory(type) {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   closeMenu(); // モバイルでメニューを閉じる
 }
 
@@ -247,7 +245,6 @@ function resetAll() {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   closeMenu(); // モバイルでメニューを閉じる
 }
 
@@ -267,7 +264,6 @@ function resetVisibility() {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   renderVisibilitySettings();
 }
 
@@ -303,7 +299,6 @@ function resetCustomTasks() {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   renderCustomTaskList();
 }
 
@@ -339,7 +334,6 @@ function resetEditedDefaultTasks() {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   renderCustomTaskList();
   renderVisibilitySettings();
 }

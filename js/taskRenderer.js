@@ -268,7 +268,6 @@ function createTaskElement(type, category, title, priority) {
       saveState();
       task.classList.toggle('done', checkbox.checked);
       updateProgressOnly();
-      updateSystemStatus();
     });
   }
 
@@ -463,14 +462,13 @@ function showStatusDropdown(anchor, key) {
       if (taskEl) taskEl.classList.toggle('done', isDone);
       announceToScreenReader(`ステータスを${status.name}に変更しました`);
       updateProgressOnly();
-      updateSystemStatus();
 
       saveState();
       dropdown.remove();
       if (kanbanViewMode) {
         renderKanbanView();
       } else {
-        anchor.textContent = status.name;
+        anchor.textContent = `状態: ${status.name}`;
         anchor.style.backgroundColor = status.color;
       }
     });

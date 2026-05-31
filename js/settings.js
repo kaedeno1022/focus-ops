@@ -155,7 +155,6 @@ function renderVisibilitySettings() {
           taskVisibility[key] = checkbox.checked;
           saveState();
           renderAll();
-          updateSystemStatus();
         });
         
         // 編集ボタンを追加
@@ -239,7 +238,6 @@ function deleteDefaultTask(type, category, title) {
 
   saveState();
   renderAll();
-  updateSystemStatus();
   renderVisibilitySettings();
   showToast(`「${title}」を削除しました`, 'success');
 }
@@ -324,7 +322,6 @@ function renderCustomTaskList() {
           saveState();
           renderCustomTaskList();
           renderAll();
-          updateSystemStatus();
           // トーストメッセージを表示
           showToast(`${task.title}を削除しました`, 'success');
         }
@@ -416,7 +413,6 @@ function addCustomTask(e) {
   clearTaskMetadataForm();
   renderCustomTaskList();
   renderAll();
-  updateSystemStatus();
   
   const categoryLabel = getCategoryFromPriority(priority);
   // トーストメッセージを表示
@@ -671,7 +667,6 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   saveState();
   renderCustomTaskList();
   renderAll();
-  updateSystemStatus();
   renderVisibilitySettings();
 
   // トーストメッセージを表示
