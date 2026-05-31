@@ -41,6 +41,8 @@ function saveState() {
     const deadlinesData = JSON.stringify(taskDeadlines);
     const tagsData = JSON.stringify(taskTags);
     const estimatedTimeData = JSON.stringify(taskEstimatedTime);
+    const assigneesData = JSON.stringify(taskAssignees);
+    const assigneeMasterData = JSON.stringify(ASSIGNEE_MASTER);
     const projectMasterData = JSON.stringify(PROJECTS);
     const tagMasterData = JSON.stringify(TAGS);
     const taskStatusData = JSON.stringify(taskStatus);
@@ -57,11 +59,14 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.DEADLINES, deadlinesData);
     localStorage.setItem(STORAGE_KEYS.TAGS, tagsData);
     localStorage.setItem(STORAGE_KEYS.ESTIMATED_TIME, estimatedTimeData);
+    localStorage.setItem(STORAGE_KEYS.ASSIGNEES, assigneesData);
+    localStorage.setItem(STORAGE_KEYS.ASSIGNEE_MASTER, assigneeMasterData);
     localStorage.setItem(STORAGE_KEYS.PROJECT_MASTER, projectMasterData);
     localStorage.setItem(STORAGE_KEYS.TAG_MASTER, tagMasterData);
     localStorage.setItem(STORAGE_KEYS.TASK_STATUS, taskStatusData);
     localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
     localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
+    localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(adminMode));
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     
@@ -124,11 +129,14 @@ function buildSharePayload() {
       taskDeadlines,
       taskTags,
       taskEstimatedTime,
+      taskAssignees,
+      assigneeMaster: ASSIGNEE_MASTER,
       projectMaster: PROJECTS,
       tagMaster: TAGS,
       taskStatus,
       statusMaster: KANBAN_STATUSES,
-      displayMode
+      displayMode,
+      adminMode
     }
   };
 }
@@ -138,8 +146,10 @@ function buildSharePayload() {
  * @param {object} state - 共有状態
  */
 function applySharedState(state) {
+  const toBooleanFlag = (value) => value === true || value === 'true' || value === 1 || value === '1';
+
   checkedState = state.checkedState && typeof state.checkedState === 'object' ? state.checkedState : {};
-  minimumMode = Boolean(state.minimumMode);
+  minimumMode = toBooleanFlag(state.minimumMode);
   taskVisibility = state.taskVisibility && typeof state.taskVisibility === 'object' ? state.taskVisibility : {};
   customTasks = state.customTasks && typeof state.customTasks === 'object'
     ? state.customTasks
@@ -151,8 +161,10 @@ function applySharedState(state) {
   taskDeadlines = state.taskDeadlines && typeof state.taskDeadlines === 'object' ? state.taskDeadlines : {};
   taskTags = state.taskTags && typeof state.taskTags === 'object' ? state.taskTags : {};
   taskEstimatedTime = state.taskEstimatedTime && typeof state.taskEstimatedTime === 'object' ? state.taskEstimatedTime : {};
+  taskAssignees = state.taskAssignees && typeof state.taskAssignees === 'object' ? state.taskAssignees : {};
   taskStatus = state.taskStatus && typeof state.taskStatus === 'object' ? state.taskStatus : {};
   displayMode = state.displayMode === 'detail' ? 'detail' : 'simple';
+  adminMode = toBooleanFlag(state.adminMode);
 
   if (Array.isArray(state.projectMaster) && state.projectMaster.length > 0) {
     PROJECTS.length = 0;
@@ -167,6 +179,11 @@ function applySharedState(state) {
   if (Array.isArray(state.statusMaster) && state.statusMaster.length > 0) {
     KANBAN_STATUSES.length = 0;
     KANBAN_STATUSES.push(...state.statusMaster);
+  }
+
+  if (Array.isArray(state.assigneeMaster)) {
+    ASSIGNEE_MASTER.length = 0;
+    ASSIGNEE_MASTER.push(...state.assigneeMaster);
   }
 }
 

@@ -15,6 +15,28 @@ function generateMetadataId(prefix) {
 }
 
 /**
+ * 担当者データを配列へ正規化（旧データ文字列にも対応）
+ * @param {string|string[]|undefined|null} value
+ * @returns {string[]}
+ */
+function normalizeAssigneeList(value) {
+  if (Array.isArray(value)) {
+    return [...new Set(value.map(name => String(name).trim()).filter(Boolean))];
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    if (trimmed.includes(',')) {
+      return [...new Set(trimmed.split(',').map(name => name.trim()).filter(Boolean))];
+    }
+    return [trimmed];
+  }
+
+  return [];
+}
+
+/**
  * 管理フォームまでスクロールして入力にフォーカス
  * @param {HTMLElement|null} formElement
  * @param {HTMLElement|null} focusTarget
@@ -93,11 +115,64 @@ function initTagSelector() {
 }
 
 /**
+ * 担当者セレクタを初期化
+ * @param {string[]} selectedAssignees
+ */
+function initAssigneeSelector(selectedAssignees = []) {
+  const assigneeContainer = document.getElementById('taskAssigneeChecklist');
+  if (!assigneeContainer) return;
+
+  const selectedSet = new Set(normalizeAssigneeList(selectedAssignees));
+  assigneeContainer.innerHTML = '';
+
+  ASSIGNEE_MASTER.forEach(assignee => {
+    const label = document.createElement('label');
+    label.className = 'assignee-checkbox-label';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'assignee-checkbox';
+    checkbox.value = assignee.name;
+    checkbox.checked = selectedSet.has(assignee.name);
+
+    const text = document.createElement('span');
+    text.textContent = assignee.name;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    assigneeContainer.appendChild(label);
+  });
+
+  selectedSet.forEach(name => {
+    if (Array.from(assigneeContainer.querySelectorAll('.assignee-checkbox')).some(checkbox => checkbox.value === name)) {
+      return;
+    }
+
+    const label = document.createElement('label');
+    label.className = 'assignee-checkbox-label';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'assignee-checkbox';
+    checkbox.value = name;
+    checkbox.checked = true;
+
+    const text = document.createElement('span');
+    text.textContent = `${name} (既存)`;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    assigneeContainer.appendChild(label);
+  });
+}
+
+/**
  * タスクメタデータをフォームから取得
  * @returns {Object} メタデータオブジェクト
  */
 function getTaskMetadataFromForm() {
   const projectSelect = document.getElementById('taskProject');
+  const assigneeCheckboxes = document.querySelectorAll('.assignee-checkbox:checked');
   const deadlineInput = document.getElementById('taskDeadline');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
@@ -109,6 +184,9 @@ function getTaskMetadataFromForm() {
   if (projectSelect && projectSelect.value) {
     metadata.project = projectSelect.value;
   }
+
+  // 担当者
+  metadata.assignee = Array.from(assigneeCheckboxes).map(checkbox => checkbox.value).filter(Boolean);
   
   // 締め切り
   if (deadlineInput && deadlineInput.value) {
@@ -137,6 +215,7 @@ function getTaskMetadataFromForm() {
  */
 function setTaskMetadataToForm(metadata) {
   const projectSelect = document.getElementById('taskProject');
+  const assigneeContainer = document.getElementById('taskAssigneeChecklist');
   const deadlineInput = document.getElementById('taskDeadline');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
@@ -146,6 +225,11 @@ function setTaskMetadataToForm(metadata) {
     projectSelect.value = metadata.project;
   } else if (projectSelect) {
     projectSelect.value = '';
+  }
+
+  if (assigneeContainer) {
+    const selectedAssignees = normalizeAssigneeList(metadata.assignee);
+    initAssigneeSelector(selectedAssignees);
   }
   
   // 締め切り
@@ -178,12 +262,14 @@ function setTaskMetadataToForm(metadata) {
  */
 function clearTaskMetadataForm() {
   const projectSelect = document.getElementById('taskProject');
+  const assigneeCheckboxes = document.querySelectorAll('.assignee-checkbox');
   const deadlineInput = document.getElementById('taskDeadline');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
   const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
   
   if (projectSelect) projectSelect.value = '';
+  assigneeCheckboxes.forEach(checkbox => checkbox.checked = false);
   if (deadlineInput) deadlineInput.value = '';
   if (hoursInput) hoursInput.value = '';
   if (minutesInput) minutesInput.value = '';
@@ -196,6 +282,8 @@ function clearTaskMetadataForm() {
 function renderMetadataManagers() {
   renderTagManagerList();
   renderProjectManagerList();
+  renderAssigneeManagerList();
+  initAssigneeSelector();
   renderStatusManagerList();
 }
 
@@ -320,6 +408,182 @@ function renderProjectManagerList() {
     item.appendChild(buttonGroup);
     container.appendChild(item);
   });
+}
+
+/**
+ * 担当者管理リストを描画
+ */
+function renderAssigneeManagerList() {
+  const container = document.getElementById('assigneeManagerList');
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (ASSIGNEE_MASTER.length === 0) {
+    container.innerHTML = '<p class="empty-message">担当者はまだ登録されていません。</p>';
+    return;
+  }
+
+  ASSIGNEE_MASTER.forEach(assignee => {
+    const item = document.createElement('div');
+    item.className = 'custom-task-item';
+
+    const info = document.createElement('div');
+    info.className = 'task-info';
+    const title = document.createElement('strong');
+    title.className = 'manager-item-title';
+    const nameText = document.createElement('span');
+    nameText.textContent = assignee.name;
+    title.appendChild(nameText);
+    const detail = document.createElement('small');
+    detail.textContent = `ID: ${assignee.id}`;
+    info.appendChild(title);
+    info.appendChild(detail);
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+    buttonGroup.classList.add('manager-action-groups');
+
+    const primaryActions = document.createElement('div');
+    primaryActions.className = 'manager-primary-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn-main btn-small';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', () => startAssigneeEdit(assignee.id));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn-danger btn-small';
+    deleteBtn.textContent = '削除';
+    deleteBtn.addEventListener('click', () => deleteAssignee(assignee.id));
+
+    primaryActions.appendChild(editBtn);
+    primaryActions.appendChild(deleteBtn);
+    buttonGroup.appendChild(primaryActions);
+    item.appendChild(info);
+    item.appendChild(buttonGroup);
+    container.appendChild(item);
+  });
+}
+
+/**
+ * 担当者を作成/更新
+ * @param {Event} e
+ */
+function handleAssigneeManagerSubmit(e) {
+  e.preventDefault();
+  const nameInput = document.getElementById('assigneeManagerName');
+  if (!nameInput) return;
+
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  if (editingAssigneeId) {
+    const target = ASSIGNEE_MASTER.find(assignee => assignee.id === editingAssigneeId);
+    if (target) {
+      const oldName = target.name;
+      target.name = name;
+
+      Object.keys(taskAssignees).forEach(key => {
+        const current = normalizeAssigneeList(taskAssignees[key]);
+        if (current.length === 0 || !current.includes(oldName)) {
+          return;
+        }
+
+        const updated = current.map(assigneeName => assigneeName === oldName ? name : assigneeName);
+        taskAssignees[key] = updated;
+      });
+    }
+    showToast('担当者を更新しました', 'success');
+  } else {
+    const id = generateMetadataId('assignee');
+    ASSIGNEE_MASTER.push({ id, name });
+    showToast('担当者を追加しました', 'success');
+  }
+
+  saveState();
+  cancelAssigneeEdit();
+  renderAssigneeManagerList();
+  initAssigneeSelector();
+  renderAll();
+}
+
+/**
+ * 担当者編集開始
+ * @param {string} assigneeId
+ */
+function startAssigneeEdit(assigneeId) {
+  const target = ASSIGNEE_MASTER.find(assignee => assignee.id === assigneeId);
+  const form = document.getElementById('assigneeManagerForm');
+  const nameInput = document.getElementById('assigneeManagerName');
+  const submitBtn = document.querySelector('#assigneeManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('assigneeManagerCancelEdit');
+  if (!target || !form || !nameInput || !submitBtn || !cancelBtn) return;
+
+  if (typeof switchTab === 'function') {
+    switchTab('tagProject');
+  }
+  if (typeof switchManagementSubTab === 'function') {
+    switchManagementSubTab('assignee');
+  }
+
+  editingAssigneeId = assigneeId;
+  nameInput.value = target.name;
+  submitBtn.textContent = '担当者を更新';
+  cancelBtn.style.display = 'inline-block';
+  scrollToManagerForm(form, nameInput);
+}
+
+/**
+ * 担当者編集キャンセル
+ */
+function cancelAssigneeEdit() {
+  const form = document.getElementById('assigneeManagerForm');
+  const submitBtn = document.querySelector('#assigneeManagerForm button[type="submit"]');
+  const cancelBtn = document.getElementById('assigneeManagerCancelEdit');
+  if (form) form.reset();
+  if (submitBtn) submitBtn.textContent = '担当者を追加';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  editingAssigneeId = null;
+}
+
+/**
+ * 担当者削除
+ * @param {string} assigneeId
+ */
+function deleteAssignee(assigneeId) {
+  const target = ASSIGNEE_MASTER.find(assignee => assignee.id === assigneeId);
+  if (!target) return;
+  if (!confirm(`担当者「${target.name}」を削除しますか？`)) return;
+
+  const index = ASSIGNEE_MASTER.findIndex(assignee => assignee.id === assigneeId);
+  if (index > -1) {
+    ASSIGNEE_MASTER.splice(index, 1);
+  }
+
+  if (editingAssigneeId === assigneeId) {
+    cancelAssigneeEdit();
+  }
+
+  Object.keys(taskAssignees).forEach(key => {
+    const current = normalizeAssigneeList(taskAssignees[key]);
+    if (!current.includes(target.name)) {
+      return;
+    }
+
+    const updated = current.filter(name => name !== target.name);
+    if (updated.length === 0) {
+      delete taskAssignees[key];
+    } else {
+      taskAssignees[key] = updated;
+    }
+  });
+
+  saveState();
+  renderAssigneeManagerList();
+  initAssigneeSelector();
+  showToast('担当者を削除しました', 'success');
 }
 
 /**
@@ -615,6 +879,13 @@ function saveTaskMetadata(key, metadata) {
   if (metadata.estimatedTime) {
     taskEstimatedTime[key] = metadata.estimatedTime;
   }
+
+  const assigneeList = normalizeAssigneeList(metadata.assignee);
+  if (assigneeList.length > 0) {
+    taskAssignees[key] = assigneeList;
+  } else {
+    delete taskAssignees[key];
+  }
   
   saveState();
 }
@@ -627,6 +898,7 @@ function saveTaskMetadata(key, metadata) {
 function getTaskMetadata(key) {
   return {
     project: taskProjects[key],
+    assignee: normalizeAssigneeList(taskAssignees[key]),
     deadline: taskDeadlines[key],
     tags: taskTags[key],
     estimatedTime: taskEstimatedTime[key]
@@ -639,6 +911,7 @@ function getTaskMetadata(key) {
  */
 function deleteTaskMetadata(key) {
   delete taskProjects[key];
+  delete taskAssignees[key];
   delete taskDeadlines[key];
   delete taskTags[key];
   delete taskEstimatedTime[key];

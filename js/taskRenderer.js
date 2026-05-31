@@ -17,6 +17,28 @@ function getTodoStatusId() {
 }
 
 /**
+ * 担当者データを配列へ正規化（旧データ文字列にも対応）
+ * @param {string|string[]|undefined|null} value
+ * @returns {string[]}
+ */
+function normalizeAssigneeListForRender(value) {
+  if (Array.isArray(value)) {
+    return [...new Set(value.map(name => String(name).trim()).filter(Boolean))];
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    if (trimmed.includes(',')) {
+      return [...new Set(trimmed.split(',').map(name => name.trim()).filter(Boolean))];
+    }
+    return [trimmed];
+  }
+
+  return [];
+}
+
+/**
  * 詳細モードでのタスク完了判定（taskStatusの最終ステータスかどうか）
  * @param {string} key - タスクキー
  * @returns {boolean}
@@ -132,6 +154,15 @@ function createTaskElement(type, category, title, priority) {
       metaContainer.appendChild(tagBadge);
     }
   });
+
+  // 担当者表示（管理者モード時のみ）
+  const assigneeNames = normalizeAssigneeListForRender(taskAssignees[key]);
+  if (adminMode && assigneeNames.length > 0) {
+    const assigneeBadge = document.createElement('span');
+    assigneeBadge.className = 'task-badge assignee-badge';
+    assigneeBadge.textContent = `担当: ${assigneeNames.join(' / ')}`;
+    metaContainer.appendChild(assigneeBadge);
+  }
 
   // 締め切り表示
   const deadline = taskDeadlines[key];
@@ -552,12 +583,50 @@ function createKanbanCard(type, category, title, priority, key) {
   titleDiv.textContent = title;
   card.appendChild(titleDiv);
 
+  const metaRow = document.createElement('div');
+  metaRow.className = 'kanban-card-meta';
+
+  const projectId = taskProjects[key];
+  if (projectId) {
+    const project = PROJECTS.find(p => p.id === projectId);
+    if (project && project.id !== 'proj-none') {
+      const projectBadge = document.createElement('span');
+      projectBadge.className = 'task-badge project-badge';
+      projectBadge.textContent = project.name;
+      projectBadge.style.backgroundColor = project.color;
+      metaRow.appendChild(projectBadge);
+    }
+  }
+
+  const tagIds = taskTags[key] || [];
+  tagIds.forEach(tagId => {
+    const tag = TAGS.find(t => t.id === tagId);
+    if (!tag) return;
+    const tagBadge = document.createElement('span');
+    tagBadge.className = 'task-badge tag-badge';
+    tagBadge.textContent = tag.name;
+    tagBadge.style.backgroundColor = tag.color;
+    metaRow.appendChild(tagBadge);
+  });
+
+  if (metaRow.children.length > 0) {
+    card.appendChild(metaRow);
+  }
+
   const comment = taskComments[key];
   if (comment) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'kanban-card-comment';
     commentDiv.textContent = comment;
     card.appendChild(commentDiv);
+  }
+
+  const assigneeNames = normalizeAssigneeListForRender(taskAssignees[key]);
+  if (adminMode && assigneeNames.length > 0) {
+    const assigneeDiv = document.createElement('div');
+    assigneeDiv.className = 'kanban-card-assignee';
+    assigneeDiv.textContent = `担当: ${assigneeNames.join(' / ')}`;
+    card.appendChild(assigneeDiv);
   }
 
   const footer = document.createElement('div');

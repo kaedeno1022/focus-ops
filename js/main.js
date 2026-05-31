@@ -32,6 +32,11 @@ function init() {
     if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
   }
 
+  // 管理者モードの初期化
+  if (typeof updateAdminModeUI === 'function') {
+    updateAdminModeUI();
+  }
+
   // モードメニューボタンの初期状態
   if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
 
@@ -42,6 +47,9 @@ function init() {
   // プロジェクトとタグのセレクタを初期化
   initProjectSelector();
   initTagSelector();
+  if (typeof initAssigneeSelector === 'function') {
+    initAssigneeSelector();
+  }
 
   setupEventListeners();
   renderAll();

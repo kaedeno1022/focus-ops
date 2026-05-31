@@ -47,6 +47,7 @@ function closeSettingsModal() {
   }
   cancelTagEdit();
   cancelProjectEdit();
+  cancelAssigneeEdit();
   cancelStatusEdit();
 }
 
@@ -74,12 +75,17 @@ function switchTab(tabName) {
 
 /**
  * 管理タブ内のサブタブを切り替える
- * @param {string} subTabName - サブタブ名 ('tag' | 'project' | 'kanban')
+ * @param {string} subTabName - サブタブ名 ('tag' | 'project' | 'assignee' | 'kanban')
  */
 function switchManagementSubTab(subTabName) {
+  if (subTabName === 'assignee' && !adminMode) {
+    subTabName = 'tag';
+  }
+
   const subTabs = {
     tag: { btn: getElement('tagManagementSubTab'), panel: getElement('tagManagementSubPanel') },
     project: { btn: getElement('projectManagementSubTab'), panel: getElement('projectManagementSubPanel') },
+    assignee: { btn: getElement('assigneeManagementSubTab'), panel: getElement('assigneeManagementSubPanel') },
     kanban: { btn: getElement('managementKanbanSubTab'), panel: getElement('managementKanbanSubPanel') }
   };
 
@@ -642,6 +648,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
     const newMetadata = getTaskMetadataFromForm();
     const mergedMetadata = {
       project: newMetadata.project !== undefined ? newMetadata.project : oldMetadata.project,
+      assignee: newMetadata.assignee !== undefined ? newMetadata.assignee : oldMetadata.assignee,
       deadline: newMetadata.deadline !== undefined ? newMetadata.deadline : oldMetadata.deadline,
       tags: newMetadata.tags !== undefined ? newMetadata.tags : oldMetadata.tags,
       estimatedTime: newMetadata.estimatedTime !== undefined ? newMetadata.estimatedTime : oldMetadata.estimatedTime

@@ -140,8 +140,59 @@ function toggleDisplayMode() {
 function updateModeMenuBtn() {
   const btn = getElement('modeMenuBtn');
   if (!btn) return;
-  const anyActive = minimumMode || displayMode === 'detail';
+  const anyActive = minimumMode || displayMode === 'detail' || adminMode;
   btn.classList.toggle('active', anyActive);
+}
+
+/**
+ * 管理者モードUIを更新
+ */
+function updateAdminModeUI() {
+  const badge = document.getElementById('adminModeBadge');
+  if (badge) badge.textContent = adminMode ? 'ON' : 'OFF';
+
+  const btn = getElement('adminModeBtn');
+  if (btn) {
+    btn.classList.toggle('active', adminMode);
+    btn.setAttribute('aria-pressed', adminMode.toString());
+  }
+
+  const assigneeGroup = document.getElementById('taskAssigneeGroup');
+  if (assigneeGroup) {
+    assigneeGroup.style.display = adminMode ? '' : 'none';
+  }
+
+  const assigneeSubTab = document.getElementById('assigneeManagementSubTab');
+  const assigneeSubPanel = document.getElementById('assigneeManagementSubPanel');
+  if (assigneeSubTab) {
+    assigneeSubTab.style.display = adminMode ? '' : 'none';
+  }
+  if (assigneeSubPanel) {
+    assigneeSubPanel.style.display = adminMode ? '' : 'none';
+  }
+
+  if (!adminMode && assigneeSubTab?.classList.contains('active') && typeof switchManagementSubTab === 'function') {
+    switchManagementSubTab('tag');
+  }
+}
+
+/**
+ * 管理者モードをトグル
+ */
+function toggleAdminMode() {
+  adminMode = !adminMode;
+  updateAdminModeUI();
+  updateModeMenuBtn();
+
+  announceToScreenReader(
+    adminMode
+      ? '管理者モードをオンにしました。担当者入力と表示が有効になります。'
+      : '管理者モードをオフにしました。担当者入力と表示を非表示にしました。'
+  );
+
+  saveState();
+  renderAll();
+  if (!getElement('menuToggleBtn')?.offsetParent) closeMenu();
 }
 
 /**

@@ -60,6 +60,11 @@ function setupEventListeners() {
     projectManagementSubTab.addEventListener('click', () => switchManagementSubTab('project'));
   }
 
+  const assigneeManagementSubTab = getElement('assigneeManagementSubTab');
+  if (assigneeManagementSubTab) {
+    assigneeManagementSubTab.addEventListener('click', () => switchManagementSubTab('assignee'));
+  }
+
   const managementKanbanSubTab = getElement('managementKanbanSubTab');
   if (managementKanbanSubTab) {
     managementKanbanSubTab.addEventListener('click', () => switchManagementSubTab('kanban'));
@@ -81,6 +86,11 @@ function setupEventListeners() {
     projectManagerForm.addEventListener('submit', handleProjectManagerSubmit);
   }
 
+  const assigneeManagerForm = getElement('assigneeManagerForm');
+  if (assigneeManagerForm) {
+    assigneeManagerForm.addEventListener('submit', handleAssigneeManagerSubmit);
+  }
+
   const tagManagerCancelEdit = getElement('tagManagerCancelEdit');
   if (tagManagerCancelEdit) {
     tagManagerCancelEdit.addEventListener('click', cancelTagEdit);
@@ -89,6 +99,11 @@ function setupEventListeners() {
   const projectManagerCancelEdit = getElement('projectManagerCancelEdit');
   if (projectManagerCancelEdit) {
     projectManagerCancelEdit.addEventListener('click', cancelProjectEdit);
+  }
+
+  const assigneeManagerCancelEdit = getElement('assigneeManagerCancelEdit');
+  if (assigneeManagerCancelEdit) {
+    assigneeManagerCancelEdit.addEventListener('click', cancelAssigneeEdit);
   }
 
   const resetTagsBtn = getElement('resetTagsBtn');
@@ -152,6 +167,11 @@ function setupEventListeners() {
   const displayModeBtn = getElement('displayModeBtn');
   if (displayModeBtn) {
     displayModeBtn.addEventListener('click', toggleDisplayMode);
+  }
+
+  const adminModeBtn = getElement('adminModeBtn');
+  if (adminModeBtn) {
+    adminModeBtn.addEventListener('click', toggleAdminMode);
   }
 
   // モードドロップダウン

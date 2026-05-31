@@ -16,11 +16,14 @@ const STORAGE_KEYS = {
   DEADLINES: 'work_tasks_deadlines',
   TAGS: 'work_tasks_tags',
   TAG_MASTER: 'work_tasks_tag_master',
+  ASSIGNEE_MASTER: 'work_tasks_assignee_master',
   ESTIMATED_TIME: 'work_tasks_estimated_time',
+  ASSIGNEES: 'work_tasks_assignees',
   DELETED_DEFAULT_TASKS: 'work_tasks_deleted_defaults',
   TASK_STATUS: 'work_tasks_kanban_status',
   STATUS_MASTER: 'work_tasks_status_master',
-  DISPLAY_MODE: 'work_tasks_display_mode'
+  DISPLAY_MODE: 'work_tasks_display_mode',
+  ADMIN_MODE: 'work_tasks_admin_mode'
 };
 
 /** 完了ステータスのID（変更不可の固定値） */
@@ -140,8 +143,14 @@ const DEFAULT_TAGS = [
   { id: 'tag-admin', name: '事務作業', color: '#64748b' }
 ];
 
+/** デフォルトの担当者マスター */
+const DEFAULT_ASSIGNEE_MASTER = [];
+
 /** プロジェクトマスター */
 const PROJECTS = DEFAULT_PROJECTS.map(project => ({ ...project }));
 
 /** タグマスター */
 const TAGS = DEFAULT_TAGS.map(tag => ({ ...tag }));
+
+/** 担当者マスター */
+const ASSIGNEE_MASTER = DEFAULT_ASSIGNEE_MASTER.map(assignee => ({ ...assignee }));

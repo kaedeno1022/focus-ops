@@ -6,7 +6,8 @@
 let checkedState = loadFromStorage(STORAGE_KEYS.CHECKED) || {};
 
 /** 最低限モード */
-let minimumMode = loadFromStorage(STORAGE_KEYS.MINIMUM) || false;
+const minimumModeRaw = loadFromStorage(STORAGE_KEYS.MINIMUM);
+let minimumMode = minimumModeRaw === true || minimumModeRaw === 'true' || minimumModeRaw === 1 || minimumModeRaw === '1';
 
 /** タスク表示設定 */
 let taskVisibility = loadFromStorage(STORAGE_KEYS.VISIBILITY) || {};
@@ -39,6 +40,9 @@ let taskTags = loadFromStorage(STORAGE_KEYS.TAGS) || {};
 /** タスクの予想作業時間（分） */
 let taskEstimatedTime = loadFromStorage(STORAGE_KEYS.ESTIMATED_TIME) || {};
 
+/** タスクの担当者 */
+let taskAssignees = loadFromStorage(STORAGE_KEYS.ASSIGNEES) || {};
+
 /** タスクのカンバンステータス */
 let taskStatus = loadFromStorage(STORAGE_KEYS.TASK_STATUS) || {};
 
@@ -47,6 +51,10 @@ let kanbanViewMode = false;
 
 /** タスク表示モード ('simple' | 'detail') */
 let displayMode = loadFromStorage(STORAGE_KEYS.DISPLAY_MODE) || 'simple';
+
+/** 管理者モード */
+const adminModeRaw = loadFromStorage(STORAGE_KEYS.ADMIN_MODE);
+let adminMode = adminModeRaw === true || adminModeRaw === 'true' || adminModeRaw === 1 || adminModeRaw === '1';
 
 /** 現在編集中のカンバンステータスID */
 let editingStatusId = null;
@@ -59,6 +67,9 @@ let editingTagId = null;
 
 /** 現在編集中のプロジェクトID */
 let editingProjectId = null;
+
+/** 現在編集中の担当者ID */
+let editingAssigneeId = null;
 
 /** フォーカストラップのクリーンアップ関数 */
 let cleanupFocusTrap = null;
@@ -82,6 +93,12 @@ const savedStatusMaster = loadFromStorage(STORAGE_KEYS.STATUS_MASTER);
 if (Array.isArray(savedStatusMaster) && savedStatusMaster.length > 0) {
   KANBAN_STATUSES.length = 0;
   KANBAN_STATUSES.push(...savedStatusMaster);
+}
+
+const savedAssigneeMaster = loadFromStorage(STORAGE_KEYS.ASSIGNEE_MASTER);
+if (Array.isArray(savedAssigneeMaster)) {
+  ASSIGNEE_MASTER.length = 0;
+  ASSIGNEE_MASTER.push(...savedAssigneeMaster);
 }
 
 // ============================================================================
