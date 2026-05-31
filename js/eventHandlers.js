@@ -45,6 +45,11 @@ function setupEventListeners() {
   if (restoreImportBackupBtn) {
     restoreImportBackupBtn.addEventListener('click', restorePreImportBackup);
   }
+
+  const dismissImportBackupBtn = getElement('dismissImportBackupBtn');
+  if (dismissImportBackupBtn) {
+    dismissImportBackupBtn.addEventListener('click', discardPreImportBackup);
+  }
   
   // 設定モーダル閉じるボタン
   const closeSettingsBtn = getElement('closeSettingsBtn');
@@ -182,6 +187,7 @@ function setupEventListeners() {
       if (typeof window.closePrivacyModal === 'function') window.closePrivacyModal();
       closeResetDropdown();
       closeModeDropdown();
+      closeImportBackupDropdown();
     }
 
     const target = e.target;
@@ -279,6 +285,39 @@ function setupEventListeners() {
     });
   }
 
+  // 取り込みバックアップドロップダウン
+  const importBackupMenuBtn = getElement('importBackupMenuBtn');
+  if (importBackupMenuBtn) {
+    importBackupMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = getElement('importBackupDropdown');
+      if (!dropdown) return;
+      const isOpen = !dropdown.hidden;
+      closeImportBackupDropdown();
+      if (!isOpen) {
+        closeModeDropdown();
+        closeResetDropdown();
+        dropdown.hidden = false;
+        importBackupMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    importBackupMenuBtn.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const dropdown = getElement('importBackupDropdown');
+      if (!dropdown) return;
+      if (dropdown.hidden) {
+        closeModeDropdown();
+        closeResetDropdown();
+        dropdown.hidden = false;
+        importBackupMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      const firstItem = dropdown.querySelector('button');
+      if (firstItem instanceof HTMLElement) firstItem.focus();
+    });
+  }
+
   // リセットボタン（ドロップダウン内）
   const dailyResetBtn = getElement('dailyResetBtn');
   if (dailyResetBtn) {
@@ -302,13 +341,17 @@ function setupEventListeners() {
 
   // ドロップダウン外クリックで閉じる
   document.addEventListener('click', (e) => {
-    const resetWrap = document.querySelector('.reset-dropdown-wrap:not(.mode-dropdown-wrap)');
+    const resetWrap = document.querySelector('.reset-menu-wrap');
     if (resetWrap && !resetWrap.contains(e.target)) {
       closeResetDropdown();
     }
     const modeWrap = document.querySelector('.mode-dropdown-wrap');
     if (modeWrap && !modeWrap.contains(e.target)) {
       closeModeDropdown();
+    }
+    const importWrap = document.querySelector('.import-dropdown-wrap');
+    if (importWrap && !importWrap.contains(e.target)) {
+      closeImportBackupDropdown();
     }
   });
 
@@ -389,6 +432,16 @@ function closeResetDropdown() {
 function closeModeDropdown() {
   const dropdown = getElement('modeDropdown');
   const btn = getElement('modeMenuBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+/**
+ * 取り込みバックアップドロップダウンを閉じる
+ */
+function closeImportBackupDropdown() {
+  const dropdown = getElement('importBackupDropdown');
+  const btn = getElement('importBackupMenuBtn');
   if (dropdown) dropdown.hidden = true;
   if (btn) btn.setAttribute('aria-expanded', 'false');
 }

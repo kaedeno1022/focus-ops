@@ -73,14 +73,28 @@
         🔗 タスクを共有
       </button>
 
-      <button
-        id="restoreImportBackupBtn"
-        class="btn-main"
-        type="button"
-        hidden
-      >
-        ↩ 取り込み前に戻す
-      </button>
+      <div class="reset-dropdown-wrap import-dropdown-wrap" hidden id="importBackupMenuWrap">
+        <button
+          id="importBackupMenuBtn"
+          class="btn-main"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          ↩ 取り込み ▾
+        </button>
+        <div id="importBackupDropdown" class="reset-dropdown" hidden>
+          <button class="reset-dropdown-item" type="button" id="restoreImportBackupBtn">
+            <span class="reset-item-label">取り込み前に戻す</span>
+            <span class="reset-item-desc">直前の取り込み前状態へ復元</span>
+          </button>
+          <div class="reset-dropdown-divider"></div>
+          <button class="reset-dropdown-item reset-dropdown-item--danger" type="button" id="dismissImportBackupBtn">
+            <span class="reset-item-label">戻す表示を消す</span>
+            <span class="reset-item-desc">取り込み前バックアップを破棄</span>
+          </button>
+        </div>
+      </div>
 
       <div class="reset-dropdown-wrap mode-dropdown-wrap">
         <button
@@ -110,7 +124,7 @@
         </div>
       </div>
 
-      <div class="reset-dropdown-wrap">
+      <div class="reset-dropdown-wrap reset-menu-wrap">
         <button
           id="resetMenuBtn"
           class="btn-main"

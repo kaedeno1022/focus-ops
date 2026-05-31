@@ -56,9 +56,14 @@ function touchShareMeta() {
  * バックアップ復元ボタンの表示状態を更新
  */
 function updateRestoreBackupButtonVisibility() {
-  const btn = document.getElementById('restoreImportBackupBtn');
-  if (!btn) return;
-  btn.hidden = !localStorage.getItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+  const importWrap = document.getElementById('importBackupMenuWrap');
+  const importBtn = document.getElementById('importBackupMenuBtn');
+  const importDropdown = document.getElementById('importBackupDropdown');
+  const hasBackup = !!localStorage.getItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+
+  if (importWrap) importWrap.hidden = !hasBackup;
+  if (importBtn) importBtn.setAttribute('aria-expanded', 'false');
+  if (importDropdown) importDropdown.hidden = true;
 }
 
 /**
@@ -111,6 +116,26 @@ function restorePreImportBackup() {
     console.error('Failed to restore pre-import backup:', error);
     showToast('バックアップ復元に失敗しました', 'error');
   }
+}
+
+/**
+ * 取り込み前バックアップを破棄して「戻す」表示を消す
+ */
+function discardPreImportBackup() {
+  const raw = localStorage.getItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+  if (!raw) {
+    updateRestoreBackupButtonVisibility();
+    return;
+  }
+
+  const shouldDiscard = window.confirm('「取り込み前に戻す」を非表示にしますか？\nこの取り込みバックアップは破棄され、復元できなくなります。');
+  if (!shouldDiscard) {
+    return;
+  }
+
+  localStorage.removeItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+  updateRestoreBackupButtonVisibility();
+  showToast('取り込み前バックアップを破棄しました', 'info');
 }
 
 /**
