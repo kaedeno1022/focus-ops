@@ -239,6 +239,7 @@ function setupEventListeners() {
       const dropdown = getElement('modeDropdown');
       if (!dropdown) return;
       if (dropdown.hidden) {
+        closeResetDropdown();
         dropdown.hidden = false;
         modeMenuBtn.setAttribute('aria-expanded', 'true');
       }
@@ -257,6 +258,7 @@ function setupEventListeners() {
       if (isOpen) {
         closeResetDropdown();
       } else {
+        closeModeDropdown();
         dropdown.hidden = false;
         resetMenuBtn.setAttribute('aria-expanded', 'true');
       }
@@ -268,6 +270,7 @@ function setupEventListeners() {
       const dropdown = getElement('resetDropdown');
       if (!dropdown) return;
       if (dropdown.hidden) {
+        closeModeDropdown();
         dropdown.hidden = false;
         resetMenuBtn.setAttribute('aria-expanded', 'true');
       }

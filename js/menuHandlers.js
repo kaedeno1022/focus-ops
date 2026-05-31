@@ -3,6 +3,44 @@
 // ============================================================================
 
 let resetUndoSnapshot = null;
+let menuScrollLockY = 0;
+
+/**
+ * メニュー表示中に背景スクロールを完全にロック
+ */
+function lockPageScrollForMenu() {
+  if (document.body.classList.contains('menu-open')) return;
+
+  menuScrollLockY = window.scrollY || window.pageYOffset || 0;
+  document.documentElement.classList.add('menu-open');
+  document.body.classList.add('menu-open');
+
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${menuScrollLockY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+/**
+ * メニュー用の背景スクロールロックを解除
+ */
+function unlockPageScrollForMenu() {
+  if (!document.body.classList.contains('menu-open')) return;
+
+  const top = document.body.style.top;
+
+  document.documentElement.classList.remove('menu-open');
+  document.body.classList.remove('menu-open');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+
+  const restoreY = top ? Math.abs(parseInt(top, 10)) : menuScrollLockY;
+  window.scrollTo(0, Number.isNaN(restoreY) ? menuScrollLockY : restoreY);
+}
 
 /**
  * 最低限モードの固定通知を更新
@@ -85,8 +123,11 @@ function toggleMenu() {
   menuToggle.setAttribute('aria-expanded', isActive.toString());
   menuToggle.setAttribute('aria-label', isActive ? 'メニューを閉じる' : 'メニューを開く');
 
-  // メニューが開いている時は背景のスクロールを防ぐ
-  document.body.style.overflow = isActive ? 'hidden' : '';
+  if (isActive) {
+    lockPageScrollForMenu();
+  } else {
+    unlockPageScrollForMenu();
+  }
   
   if (isActive) {
     // メニューを開いた時
@@ -110,8 +151,8 @@ function toggleMenu() {
       cleanupFocusTrap = null;
     }
     
-    // メニューボタンにフォーカスを戻す
-    menuToggle.focus();
+    // メニューボタンにフォーカスを戻す（スクロール位置は維持）
+    menuToggle.focus({ preventScroll: true });
   }
 }
 
@@ -130,7 +171,7 @@ function closeMenu() {
   overlay.classList.remove('active');
   menuToggle.setAttribute('aria-expanded', 'false');
   menuToggle.setAttribute('aria-label', 'メニューを開く');
-  document.body.style.overflow = '';
+  unlockPageScrollForMenu();
   
   // フォーカストラップをクリーンアップ
   if (cleanupFocusTrap) {
