@@ -310,7 +310,7 @@
 
 /* ステータス変更ドロップダウン */
 .status-dropdown {
-  position: fixed;
+  position: absolute;
   z-index: 9999;
   background: var(--card);
   border: 1px solid var(--line);

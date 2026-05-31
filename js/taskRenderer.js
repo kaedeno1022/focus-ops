@@ -476,7 +476,7 @@ function showStatusDropdown(anchor, key) {
       updateProgressOnly();
 
       saveState();
-      dropdown.remove();
+      closeDropdown();
       if (kanbanViewMode) {
         renderKanbanView();
       } else {
@@ -488,12 +488,77 @@ function showStatusDropdown(anchor, key) {
   });
 
   document.body.appendChild(dropdown);
-  const rect = anchor.getBoundingClientRect();
-  dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-  dropdown.style.left = rect.left + 'px';
+  const margin = 8;
+
+  const placeDropdown = () => {
+    if (!dropdown.isConnected) return;
+
+    const rect = anchor.getBoundingClientRect();
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // position: absolute なので document 基準で座標を計算する。
+    let left = rect.left + scrollX;
+    let top = rect.bottom + scrollY + 4;
+
+    // 右端・左端のはみ出しを防止
+    if (left + dropdownRect.width > scrollX + viewportWidth - margin) {
+      left = Math.max(scrollX + margin, scrollX + viewportWidth - dropdownRect.width - margin);
+    }
+
+    // 下にはみ出す場合は上側に表示
+    if (top + dropdownRect.height > scrollY + viewportHeight - margin) {
+      top = rect.top + scrollY - dropdownRect.height - 4;
+    }
+
+    // それでも上にはみ出す場合は最小マージン位置に固定
+    if (top < scrollY + margin) {
+      top = scrollY + margin;
+    }
+
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
+  };
+
+  let rafId = null;
+  const schedulePlaceDropdown = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      placeDropdown();
+    });
+  };
+
+  const handleScrollClose = () => {
+    closeDropdown();
+  };
+
+  const closeDropdown = () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    window.removeEventListener('resize', schedulePlaceDropdown);
+    window.removeEventListener('scroll', handleScrollClose, true);
+    window.removeEventListener('wheel', handleScrollClose, true);
+    window.removeEventListener('touchmove', handleScrollClose, true);
+    if (dropdown.isConnected) {
+      dropdown.remove();
+    }
+  };
+
+  placeDropdown();
+
+  window.addEventListener('resize', schedulePlaceDropdown);
+  window.addEventListener('scroll', handleScrollClose, true);
+  window.addEventListener('wheel', handleScrollClose, true);
+  window.addEventListener('touchmove', handleScrollClose, true);
 
   setTimeout(() => {
-    document.addEventListener('click', () => dropdown.remove(), { once: true });
+    document.addEventListener('click', closeDropdown, { once: true });
   }, 0);
 }
 

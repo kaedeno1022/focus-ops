@@ -11,6 +11,9 @@ function openSettingsModal() {
   const modal = getElement('settingsModal');
   if (!modal) return;
 
+  // リスト画面で開いたステータスドロップダウンが残るとモーダル表示を崩すため、先に閉じる。
+  document.querySelectorAll('.status-dropdown').forEach(dropdown => dropdown.remove());
+
   const activeElement = document.activeElement;
   if (activeElement instanceof HTMLElement) {
     lastModalFocusElement = activeElement;
@@ -469,6 +472,9 @@ function addCustomTask(e) {
 function openTaskEditForm(type, category, title, priority, isCustomTask, originalInfo = null) {
   const form = getElement('addTaskForm');
   if (!form) return;
+
+  // ステータス変更ドロップダウンが開いたまま編集へ遷移した場合に備えて必ず閉じる。
+  document.querySelectorAll('.status-dropdown').forEach(dropdown => dropdown.remove());
 
   // 編集中のタスク情報を保存
   // originalInfoがある場合（編集済みデフォルトタスク）は元の情報を使用
