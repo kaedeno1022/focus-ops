@@ -226,9 +226,10 @@ function createTaskElement(type, category, title, priority) {
     const statusBadge = document.createElement('button');
     statusBadge.type = 'button';
     statusBadge.className = 'task-status-badge';
-    statusBadge.textContent = currentStatus.name;
+    statusBadge.textContent = `状態: ${currentStatus.name}`;
     statusBadge.style.backgroundColor = currentStatus.color;
     statusBadge.title = 'クリックしてステータスを変更';
+    statusBadge.setAttribute('aria-label', `状態を${currentStatus.name}に変更`);
     statusBadge.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
