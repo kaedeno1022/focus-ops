@@ -261,10 +261,15 @@
 
   .manager-primary-actions,
   .manager-move-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    display: inline-flex;
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
+  }
+
+  .manager-primary-actions button,
+  .manager-move-actions button {
+    width: auto;
   }
 
   .manager-move-actions {
@@ -273,8 +278,12 @@
   }
 
   .custom-task-item .button-group.manager-action-groups {
-    display: block;
-    grid-template-columns: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
   }
 
   .add-task-form {
