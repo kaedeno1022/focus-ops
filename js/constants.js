@@ -126,18 +126,11 @@ const DATA = {
   ]
 };
 
-/** プロジェクトマスター */
-const PROJECTS = [
-  { id: 'proj-none', name: 'プロジェクトなし', color: '#64748b' },
-  { id: 'proj-1', name: 'プロジェクトA', color: '#3b82f6' },
-  { id: 'proj-2', name: 'プロジェクトB', color: '#8b5cf6' },
-  { id: 'proj-3', name: 'プロジェクトC', color: '#ec4899' },
-  { id: 'proj-4', name: '運用・保守', color: '#10b981' },
-  { id: 'proj-5', name: '自己啓発', color: '#f59e0b' }
-];
+/** デフォルトのプロジェクトマスター */
+const DEFAULT_PROJECTS = [];
 
-/** タグマスター */
-const TAGS = [
+/** デフォルトのタグマスター */
+const DEFAULT_TAGS = [
   { id: 'tag-urgent', name: '緊急', color: '#ef4444' },
   { id: 'tag-meeting', name: '会議', color: '#3b82f6' },
   { id: 'tag-dev', name: '開発', color: '#10b981' },
@@ -146,3 +139,9 @@ const TAGS = [
   { id: 'tag-report', name: '報告', color: '#06b6d4' },
   { id: 'tag-admin', name: '事務作業', color: '#64748b' }
 ];
+
+/** プロジェクトマスター */
+const PROJECTS = DEFAULT_PROJECTS.map(project => ({ ...project }));
+
+/** タグマスター */
+const TAGS = DEFAULT_TAGS.map(tag => ({ ...tag }));

@@ -493,6 +493,61 @@ function deleteProject(projectId) {
 }
 
 /**
+ * タグマスターを初期状態へ戻す
+ */
+function resetTags() {
+  if (!confirm('タグを初期状態に戻しますか？\nこの操作は元に戻せません。')) {
+    return;
+  }
+
+  TAGS.length = 0;
+  TAGS.push(...DEFAULT_TAGS.map(tag => ({ ...tag })));
+
+  const validTagIds = new Set(TAGS.map(tag => tag.id));
+  Object.keys(taskTags).forEach(key => {
+    const nextTags = (taskTags[key] || []).filter(id => validTagIds.has(id));
+    if (nextTags.length > 0) {
+      taskTags[key] = nextTags;
+    } else {
+      delete taskTags[key];
+    }
+  });
+
+  cancelTagEdit();
+  initTagSelector();
+  renderMetadataManagers();
+  renderAll();
+  saveState();
+  showToast('タグを初期状態にリセットしました', 'success');
+}
+
+/**
+ * プロジェクトマスターを初期状態へ戻す
+ */
+function resetProjects() {
+  if (!confirm('プロジェクトを初期状態に戻しますか？\nこの操作は元に戻せません。')) {
+    return;
+  }
+
+  PROJECTS.length = 0;
+  PROJECTS.push(...DEFAULT_PROJECTS.map(project => ({ ...project })));
+
+  const validProjectIds = new Set(PROJECTS.map(project => project.id));
+  Object.keys(taskProjects).forEach(key => {
+    if (!validProjectIds.has(taskProjects[key])) {
+      delete taskProjects[key];
+    }
+  });
+
+  cancelProjectEdit();
+  initProjectSelector();
+  renderMetadataManagers();
+  renderAll();
+  saveState();
+  showToast('プロジェクトを初期状態にリセットしました', 'success');
+}
+
+/**
  * タスクメタデータを保存
  * @param {string} key - タスクキー
  * @param {Object} metadata - メタデータオブジェクト

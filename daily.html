@@ -65,6 +65,14 @@
         ⚙ 設定
       </button>
 
+      <button
+        id="shareTasksBtn"
+        class="btn-main"
+        type="button"
+      >
+        🔗 タスクを共有
+      </button>
+
       <div class="reset-dropdown-wrap mode-dropdown-wrap">
         <button
           id="modeMenuBtn"
@@ -325,6 +333,10 @@
         <div id="tagProjectPanel" class="tab-panel">
           <div class="settings-section">
             <h3>タグ管理</h3>
+            <div class="panel-header">
+              <p class="panel-description">追加・編集したタグを初期状態に戻せます。</p>
+              <button type="button" id="resetTagsBtn" class="btn-main btn-small">タグをリセット</button>
+            </div>
             <form id="tagManagerForm" class="add-task-form">
               <div class="form-group">
                 <label for="tagManagerName">タグ名</label>
@@ -342,6 +354,10 @@
 
           <div class="settings-section">
             <h3>プロジェクト管理</h3>
+            <div class="panel-header">
+              <p class="panel-description">追加・編集したプロジェクトを初期状態に戻せます。</p>
+              <button type="button" id="resetProjectsBtn" class="btn-main btn-small">プロジェクトをリセット</button>
+            </div>
             <form id="projectManagerForm" class="add-task-form">
               <div class="form-group">
                 <label for="projectManagerName">プロジェクト名</label>
@@ -364,7 +380,7 @@
             <h3>ステータス管理</h3>
             <div class="panel-header">
               <p class="panel-description">カンバンのステータスを追加・編集・削除できます。</p>
-              <button type="button" class="btn-main btn-small" onclick="resetKanbanStatuses()">デフォルトに戻す</button>
+              <button type="button" class="btn-main btn-small" onclick="resetKanbanStatuses()">ステータスをリセット</button>
             </div>
             <form id="statusManagerForm" class="add-task-form">
               <div class="form-group">

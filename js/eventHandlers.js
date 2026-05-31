@@ -11,6 +11,12 @@ function setupEventListeners() {
   if (settingsBtn) {
     settingsBtn.addEventListener('click', openSettingsModal);
   }
+
+  // 共有リンク作成
+  const shareTasksBtn = getElement('shareTasksBtn');
+  if (shareTasksBtn) {
+    shareTasksBtn.addEventListener('click', handleShareTasks);
+  }
   
   // 設定モーダル閉じるボタン
   const closeSettingsBtn = getElement('closeSettingsBtn');
@@ -68,6 +74,16 @@ function setupEventListeners() {
   const projectManagerCancelEdit = getElement('projectManagerCancelEdit');
   if (projectManagerCancelEdit) {
     projectManagerCancelEdit.addEventListener('click', cancelProjectEdit);
+  }
+
+  const resetTagsBtn = getElement('resetTagsBtn');
+  if (resetTagsBtn) {
+    resetTagsBtn.addEventListener('click', resetTags);
+  }
+
+  const resetProjectsBtn = getElement('resetProjectsBtn');
+  if (resetProjectsBtn) {
+    resetProjectsBtn.addEventListener('click', resetProjects);
   }
 
   // 表示設定リセットボタン

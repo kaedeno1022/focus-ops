@@ -10,6 +10,11 @@ function init() {
   if (typeof initCookieConsent === 'function') {
     initCookieConsent();
   }
+
+  // 共有リンクがある場合は起動時に取り込み
+  if (typeof importStateFromShareUrl === 'function') {
+    importStateFromShareUrl();
+  }
   
   // 最低限モードの初期化
   if (minimumMode) {
