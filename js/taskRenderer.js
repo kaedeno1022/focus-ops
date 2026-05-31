@@ -85,6 +85,24 @@ function createTaskElement(type, category, title, priority) {
   label.appendChild(titleDiv);
   task.appendChild(label);
 
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'task-edit-btn';
+  editBtn.title = 'タスクを編集';
+  editBtn.setAttribute('aria-label', `${title}を編集`);
+  const taskEditIcon = document.createElement('span');
+  taskEditIcon.className = 'edit-icon';
+  taskEditIcon.setAttribute('aria-hidden', 'true');
+  editBtn.appendChild(taskEditIcon);
+  editBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof openTaskEditFromMain === 'function') {
+      openTaskEditFromMain(type, category, title, priority);
+    }
+  });
+  task.appendChild(editBtn);
+
   // メタ情報コンテナ
   const metaContainer = document.createElement('div');
   metaContainer.className = 'task-meta';
@@ -507,8 +525,26 @@ function createKanbanCard(type, category, title, priority, key) {
   const priorityDot = document.createElement('div');
   priorityDot.className = `priority ${priority}`;
 
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'kanban-edit-btn';
+  editBtn.title = 'タスクを編集';
+  editBtn.setAttribute('aria-label', `${title}を編集`);
+  const kanbanEditIcon = document.createElement('span');
+  kanbanEditIcon.className = 'edit-icon';
+  kanbanEditIcon.setAttribute('aria-hidden', 'true');
+  editBtn.appendChild(kanbanEditIcon);
+  editBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof openTaskEditFromMain === 'function') {
+      openTaskEditFromMain(type, category, title, priority);
+    }
+  });
+
   topRow.appendChild(typeBadge);
   topRow.appendChild(priorityDot);
+  topRow.appendChild(editBtn);
   card.appendChild(topRow);
 
   const titleDiv = document.createElement('div');

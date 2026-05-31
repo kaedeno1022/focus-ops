@@ -649,3 +649,48 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   // トーストメッセージを表示
   showToast(`${newTitle}を更新しました`, 'success');
 }
+
+/**
+ * メイン画面のタスクから編集フォームを開く
+ * @param {string} type - タスクタイプ
+ * @param {string} category - 表示中カテゴリ
+ * @param {string} title - 表示中タイトル
+ * @param {string} priority - 表示中優先度
+ */
+function openTaskEditFromMain(type, category, title, priority) {
+  const key = createKey(type, category, title);
+  const isCustomTask = customTasks[type]?.some(task => (
+    task.title === title && getCategoryFromPriority(task.priority) === category
+  ));
+
+  let originalInfo = null;
+  if (!isCustomTask) {
+    const defaultTasks = DATA[type] || [];
+    const originalTasksMap = new Map();
+
+    defaultTasks.forEach(group => {
+      group.tasks.forEach(([defaultTitle, defaultPriority]) => {
+        const originalKey = createKey(type, group.category, defaultTitle);
+        originalTasksMap.set(originalKey, {
+          originalTitle: defaultTitle,
+          originalPriority: defaultPriority,
+          originalCategory: group.category
+        });
+      });
+    });
+
+    const edited = editedDefaultTasks[type] || {};
+    for (const [originalKey, editData] of Object.entries(edited)) {
+      if (editData.title === title && getCategoryFromPriority(editData.priority) === category) {
+        originalInfo = originalTasksMap.get(originalKey) || null;
+        break;
+      }
+    }
+
+    if (!originalInfo && originalTasksMap.has(key)) {
+      originalInfo = originalTasksMap.get(key);
+    }
+  }
+
+  openTaskEditForm(type, category, title, priority, isCustomTask, originalInfo);
+}

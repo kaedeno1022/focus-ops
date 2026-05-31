@@ -106,6 +106,67 @@
   cursor: pointer;
 }
 
+.task-edit-btn {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.06);
+  color: var(--sub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.task-edit-btn:hover {
+  color: var(--neon);
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.14);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+}
+
+.task-edit-btn:active {
+  transform: translateY(0);
+}
+
+.task-edit-btn:focus-visible,
+.kanban-edit-btn:focus-visible {
+  outline: 2px solid var(--neon);
+  outline-offset: 2px;
+}
+
+.edit-icon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  transform: rotate(-45deg);
+}
+
+.edit-icon::before,
+.edit-icon::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+  border-radius: 999px;
+}
+
+.edit-icon::before {
+  width: 10px;
+  height: 2px;
+  top: 5px;
+  left: 1px;
+}
+
+.edit-icon::after {
+  width: 2px;
+  height: 7px;
+  top: 0;
+  left: 8px;
+}
+
 /* コメント表示（読み取り専用） */
 .task > .comment-display {
   width: 100%;
@@ -361,6 +422,28 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.kanban-edit-btn {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.06);
+  color: var(--sub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kanban-edit-btn:hover {
+  color: var(--neon);
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.14);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
 }
 
 .kanban-type-badge {
