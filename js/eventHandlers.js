@@ -49,6 +49,21 @@ function setupEventListeners() {
   if (tagProjectTab) {
     tagProjectTab.addEventListener('click', () => switchTab('tagProject'));
   }
+
+  const tagManagementSubTab = getElement('tagManagementSubTab');
+  if (tagManagementSubTab) {
+    tagManagementSubTab.addEventListener('click', () => switchManagementSubTab('tag'));
+  }
+
+  const projectManagementSubTab = getElement('projectManagementSubTab');
+  if (projectManagementSubTab) {
+    projectManagementSubTab.addEventListener('click', () => switchManagementSubTab('project'));
+  }
+
+  const managementKanbanSubTab = getElement('managementKanbanSubTab');
+  if (managementKanbanSubTab) {
+    managementKanbanSubTab.addEventListener('click', () => switchManagementSubTab('kanban'));
+  }
   
   // カスタムタスク追加フォーム
   const addTaskForm = getElement('addTaskForm');
@@ -250,11 +265,6 @@ function setupEventListeners() {
   const statusManagerCancelEdit = getElement('statusManagerCancelEdit');
   if (statusManagerCancelEdit) {
     statusManagerCancelEdit.addEventListener('click', cancelStatusEdit);
-  }
-
-  const kanbanTab = getElement('kanbanTab');
-  if (kanbanTab) {
-    kanbanTab.addEventListener('click', () => switchTab('kanban'));
   }
 
   // ウィンドウリサイズ時にメニューを閉じる（PC表示に戻った時）

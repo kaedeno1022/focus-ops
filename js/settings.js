@@ -52,18 +52,39 @@ function closeSettingsModal() {
 
 /**
  * タブを切り替える
- * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject' | 'kanban')
+ * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject')
  */
 function switchTab(tabName) {
   const tabs = {
     visibility: { btn: getElement('visibilityTab'),  panel: getElement('visibilityPanel') },
     custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
     tagProject: { btn: getElement('tagProjectTab'),   panel: getElement('tagProjectPanel') },
-    kanban:     { btn: getElement('kanbanTab'),       panel: getElement('kanbanPanel') },
   };
 
   Object.entries(tabs).forEach(([key, { btn, panel }]) => {
     const isActive = key === tabName;
+    btn?.classList.toggle('active', isActive);
+    panel?.classList.toggle('active', isActive);
+  });
+
+  if (tabName === 'tagProject') {
+    switchManagementSubTab('tag');
+  }
+}
+
+/**
+ * 管理タブ内のサブタブを切り替える
+ * @param {string} subTabName - サブタブ名 ('tag' | 'project' | 'kanban')
+ */
+function switchManagementSubTab(subTabName) {
+  const subTabs = {
+    tag: { btn: getElement('tagManagementSubTab'), panel: getElement('tagManagementSubPanel') },
+    project: { btn: getElement('projectManagementSubTab'), panel: getElement('projectManagementSubPanel') },
+    kanban: { btn: getElement('managementKanbanSubTab'), panel: getElement('managementKanbanSubPanel') }
+  };
+
+  Object.entries(subTabs).forEach(([key, { btn, panel }]) => {
+    const isActive = key === subTabName;
     btn?.classList.toggle('active', isActive);
     panel?.classList.toggle('active', isActive);
   });

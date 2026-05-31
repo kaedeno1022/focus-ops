@@ -196,6 +196,22 @@
     color: var(--neon);
   }
 
+  .subtabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 18px;
+  }
+
+  .subtab-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
   .panel-header {
     flex-direction: column;
     align-items: stretch;
@@ -223,6 +239,24 @@
 
   .button-group button {
     width: 100%;
+  }
+
+  .manager-primary-actions,
+  .manager-move-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .manager-move-actions {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .custom-task-item .button-group.manager-action-groups {
+    display: block;
+    grid-template-columns: none;
   }
 
   .add-task-form {
@@ -279,6 +313,23 @@
 
   .custom-task-item .button-group button {
     width: 100%;
+  }
+
+  #tagManagerForm button[type="submit"],
+  #tagManagerForm .cancel-edit-btn,
+  #projectManagerForm button[type="submit"],
+  #projectManagerForm .cancel-edit-btn,
+  #statusManagerForm button[type="submit"],
+  #statusManagerForm .cancel-edit-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  #tagManagerForm .cancel-edit-btn,
+  #projectManagerForm .cancel-edit-btn,
+  #statusManagerForm .cancel-edit-btn {
+    display: block !important;
+    margin-top: 8px;
   }
 
   .settings-section {

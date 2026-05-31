@@ -226,8 +226,7 @@
         <div class="tabs">
           <button id="visibilityTab" class="tab-btn active" type="button">表示設定</button>
           <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
-          <button id="tagProjectTab" class="tab-btn" type="button">タグ・プロジェクト</button>
-          <button id="kanbanTab" class="tab-btn" type="button">カンバン管理</button>
+          <button id="tagProjectTab" class="tab-btn" type="button">管理</button>
         </div>
 
         <!-- 表示設定タブ -->
@@ -331,70 +330,79 @@
 
         <!-- タグ・プロジェクトタブ -->
         <div id="tagProjectPanel" class="tab-panel">
-          <div class="settings-section">
-            <h3>タグ管理</h3>
-            <div class="panel-header">
-              <p class="panel-description">追加・編集したタグを初期状態に戻せます。</p>
-              <button type="button" id="resetTagsBtn" class="btn-main btn-small">タグをリセット</button>
-            </div>
-            <form id="tagManagerForm" class="add-task-form">
-              <div class="form-group">
-                <label for="tagManagerName">タグ名</label>
-                <input type="text" id="tagManagerName" maxlength="20" placeholder="例: 顧客対応" required>
-              </div>
-              <div class="form-group">
-                <label for="tagManagerColor">色</label>
-                <input type="color" id="tagManagerColor" value="#3b82f6" required>
-              </div>
-              <button type="submit" class="btn-main">タグを追加</button>
-              <button type="button" id="tagManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
-            </form>
-            <div id="tagManagerList" class="custom-task-list"></div>
+          <div class="subtabs" role="tablist" aria-label="管理タブ切り替え">
+            <button id="tagManagementSubTab" class="subtab-btn active" type="button">タグ</button>
+            <button id="projectManagementSubTab" class="subtab-btn" type="button">プロジェクト</button>
+            <button id="managementKanbanSubTab" class="subtab-btn" type="button">カンバン管理</button>
           </div>
 
-          <div class="settings-section">
-            <h3>プロジェクト管理</h3>
-            <div class="panel-header">
-              <p class="panel-description">追加・編集したプロジェクトを初期状態に戻せます。</p>
-              <button type="button" id="resetProjectsBtn" class="btn-main btn-small">プロジェクトをリセット</button>
+          <div id="tagManagementSubPanel" class="subtab-panel active">
+            <div class="settings-section">
+              <h3>タグ管理</h3>
+              <div class="panel-header">
+                <p class="panel-description">追加・編集したタグを初期状態に戻せます。</p>
+                <button type="button" id="resetTagsBtn" class="btn-main btn-small">タグをリセット</button>
+              </div>
+              <form id="tagManagerForm" class="add-task-form">
+                <div class="form-group">
+                  <label for="tagManagerName">タグ名</label>
+                  <input type="text" id="tagManagerName" maxlength="20" placeholder="例: 顧客対応" required>
+                </div>
+                <div class="form-group">
+                  <label for="tagManagerColor">色</label>
+                  <input type="color" id="tagManagerColor" value="#3b82f6" required>
+                </div>
+                <button type="submit" class="btn-main">タグを追加</button>
+                <button type="button" id="tagManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
+              </form>
+              <div id="tagManagerList" class="custom-task-list"></div>
             </div>
-            <form id="projectManagerForm" class="add-task-form">
-              <div class="form-group">
-                <label for="projectManagerName">プロジェクト名</label>
-                <input type="text" id="projectManagerName" maxlength="20" placeholder="例: 新規施策" required>
-              </div>
-              <div class="form-group">
-                <label for="projectManagerColor">色</label>
-                <input type="color" id="projectManagerColor" value="#8b5cf6" required>
-              </div>
-              <button type="submit" class="btn-main">プロジェクトを追加</button>
-              <button type="button" id="projectManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
-            </form>
-            <div id="projectManagerList" class="custom-task-list"></div>
           </div>
-        </div>
 
-        <!-- カンバン管理タブ -->
-        <div id="kanbanPanel" class="tab-panel">
-          <div class="settings-section">
-            <h3>ステータス管理</h3>
-            <div class="panel-header">
-              <p class="panel-description">カンバンのステータスを追加・編集・削除できます。</p>
-              <button type="button" class="btn-main btn-small" onclick="resetKanbanStatuses()">ステータスをリセット</button>
+          <div id="projectManagementSubPanel" class="subtab-panel">
+            <div class="settings-section">
+              <h3>プロジェクト管理</h3>
+              <div class="panel-header">
+                <p class="panel-description">追加・編集したプロジェクトを初期状態に戻せます。</p>
+                <button type="button" id="resetProjectsBtn" class="btn-main btn-small">プロジェクトをリセット</button>
+              </div>
+              <form id="projectManagerForm" class="add-task-form">
+                <div class="form-group">
+                  <label for="projectManagerName">プロジェクト名</label>
+                  <input type="text" id="projectManagerName" maxlength="20" placeholder="例: 新規施策" required>
+                </div>
+                <div class="form-group">
+                  <label for="projectManagerColor">色</label>
+                  <input type="color" id="projectManagerColor" value="#8b5cf6" required>
+                </div>
+                <button type="submit" class="btn-main">プロジェクトを追加</button>
+                <button type="button" id="projectManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
+              </form>
+              <div id="projectManagerList" class="custom-task-list"></div>
             </div>
-            <form id="statusManagerForm" class="add-task-form">
-              <div class="form-group">
-                <label for="statusManagerName">ステータス名</label>
-                <input type="text" id="statusManagerName" maxlength="20" placeholder="例: テスト中" required>
+          </div>
+
+          <div id="managementKanbanSubPanel" class="subtab-panel">
+            <div class="settings-section">
+              <h3>ステータス管理</h3>
+              <div class="panel-header">
+                <p class="panel-description">カンバンのステータスを追加・編集・削除できます。</p>
+                <button type="button" class="btn-main btn-small" onclick="resetKanbanStatuses()">ステータスをリセット</button>
               </div>
-              <div class="form-group">
-                <label for="statusManagerColor">色</label>
-                <input type="color" id="statusManagerColor" value="#6b7280" required>
-              </div>
-              <button type="submit" class="btn-main">ステータスを追加</button>
-              <button type="button" id="statusManagerCancelEdit" class="btn-secondary cancel-edit-btn" style="display:none;">編集をキャンセル</button>
-            </form>
-            <div id="statusManagerList" class="custom-task-list"></div>
+              <form id="statusManagerForm" class="add-task-form">
+                <div class="form-group">
+                  <label for="statusManagerName">ステータス名</label>
+                  <input type="text" id="statusManagerName" maxlength="20" placeholder="例: テスト中" required>
+                </div>
+                <div class="form-group">
+                  <label for="statusManagerColor">色</label>
+                  <input type="color" id="statusManagerColor" value="#6b7280" required>
+                </div>
+                <button type="submit" class="btn-main">ステータスを追加</button>
+                <button type="button" id="statusManagerCancelEdit" class="btn-secondary cancel-edit-btn" style="display:none;">編集をキャンセル</button>
+              </form>
+              <div id="statusManagerList" class="custom-task-list"></div>
+            </div>
           </div>
         </div>
       </div>

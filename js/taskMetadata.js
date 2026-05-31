@@ -15,6 +15,25 @@ function generateMetadataId(prefix) {
 }
 
 /**
+ * 管理フォームまでスクロールして入力にフォーカス
+ * @param {HTMLElement|null} formElement
+ * @param {HTMLElement|null} focusTarget
+ */
+function scrollToManagerForm(formElement, focusTarget) {
+  if (!formElement) return;
+
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  formElement.scrollIntoView({
+    behavior: reduceMotion ? 'auto' : 'smooth',
+    block: 'start'
+  });
+
+  setTimeout(() => {
+    focusTarget?.focus();
+  }, reduceMotion ? 0 : 200);
+}
+
+/**
  * プロジェクトセレクタを初期化
  */
 function initProjectSelector() {
@@ -215,6 +234,10 @@ function renderTagManagerList() {
 
     const buttonGroup = document.createElement('div');
     buttonGroup.className = 'button-group';
+    buttonGroup.classList.add('manager-action-groups');
+
+    const primaryActions = document.createElement('div');
+    primaryActions.className = 'manager-primary-actions';
 
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
@@ -228,8 +251,9 @@ function renderTagManagerList() {
     deleteBtn.textContent = '削除';
     deleteBtn.addEventListener('click', () => deleteTag(tag.id));
 
-    buttonGroup.appendChild(editBtn);
-    buttonGroup.appendChild(deleteBtn);
+    primaryActions.appendChild(editBtn);
+    primaryActions.appendChild(deleteBtn);
+    buttonGroup.appendChild(primaryActions);
     item.appendChild(info);
     item.appendChild(buttonGroup);
     container.appendChild(item);
@@ -272,6 +296,10 @@ function renderProjectManagerList() {
 
     const buttonGroup = document.createElement('div');
     buttonGroup.className = 'button-group';
+    buttonGroup.classList.add('manager-action-groups');
+
+    const primaryActions = document.createElement('div');
+    primaryActions.className = 'manager-primary-actions';
 
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
@@ -285,8 +313,9 @@ function renderProjectManagerList() {
     deleteBtn.textContent = '削除';
     deleteBtn.addEventListener('click', () => deleteProject(project.id));
 
-    buttonGroup.appendChild(editBtn);
-    buttonGroup.appendChild(deleteBtn);
+    primaryActions.appendChild(editBtn);
+    primaryActions.appendChild(deleteBtn);
+    buttonGroup.appendChild(primaryActions);
     item.appendChild(info);
     item.appendChild(buttonGroup);
     container.appendChild(item);
@@ -367,17 +396,26 @@ function handleProjectManagerSubmit(e) {
  */
 function startTagEdit(tagId) {
   const target = TAGS.find(tag => tag.id === tagId);
+  const form = document.getElementById('tagManagerForm');
   const nameInput = document.getElementById('tagManagerName');
   const colorInput = document.getElementById('tagManagerColor');
   const submitBtn = document.querySelector('#tagManagerForm button[type="submit"]');
   const cancelBtn = document.getElementById('tagManagerCancelEdit');
-  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+  if (!target || !form || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  if (typeof switchTab === 'function') {
+    switchTab('tagProject');
+  }
+  if (typeof switchManagementSubTab === 'function') {
+    switchManagementSubTab('tag');
+  }
 
   editingTagId = tagId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'タグを更新';
   cancelBtn.style.display = 'inline-block';
+  scrollToManagerForm(form, nameInput);
 }
 
 /**
@@ -386,17 +424,26 @@ function startTagEdit(tagId) {
  */
 function startProjectEdit(projectId) {
   const target = PROJECTS.find(project => project.id === projectId);
+  const form = document.getElementById('projectManagerForm');
   const nameInput = document.getElementById('projectManagerName');
   const colorInput = document.getElementById('projectManagerColor');
   const submitBtn = document.querySelector('#projectManagerForm button[type="submit"]');
   const cancelBtn = document.getElementById('projectManagerCancelEdit');
-  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+  if (!target || !form || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  if (typeof switchTab === 'function') {
+    switchTab('tagProject');
+  }
+  if (typeof switchManagementSubTab === 'function') {
+    switchManagementSubTab('project');
+  }
 
   editingProjectId = projectId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'プロジェクトを更新';
   cancelBtn.style.display = 'inline-block';
+  scrollToManagerForm(form, nameInput);
 }
 
 /**
@@ -645,10 +692,20 @@ function renderStatusManagerList() {
     nameText.textContent = status.name;
     title.appendChild(colorDot);
     title.appendChild(nameText);
+    const detail = document.createElement('small');
+    detail.textContent = `ID: ${status.id}`;
     info.appendChild(title);
+    info.appendChild(detail);
 
     const buttonGroup = document.createElement('div');
     buttonGroup.className = 'button-group';
+    buttonGroup.classList.add('manager-action-groups');
+
+    const primaryActions = document.createElement('div');
+    primaryActions.className = 'manager-primary-actions';
+
+    const moveActions = document.createElement('div');
+    moveActions.className = 'manager-move-actions';
 
     // 並び替えボタン
     const upBtn = document.createElement('button');
@@ -681,12 +738,16 @@ function renderStatusManagerList() {
       deleteBtn.disabled = KANBAN_STATUSES.length <= 1;
       deleteBtn.addEventListener('click', () => deleteStatus(status.id));
 
-      buttonGroup.appendChild(editBtn);
-      buttonGroup.appendChild(deleteBtn);
+      primaryActions.appendChild(editBtn);
+      primaryActions.appendChild(deleteBtn);
     }
 
-    buttonGroup.appendChild(upBtn);
-    buttonGroup.appendChild(downBtn);
+    moveActions.appendChild(upBtn);
+    moveActions.appendChild(downBtn);
+    if (primaryActions.children.length > 0) {
+      buttonGroup.appendChild(primaryActions);
+    }
+    buttonGroup.appendChild(moveActions);
     item.appendChild(info);
     item.appendChild(buttonGroup);
     container.appendChild(item);
@@ -736,17 +797,26 @@ function handleStatusManagerSubmit(e) {
  */
 function startStatusEdit(statusId) {
   const target = KANBAN_STATUSES.find(s => s.id === statusId);
+  const form = document.getElementById('statusManagerForm');
   const nameInput = document.getElementById('statusManagerName');
   const colorInput = document.getElementById('statusManagerColor');
   const submitBtn = document.querySelector('#statusManagerForm button[type="submit"]');
   const cancelBtn = document.getElementById('statusManagerCancelEdit');
-  if (!target || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+  if (!target || !form || !nameInput || !colorInput || !submitBtn || !cancelBtn) return;
+
+  if (typeof switchTab === 'function') {
+    switchTab('tagProject');
+  }
+  if (typeof switchManagementSubTab === 'function') {
+    switchManagementSubTab('kanban');
+  }
 
   editingStatusId = statusId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'ステータスを更新';
   cancelBtn.style.display = 'inline-block';
+  scrollToManagerForm(form, nameInput);
 }
 
 /**
