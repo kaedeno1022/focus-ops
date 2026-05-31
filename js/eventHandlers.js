@@ -403,12 +403,12 @@ function toggleKanbanView() {
   if (kanbanViewMode) {
     if (mainGrid) mainGrid.style.display = 'none';
     if (kanbanBoard) kanbanBoard.style.display = 'flex';
-    if (btn) { btn.textContent = 'リストビュー'; btn.classList.add('active'); }
+    if (btn) { btn.textContent = 'カンバン表示中'; btn.classList.add('active'); }
     renderKanbanView();
   } else {
     if (mainGrid) mainGrid.style.display = '';
     if (kanbanBoard) kanbanBoard.style.display = 'none';
-    if (btn) { btn.textContent = 'カンバンビュー'; btn.classList.remove('active'); }
+    if (btn) { btn.textContent = 'リスト表示中'; btn.classList.remove('active'); }
     renderAll();
   }
 }

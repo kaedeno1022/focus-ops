@@ -312,7 +312,7 @@ function resetCategory(type) {
  * 全タスクをリセット
  */
 function resetAll() {
-  if (!confirm('全チェックをリセットしますか？')) {
+  if (!confirm('全タスクのチェック・進捗状態をリセットしますか？')) {
     return;
   }
 
@@ -321,7 +321,7 @@ function resetAll() {
   checkedState = {};
   taskStatus = {};
 
-  showToast('全てのタスクをリセットしました', 'success', 8000, {
+  showToast('全タスクのチェック・進捗状態をリセットしました', 'success', 8000, {
     dedupeKey: 'reset-undo',
     actions: [
       {
