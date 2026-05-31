@@ -223,33 +223,35 @@
 }
 
 .task-deadline {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 8px;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 600;
-  background: rgba(100, 116, 139, 0.2);
-  color: var(--sub);
-  border: 1px solid rgba(100, 116, 139, 0.3);
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
 
 .task-deadline.deadline-overdue {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.4);
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
   animation: pulse-deadline 2s infinite;
 }
 
 .task-deadline.deadline-today {
-  background: rgba(251, 146, 60, 0.2);
-  color: #fdba74;
-  border-color: rgba(251, 146, 60, 0.4);
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fdba74;
 }
 
 .task-deadline.deadline-soon {
-  background: rgba(250, 204, 21, 0.2);
-  color: #fde047;
-  border-color: rgba(250, 204, 21, 0.3);
+  background: #fef3c7;
+  color: #854d0e;
+  border-color: #fcd34d;
 }
 
 .task-time {
@@ -480,6 +482,11 @@
 .kanban-card-meta .task-badge {
   font-size: 11px;
   padding: 2px 8px;
+}
+
+.kanban-card-meta .task-deadline {
+  font-size: 11px;
+  padding: 2px 7px;
 }
 
 .kanban-card-comment {

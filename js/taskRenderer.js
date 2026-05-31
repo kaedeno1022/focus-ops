@@ -39,6 +39,40 @@ function normalizeAssigneeListForRender(value) {
 }
 
 /**
+ * 締め切りバッジを生成
+ * @param {string} deadline
+ * @returns {HTMLElement|null}
+ */
+function createDeadlineBadge(deadline) {
+  if (!deadline) return null;
+
+  const deadlineElem = document.createElement('span');
+  deadlineElem.className = 'task-deadline';
+
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadlineDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    deadlineElem.className += ' deadline-overdue';
+    deadlineElem.textContent = `⚠ 期限超過 (${Math.abs(diffDays)}日前)`;
+  } else if (diffDays === 0) {
+    deadlineElem.className += ' deadline-today';
+    deadlineElem.textContent = '🔥 今日まで';
+  } else if (diffDays <= 3) {
+    deadlineElem.className += ' deadline-soon';
+    deadlineElem.textContent = `⏰ ${diffDays}日後`;
+  } else {
+    deadlineElem.textContent = `📅 ${deadlineDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}`;
+  }
+
+  return deadlineElem;
+}
+
+/**
  * 詳細モードでのタスク完了判定（taskStatusの最終ステータスかどうか）
  * @param {string} key - タスクキー
  * @returns {boolean}
@@ -165,30 +199,9 @@ function createTaskElement(type, category, title, priority) {
   }
 
   // 締め切り表示
-  const deadline = taskDeadlines[key];
-  if (deadline) {
-    const deadlineElem = document.createElement('span');
-    deadlineElem.className = 'task-deadline';
-    const deadlineDate = new Date(deadline);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    deadlineDate.setHours(0, 0, 0, 0);
-    
-    const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      deadlineElem.className += ' deadline-overdue';
-      deadlineElem.textContent = `⚠ 期限超過 (${Math.abs(diffDays)}日前)`;
-    } else if (diffDays === 0) {
-      deadlineElem.className += ' deadline-today';
-      deadlineElem.textContent = '🔥 今日まで';
-    } else if (diffDays <= 3) {
-      deadlineElem.className += ' deadline-soon';
-      deadlineElem.textContent = `⏰ ${diffDays}日後`;
-    } else {
-      deadlineElem.textContent = `📅 ${deadlineDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}`;
-    }
-    metaContainer.appendChild(deadlineElem);
+  const deadlineBadge = createDeadlineBadge(taskDeadlines[key]);
+  if (deadlineBadge) {
+    metaContainer.appendChild(deadlineBadge);
   }
 
   // 予想作業時間表示
@@ -608,6 +621,12 @@ function createKanbanCard(type, category, title, priority, key) {
     tagBadge.style.backgroundColor = tag.color;
     metaRow.appendChild(tagBadge);
   });
+
+  const kanbanDeadlineBadge = createDeadlineBadge(taskDeadlines[key]);
+  if (kanbanDeadlineBadge) {
+    kanbanDeadlineBadge.classList.add('kanban-deadline');
+    metaRow.appendChild(kanbanDeadlineBadge);
+  }
 
   if (metaRow.children.length > 0) {
     card.appendChild(metaRow);
