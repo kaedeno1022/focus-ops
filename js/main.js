@@ -3,9 +3,40 @@
 // ============================================================================
 
 /**
+ * 一部ブラウザ拡張が発生させる既知のノイズエラーを抑制
+ */
+function suppressKnownExtensionMessageErrors() {
+  const isKnownMessageChannelError = (message) => {
+    if (!message) return false;
+    return message.includes('A listener indicated an asynchronous response by returning true')
+      && message.includes('message channel closed before a response was received');
+  };
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event?.reason;
+    const message = typeof reason === 'string'
+      ? reason
+      : (reason && typeof reason.message === 'string' ? reason.message : '');
+
+    if (isKnownMessageChannelError(message)) {
+      event.preventDefault();
+    }
+  });
+
+  window.addEventListener('error', (event) => {
+    const message = event?.message || '';
+    if (isKnownMessageChannelError(message)) {
+      event.preventDefault();
+    }
+  });
+}
+
+/**
  * アプリケーションを初期化
  */
 async function init() {
+  suppressKnownExtensionMessageErrors();
+
   // Cookie同意を初期化（関数が存在する場合のみ）
   if (typeof initCookieConsent === 'function') {
     initCookieConsent();
