@@ -14,10 +14,6 @@
     gap: 8px;
   }
 
-  .topbar #shareTasksBtn {
-    grid-column: 1 / -1;
-  }
-
   .topbar .reset-dropdown-wrap,
   .topbar .mode-dropdown-wrap {
     width: 100%;
