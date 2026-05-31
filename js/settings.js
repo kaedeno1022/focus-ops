@@ -2,12 +2,19 @@
 // 設定モーダルとタスク管理
 // ============================================================================
 
+let lastModalFocusElement = null;
+
 /**
  * 設定モーダルを開く
  */
 function openSettingsModal() {
   const modal = getElement('settingsModal');
   if (!modal) return;
+
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement) {
+    lastModalFocusElement = activeElement;
+  }
   
   modal.style.display = 'flex';
   
@@ -49,6 +56,10 @@ function closeSettingsModal() {
   cancelProjectEdit();
   cancelAssigneeEdit();
   cancelStatusEdit();
+
+  if (lastModalFocusElement && document.body.contains(lastModalFocusElement)) {
+    lastModalFocusElement.focus();
+  }
 }
 
 /**
@@ -337,7 +348,27 @@ function renderCustomTaskList() {
   });
   
   if (!hasCustomTasks) {
-    container.innerHTML = '<p class="empty-message">カスタムタスクはまだ追加されていません。</p>';
+    const emptyWrap = document.createElement('div');
+    emptyWrap.className = 'empty-state-wrap';
+
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'empty-message';
+    emptyMsg.textContent = 'カスタムタスクはまだ追加されていません。';
+
+    const ctaBtn = document.createElement('button');
+    ctaBtn.type = 'button';
+    ctaBtn.className = 'btn-main btn-small empty-state-cta';
+    ctaBtn.textContent = '最初の1件を追加';
+    ctaBtn.addEventListener('click', () => {
+      const form = getElement('addTaskForm');
+      if (!form) return;
+      switchTab('custom');
+      form.taskTitle.focus();
+    });
+
+    emptyWrap.appendChild(emptyMsg);
+    emptyWrap.appendChild(ctaBtn);
+    container.appendChild(emptyWrap);
   }
 }
 
@@ -363,7 +394,6 @@ function addCustomTask(e) {
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn && submitBtn.dataset.editMode === 'true') {
     saveTaskEdit(type, title, priority, comment);
-    cancelTaskEdit();
     return;
   }
   
@@ -411,12 +441,20 @@ function addCustomTask(e) {
   saveState();
   form.reset();
   clearTaskMetadataForm();
+  if (typeof cancelTaskEdit === 'function') {
+    // Ensure form UI is explicitly in add mode even after previous edit operations.
+    cancelTaskEdit();
+  }
   renderCustomTaskList();
   renderAll();
+
+  if (form.taskTitle) {
+    form.taskTitle.focus();
+  }
   
   const categoryLabel = getCategoryFromPriority(priority);
   // トーストメッセージを表示
-  showToast(`${title}を${categoryLabel}に追加しました`, 'success');
+  showToast(`${title}を${categoryLabel}に追加しました（続けて追加できます）`, 'success');
 }
 
 /**
@@ -519,7 +557,8 @@ function cancelTaskEdit() {
   // 編集通知を非表示
   const editNotice = form.querySelector('.edit-notice');
   if (editNotice) {
-    editNotice.style.display = 'none';
+    editNotice.textContent = '追加モード: 新規タスクを入力して「タスクを追加」を押してください。';
+    editNotice.style.display = 'block';
   }
 
   // キャンセルボタンを非表示
@@ -669,8 +708,25 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   renderAll();
   renderVisibilitySettings();
 
+  // 更新後は追加モードへ戻して、次の新規追加と区別しやすくする
+  cancelTaskEdit();
+
+  const reopenEdit = () => {
+    if (typeof openTaskEditFromMain === 'function') {
+      openTaskEditFromMain(newType, newCategory, newTitle, newPriority);
+    }
+  };
+
   // トーストメッセージを表示
-  showToast(`${newTitle}を更新しました`, 'success');
+  showToast(`${newTitle}を更新しました`, 'success', 6000, {
+    dedupeKey: 'task-edit-updated',
+    actions: [
+      {
+        label: 'もう一度編集',
+        onClick: reopenEdit
+      }
+    ]
+  });
 }
 
 /**

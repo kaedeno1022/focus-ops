@@ -461,11 +461,35 @@ async function handleShareTasks() {
   try {
     const shareUrl = await buildShareUrl();
     const copied = await copyTextToClipboard(shareUrl);
+    const preview = shareUrl.length > 72 ? `${shareUrl.slice(0, 72)}...` : shareUrl;
+
+    const showShareActionsToast = (message, toastType = 'success') => {
+      showToast(`${message}\n${preview}`, toastType, 8000, {
+        dedupeKey: 'share-link',
+        actions: [
+          {
+            label: 'リンク確認',
+            onClick: () => {
+              window.prompt('共有リンク（コピー可能）', shareUrl);
+            },
+            keepOpen: true
+          },
+          {
+            label: '再コピー',
+            onClick: async () => {
+              const copiedAgain = await copyTextToClipboard(shareUrl);
+              showToast(copiedAgain ? '共有リンクを再コピーしました' : '再コピーに失敗しました', copiedAgain ? 'success' : 'error', 2800, { dedupeKey: 'share-link-feedback' });
+            },
+            keepOpen: true
+          }
+        ]
+      });
+    };
 
     if (copied) {
-      showToast('共有リンクをコピーしました', 'success');
+      showShareActionsToast('共有リンクをコピーしました', 'success');
     } else {
-      showToast('自動コピーできないため、表示されたリンクを手動でコピーしてください', 'info', 5000);
+      showShareActionsToast('自動コピーできないため、表示されたリンクを手動でコピーしてください', 'info');
       window.prompt('共有リンクをコピーしてください', shareUrl);
     }
 

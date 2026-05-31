@@ -258,6 +258,14 @@ function createTaskElement(type, category, title, priority) {
   // チェックボックスのchangeイベント（シンプルモードのみ）
   if (!isDetail) {
     checkbox.addEventListener('change', () => {
+      if (checkbox.dataset.locked === 'true') return;
+      checkbox.dataset.locked = 'true';
+      checkbox.disabled = true;
+      setTimeout(() => {
+        checkbox.disabled = false;
+        checkbox.dataset.locked = 'false';
+      }, 260);
+
       checkedState[key] = checkbox.checked;
       // taskStatusも連動
       if (KANBAN_STATUSES.length > 0) {
@@ -425,6 +433,10 @@ function renderAll() {
       renderSection('weekly');
       renderSection('season');
     }
+
+    if (typeof updateMinimumModeNotice === 'function') {
+      updateMinimumModeNotice();
+    }
   });
 }
 
@@ -563,7 +575,7 @@ function createKanbanCard(type, category, title, priority, key) {
 
   const typeBadge = document.createElement('span');
   typeBadge.className = `kanban-type-badge type-${type}`;
-  typeBadge.textContent = { daily: '今日', weekly: '今週', season: '今月' }[type];
+  typeBadge.textContent = { daily: '今日', weekly: '今週', season: '長期' }[type];
 
   const priorityDot = document.createElement('div');
   priorityDot.className = `priority ${priority}`;

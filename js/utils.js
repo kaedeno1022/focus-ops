@@ -26,24 +26,90 @@ function announceToScreenReader(message) {
 function showToast(message, type = 'success', duration = 3000) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
-  
-  // トースト要素を作成
+
+  const options = arguments.length >= 4 && arguments[3] && typeof arguments[3] === 'object'
+    ? arguments[3]
+    : {};
+  const actions = Array.isArray(options.actions) ? options.actions.filter(action => action && typeof action.label === 'string') : [];
+  const sticky = options.sticky === true;
+  const dedupeKey = typeof options.dedupeKey === 'string' ? options.dedupeKey : '';
+
+  if (dedupeKey) {
+    const duplicated = container.querySelector(`.toast[data-dedupe-key="${dedupeKey}"]`);
+    if (duplicated) duplicated.remove();
+  }
+
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  
-  // コンテナに追加
-  container.appendChild(toast);
-  
-  // 指定時間後にフェードアウトして削除
-  setTimeout(() => {
+  if (dedupeKey) {
+    toast.dataset.dedupeKey = dedupeKey;
+  }
+
+  const body = document.createElement('div');
+  body.className = 'toast-body';
+
+  const msg = document.createElement('div');
+  msg.className = 'toast-message';
+  msg.textContent = message;
+  body.appendChild(msg);
+
+  if (actions.length > 0) {
+    const actionWrap = document.createElement('div');
+    actionWrap.className = 'toast-actions';
+    actions.slice(0, 3).forEach(action => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'toast-action-btn';
+      btn.textContent = action.label;
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        btn.disabled = true;
+        try {
+          if (typeof action.onClick === 'function') {
+            await action.onClick();
+          }
+        } finally {
+          btn.disabled = false;
+        }
+        if (!action.keepOpen) {
+          hideToast();
+        }
+      });
+      actionWrap.appendChild(btn);
+    });
+    body.appendChild(actionWrap);
+  }
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'toast-close-btn';
+  closeBtn.setAttribute('aria-label', '通知を閉じる');
+  closeBtn.textContent = '×';
+
+  toast.appendChild(body);
+  toast.appendChild(closeBtn);
+
+  const hideToast = () => {
+    if (!toast.isConnected || toast.classList.contains('toast-hiding')) return;
     toast.classList.add('toast-hiding');
     setTimeout(() => {
       toast.remove();
-    }, 300); // アニメーション時間
-  }, duration);
-  
-  // スクリーンリーダーにも通知
+    }, 280);
+  };
+
+  closeBtn.addEventListener('click', hideToast);
+  container.prepend(toast);
+
+  while (container.children.length > 3) {
+    const oldest = container.lastElementChild;
+    if (!oldest) break;
+    oldest.remove();
+  }
+
+  if (!sticky) {
+    setTimeout(hideToast, Math.max(1200, duration));
+  }
+
   announceToScreenReader(message);
 }
 

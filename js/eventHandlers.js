@@ -3,6 +3,29 @@
 // ============================================================================
 
 /**
+ * ボタン連打を防ぎながらイベント処理を実行
+ * @param {HTMLButtonElement} button
+ * @param {Function} handler
+ * @param {number} lockMs
+ */
+function withButtonGuard(button, handler, lockMs = 450) {
+  let locked = false;
+  return async (event) => {
+    if (locked) return;
+    locked = true;
+    button.disabled = true;
+    try {
+      await handler(event);
+    } finally {
+      setTimeout(() => {
+        locked = false;
+        button.disabled = false;
+      }, lockMs);
+    }
+  };
+}
+
+/**
  * イベントリスナーを設定
  */
 function setupEventListeners() {
@@ -15,7 +38,7 @@ function setupEventListeners() {
   // 共有リンク作成
   const shareTasksBtn = getElement('shareTasksBtn');
   if (shareTasksBtn) {
-    shareTasksBtn.addEventListener('click', handleShareTasks);
+    shareTasksBtn.addEventListener('click', withButtonGuard(shareTasksBtn, handleShareTasks, 700));
   }
 
   const restoreImportBackupBtn = getElement('restoreImportBackupBtn');
@@ -160,6 +183,22 @@ function setupEventListeners() {
       closeResetDropdown();
       closeModeDropdown();
     }
+
+    const target = e.target;
+    const isTyping = target instanceof HTMLElement
+      && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
+    if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+      e.preventDefault();
+      openSettingsModal();
+      return;
+    }
+
+    if (!isTyping && e.altKey && (e.key === 's' || e.key === 'S')) {
+      e.preventDefault();
+      const btn = getElement('shareTasksBtn');
+      if (btn) btn.click();
+    }
   });
 
   // 最低限モードボタン（モードドロップダウン内）
@@ -193,6 +232,19 @@ function setupEventListeners() {
         modeMenuBtn.setAttribute('aria-expanded', 'true');
       }
     });
+
+    modeMenuBtn.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const dropdown = getElement('modeDropdown');
+      if (!dropdown) return;
+      if (dropdown.hidden) {
+        dropdown.hidden = false;
+        modeMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      const firstItem = dropdown.querySelector('button');
+      if (firstItem instanceof HTMLElement) firstItem.focus();
+    });
   }
 
   // リセットドロップダウン
@@ -209,27 +261,40 @@ function setupEventListeners() {
         resetMenuBtn.setAttribute('aria-expanded', 'true');
       }
     });
+
+    resetMenuBtn.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const dropdown = getElement('resetDropdown');
+      if (!dropdown) return;
+      if (dropdown.hidden) {
+        dropdown.hidden = false;
+        resetMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      const firstItem = dropdown.querySelector('button');
+      if (firstItem instanceof HTMLElement) firstItem.focus();
+    });
   }
 
   // リセットボタン（ドロップダウン内）
   const dailyResetBtn = getElement('dailyResetBtn');
   if (dailyResetBtn) {
-    dailyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('daily'); });
+    dailyResetBtn.addEventListener('click', withButtonGuard(dailyResetBtn, () => { closeResetDropdown(); resetCategory('daily'); }, 700));
   }
 
   const weeklyResetBtn = getElement('weeklyResetBtn');
   if (weeklyResetBtn) {
-    weeklyResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('weekly'); });
+    weeklyResetBtn.addEventListener('click', withButtonGuard(weeklyResetBtn, () => { closeResetDropdown(); resetCategory('weekly'); }, 700));
   }
 
   const seasonResetBtn = getElement('seasonResetBtn');
   if (seasonResetBtn) {
-    seasonResetBtn.addEventListener('click', () => { closeResetDropdown(); resetCategory('season'); });
+    seasonResetBtn.addEventListener('click', withButtonGuard(seasonResetBtn, () => { closeResetDropdown(); resetCategory('season'); }, 700));
   }
 
   const resetAllBtn = getElement('resetAllBtn');
   if (resetAllBtn) {
-    resetAllBtn.addEventListener('click', () => { closeResetDropdown(); resetAll(); });
+    resetAllBtn.addEventListener('click', withButtonGuard(resetAllBtn, () => { closeResetDropdown(); resetAll(); }, 700));
   }
 
   // ドロップダウン外クリックで閉じる

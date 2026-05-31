@@ -2,6 +2,73 @@
 // メニュー操作とリセット機能
 // ============================================================================
 
+let resetUndoSnapshot = null;
+
+/**
+ * 最低限モードの固定通知を更新
+ */
+function updateMinimumModeNotice() {
+  const notice = getElement('minimumModeNotice');
+  const text = getElement('minimumModeNoticeText');
+  if (!notice || !text) return;
+
+  notice.setAttribute('aria-hidden', minimumMode ? 'false' : 'true');
+
+  if (!minimumMode) {
+    text.textContent = '';
+    notice.hidden = true;
+    return;
+  }
+
+  const countVisibleTasks = (type, highOnly) => {
+    let count = 0;
+    const categories = getAllTasks(type) || [];
+    categories.forEach(group => {
+      if (highOnly && group.category !== REQUIRED_CATEGORY) return;
+      group.tasks.forEach(([title]) => {
+        const key = createKey(type, group.category, title);
+        if (!isTaskVisible(key)) return;
+        count++;
+      });
+    });
+    return count;
+  };
+
+  const dailyHigh = countVisibleTasks('daily', true);
+  const dailyAll = countVisibleTasks('daily', false);
+  const weeklyHigh = countVisibleTasks('weekly', true);
+  const weeklyAll = countVisibleTasks('weekly', false);
+  const seasonHigh = countVisibleTasks('season', true);
+  const seasonAll = countVisibleTasks('season', false);
+
+  text.textContent = `高優先度のみ表示中（今日 ${dailyHigh}/${dailyAll}件・今週 ${weeklyHigh}/${weeklyAll}件・長期 ${seasonHigh}/${seasonAll}件）`;
+  notice.hidden = false;
+}
+
+/**
+ * リセット前の状態スナップショットを生成
+ * @returns {{checkedState: Object, taskStatus: Object}}
+ */
+function createResetUndoSnapshot() {
+  return {
+    checkedState: { ...checkedState },
+    taskStatus: { ...taskStatus }
+  };
+}
+
+/**
+ * リセットを取り消し
+ */
+function undoResetFromSnapshot() {
+  if (!resetUndoSnapshot) return;
+  checkedState = { ...resetUndoSnapshot.checkedState };
+  taskStatus = { ...resetUndoSnapshot.taskStatus };
+  saveState();
+  renderAll();
+  showToast('リセットを取り消しました', 'success', 2600, { dedupeKey: 'reset-undo' });
+  resetUndoSnapshot = null;
+}
+
 /**
  * メニューを開閉する
  */
@@ -89,11 +156,14 @@ function toggleMinimumMode() {
 
   // スクリーンリーダーへの通知
   announceToScreenReader(
-    minimumMode ? '最低限モードをオンにしました。優先度：高のタスクのみ表示されます。' : '最低限モードをオフにしました。全てのタスクが表示されます。'
+    minimumMode
+      ? '最低限モードをオンにしました。高優先度タスクのみ表示され、進捗母数も高優先度のみになります。'
+      : '最低限モードをオフにしました。全てのタスクが表示されます。'
   );
 
   saveState();
   renderAll();
+  updateMinimumModeNotice();
   if (!window.matchMedia('(max-width: 700px)').matches) closeMenu(); // デスクトップのみ閉じる
 }
 
@@ -209,6 +279,8 @@ function resetCategory(type) {
     return;
   }
 
+  resetUndoSnapshot = createResetUndoSnapshot();
+
   Object.keys(checkedState).forEach(key => {
     if (key.startsWith(`${type}_`)) {
       checkedState[key] = false;
@@ -220,9 +292,16 @@ function resetCategory(type) {
       delete taskStatus[key];
     }
   });
-  
-  // トーストメッセージを表示
-  showToast(`${label}タスクをリセットしました`, 'success');
+
+  showToast(`${label}をリセットしました`, 'success', 8000, {
+    dedupeKey: 'reset-undo',
+    actions: [
+      {
+        label: '元に戻す',
+        onClick: undoResetFromSnapshot
+      }
+    ]
+  });
 
   saveState();
   renderAll();
@@ -237,11 +316,20 @@ function resetAll() {
     return;
   }
 
+  resetUndoSnapshot = createResetUndoSnapshot();
+
   checkedState = {};
   taskStatus = {};
-  
-  // トーストメッセージを表示
-  showToast('全てのタスクをリセットしました', 'success');
+
+  showToast('全てのタスクをリセットしました', 'success', 8000, {
+    dedupeKey: 'reset-undo',
+    actions: [
+      {
+        label: '元に戻す',
+        onClick: undoResetFromSnapshot
+      }
+    ]
+  });
 
   saveState();
   renderAll();

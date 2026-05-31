@@ -53,7 +53,7 @@ const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:
 const CATEGORY_LABELS = {
   daily: '今日のタスク',
   weekly: '今週のタスク',
-  season: '今月のタスク'
+  season: '長期のタスク'
 };
 
 /** 最低限モードで表示するカテゴリー名 */
@@ -66,7 +66,7 @@ const DATA = {
       category: '優先度：高',
       tasks: [
         ['未返信メッセージを整理', 'high'],
-        ['今日の確認及び記録を記録', 'high']
+        ['今日の確認事項を記録', 'high']
       ]
     },
     {

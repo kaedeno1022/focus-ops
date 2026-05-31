@@ -39,6 +39,7 @@ async function init() {
 
   // モードメニューボタンの初期状態
   if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
+  if (typeof updateMinimumModeNotice === 'function') updateMinimumModeNotice();
 
   // シンプルモード時はカンバンビューボタンを非表示
   const kanbanViewBtn = getElement('kanbanViewBtn');

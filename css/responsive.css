@@ -7,6 +7,27 @@
   .grid {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .topbar #shareTasksBtn {
+    grid-column: 1 / -1;
+  }
+
+  .topbar .reset-dropdown-wrap,
+  .topbar .mode-dropdown-wrap {
+    width: 100%;
+  }
+
+  .topbar > button,
+  .topbar .reset-dropdown-wrap > button,
+  .topbar .mode-dropdown-wrap > button {
+    width: 100%;
+  }
 }
 
 /* モバイル対応 */
@@ -92,6 +113,8 @@
     transition: right 0.3s ease;
     overflow-y: auto;
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    grid-template-columns: none;
   }
 
   .topbar.active {
