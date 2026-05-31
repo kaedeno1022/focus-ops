@@ -215,6 +215,12 @@ function resetCategory(type) {
       checkedState[key] = false;
     }
   });
+
+  Object.keys(taskStatus).forEach(key => {
+    if (key.startsWith(`${type}_`)) {
+      delete taskStatus[key];
+    }
+  });
   
   // トーストメッセージを表示
   showToast(`${label}タスクをリセットしました`, 'success');
@@ -234,6 +240,7 @@ function resetAll() {
   }
 
   checkedState = {};
+  taskStatus = {};
   
   // トーストメッセージを表示
   showToast('全てのタスクをリセットしました', 'success');
