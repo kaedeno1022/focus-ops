@@ -74,6 +74,21 @@
   /* ハンバーガーメニュー表示 */
   .menu-toggle {
     display: flex;
+    position: relative;
+    z-index: 1001;
+  }
+
+  .menu-toggle.active {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ffffff;
+    border-color: var(--line);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+  }
+
+  .menu-toggle.active .hamburger-icon {
+    background: var(--neon);
   }
 
   .menu-overlay.active {
@@ -91,7 +106,7 @@
     background: var(--card);
     border-left: 1px solid var(--line);
     flex-direction: column;
-    padding: 100px 20px 20px;
+    padding: 120px 20px 20px;
     margin: 0;
     z-index: 1000;
     transition: right 0.3s ease;
