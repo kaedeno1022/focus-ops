@@ -404,6 +404,8 @@ function resetCustomTasks() {
     return;
   }
 
+  cancelTaskEdit();
+
   // カスタムタスクのチェック状態も削除
   ['daily', 'weekly', 'season'].forEach(type => {
     const tasks = customTasks[type] || [];
@@ -413,6 +415,7 @@ function resetCustomTasks() {
       delete checkedState[key];
       delete taskComments[key];
       delete taskVisibility[key];
+      deleteTaskMetadata(key);
     });
   });
 
@@ -438,6 +441,8 @@ function resetEditedDefaultTasks() {
   if (!confirm('全てのデフォルトタスクの編集を元に戻しますか？\nこの操作は元に戻せません。')) {
     return;
   }
+
+  cancelTaskEdit();
 
   // 編集されたデフォルトタスクの古いチェック状態とコメントを削除
   ['daily', 'weekly', 'season'].forEach(type => {

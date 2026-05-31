@@ -5,6 +5,34 @@
 let lastModalFocusElement = null;
 
 /**
+ * 設定モーダルのスクロール位置を先頭へ戻す
+ */
+function scrollSettingsModalToTop() {
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  const modalBody = document.querySelector('#settingsModal .modal-body');
+  const modalContent = document.querySelector('#settingsModal .modal-content');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (modalBody) {
+    modalBody.scrollTo({
+      top: 0,
+      behavior: reduceMotion ? 'auto' : 'smooth'
+    });
+    modalBody.scrollTop = 0;
+  }
+
+  if (modalContent) {
+    modalContent.scrollTop = 0;
+  }
+
+  requestAnimationFrame(() => {
+    if (modalBody) modalBody.scrollTop = 0;
+    if (modalContent) modalContent.scrollTop = 0;
+  });
+}
+
+/**
  * 設定モーダルを開く
  */
 function openSettingsModal() {
@@ -35,6 +63,10 @@ function openSettingsModal() {
   renderVisibilitySettings();
   renderCustomTaskList();
   renderMetadataManagers();
+  if (!editingTask) {
+    switchTab('visibility');
+  }
+  scrollSettingsModalToTop();
   closeMenu();
 }
 
@@ -51,14 +83,14 @@ function closeSettingsModal() {
   document.body.classList.remove('no-scroll');
   document.body.style.paddingRight = '';
   
-  // 編集モードをキャンセル
-  if (editingTask) {
-    cancelTaskEdit();
-  }
+  // 編集モードと入力中フォームをキャンセル
+  cancelTaskEdit();
   cancelTagEdit();
   cancelProjectEdit();
   cancelAssigneeEdit();
   cancelStatusEdit();
+  switchTab('visibility');
+  scrollSettingsModalToTop();
 
   if (lastModalFocusElement && document.body.contains(lastModalFocusElement)) {
     lastModalFocusElement.focus();
@@ -70,6 +102,10 @@ function closeSettingsModal() {
  * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject')
  */
 function switchTab(tabName) {
+  if (tabName !== 'custom') {
+    cancelTaskEdit();
+  }
+
   const tabs = {
     visibility: { btn: getElement('visibilityTab'),  panel: getElement('visibilityPanel') },
     custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
@@ -94,6 +130,19 @@ function switchTab(tabName) {
 function switchManagementSubTab(subTabName) {
   if (subTabName === 'assignee' && !adminMode) {
     subTabName = 'tag';
+  }
+
+  if (subTabName !== 'tag') {
+    cancelTagEdit();
+  }
+  if (subTabName !== 'project') {
+    cancelProjectEdit();
+  }
+  if (subTabName !== 'assignee') {
+    cancelAssigneeEdit();
+  }
+  if (subTabName !== 'kanban') {
+    cancelStatusEdit();
   }
 
   const subTabs = {
@@ -581,8 +630,7 @@ function cancelTaskEdit() {
   // 編集通知を非表示
   const editNotice = form.querySelector('.edit-notice');
   if (editNotice) {
-    editNotice.textContent = '追加モード: 新規タスクを入力して「タスクを追加」を押してください。';
-    editNotice.style.display = 'block';
+    editNotice.style.display = 'none';
   }
 
   // キャンセルボタンを非表示
@@ -700,19 +748,11 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
     }
 
     // メタデータを移行
-    const oldMetadata = getTaskMetadata(currentKey);
     deleteTaskMetadata(currentKey);
-    
-    // フォームから新しいメタデータを取得してマージ
+
+    // フォーム入力を正として保存（未入力は削除扱い）
     const newMetadata = getTaskMetadataFromForm();
-    const mergedMetadata = {
-      project: newMetadata.project !== undefined ? newMetadata.project : oldMetadata.project,
-      assignee: newMetadata.assignee !== undefined ? newMetadata.assignee : oldMetadata.assignee,
-      deadline: newMetadata.deadline !== undefined ? newMetadata.deadline : oldMetadata.deadline,
-      tags: newMetadata.tags !== undefined ? newMetadata.tags : oldMetadata.tags,
-      estimatedTime: newMetadata.estimatedTime !== undefined ? newMetadata.estimatedTime : oldMetadata.estimatedTime
-    };
-    saveTaskMetadata(newKey, mergedMetadata);
+    saveTaskMetadata(newKey, newMetadata);
   } else {
     // 同じキーの場合はメタデータを更新
     const newMetadata = getTaskMetadataFromForm();
@@ -734,6 +774,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
 
   // 更新後は追加モードへ戻して、次の新規追加と区別しやすくする
   cancelTaskEdit();
+  scrollSettingsModalToTop();
 
   const reopenEdit = () => {
     if (typeof openTaskEditFromMain === 'function') {
@@ -742,7 +783,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   };
 
   // トーストメッセージを表示
-  showToast(`${newTitle}を更新しました`, 'success', 6000, {
+  showToast(`${newTitle}の編集が完了しました`, 'success', 4500, {
     dedupeKey: 'task-edit-updated',
     actions: [
       {

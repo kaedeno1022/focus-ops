@@ -866,18 +866,26 @@ function resetProjects() {
 function saveTaskMetadata(key, metadata) {
   if (metadata.project) {
     taskProjects[key] = metadata.project;
+  } else {
+    delete taskProjects[key];
   }
-  
+
   if (metadata.deadline) {
     taskDeadlines[key] = metadata.deadline;
+  } else {
+    delete taskDeadlines[key];
   }
-  
+
   if (metadata.tags && metadata.tags.length > 0) {
     taskTags[key] = metadata.tags;
+  } else {
+    delete taskTags[key];
   }
-  
+
   if (metadata.estimatedTime) {
     taskEstimatedTime[key] = metadata.estimatedTime;
+  } else {
+    delete taskEstimatedTime[key];
   }
 
   const assigneeList = normalizeAssigneeList(metadata.assignee);
