@@ -52,6 +52,9 @@ async function init() {
   }
 
   setupEventListeners();
+  if (typeof updateRestoreBackupButtonVisibility === 'function') {
+    updateRestoreBackupButtonVisibility();
+  }
   renderAll();
   
   // システムステータスを初期化

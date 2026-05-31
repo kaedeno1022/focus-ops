@@ -23,7 +23,10 @@ const STORAGE_KEYS = {
   TASK_STATUS: 'work_tasks_kanban_status',
   STATUS_MASTER: 'work_tasks_status_master',
   DISPLAY_MODE: 'work_tasks_display_mode',
-  ADMIN_MODE: 'work_tasks_admin_mode'
+  ADMIN_MODE: 'work_tasks_admin_mode',
+  SHARE_REVISION: 'work_tasks_share_revision',
+  SHARE_SAVED_AT: 'work_tasks_share_saved_at',
+  PRE_IMPORT_BACKUP: 'work_tasks_pre_import_backup'
 };
 
 /** 完了ステータスのID（変更不可の固定値） */

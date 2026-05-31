@@ -18,6 +18,103 @@ function loadFromStorage(key) {
 }
 
 /**
+ * 現在の共有リビジョンを取得
+ * @returns {number}
+ */
+function getShareRevision() {
+  const value = Number(localStorage.getItem(STORAGE_KEYS.SHARE_REVISION) || '0');
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+/**
+ * 直近保存時刻を取得
+ * @returns {string}
+ */
+function getShareSavedAt() {
+  return localStorage.getItem(STORAGE_KEYS.SHARE_SAVED_AT) || '';
+}
+
+/**
+ * 共有メタ情報を保存
+ * @param {number} revision
+ * @param {string} savedAt
+ */
+function setShareMeta(revision, savedAt) {
+  localStorage.setItem(STORAGE_KEYS.SHARE_REVISION, String(Math.max(0, Math.floor(revision))));
+  localStorage.setItem(STORAGE_KEYS.SHARE_SAVED_AT, savedAt || new Date().toISOString());
+}
+
+/**
+ * 共有メタ情報を更新
+ */
+function touchShareMeta() {
+  const nextRevision = getShareRevision() + 1;
+  setShareMeta(nextRevision, new Date().toISOString());
+}
+
+/**
+ * バックアップ復元ボタンの表示状態を更新
+ */
+function updateRestoreBackupButtonVisibility() {
+  const btn = document.getElementById('restoreImportBackupBtn');
+  if (!btn) return;
+  btn.hidden = !localStorage.getItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+}
+
+/**
+ * 取り込み前バックアップを保存
+ */
+function savePreImportBackup() {
+  const snapshot = buildSharePayload();
+  const backup = {
+    version: 2,
+    createdAt: new Date().toISOString(),
+    meta: snapshot.meta,
+    state: snapshot.state
+  };
+  localStorage.setItem(STORAGE_KEYS.PRE_IMPORT_BACKUP, JSON.stringify(backup));
+  updateRestoreBackupButtonVisibility();
+}
+
+/**
+ * 取り込み前バックアップから復元
+ */
+function restorePreImportBackup() {
+  const raw = localStorage.getItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+  if (!raw) {
+    showToast('復元できるバックアップがありません', 'info');
+    updateRestoreBackupButtonVisibility();
+    return;
+  }
+
+  const shouldRestore = window.confirm('取り込み前の状態へ戻しますか？\n現在の状態は失われます。');
+  if (!shouldRestore) {
+    return;
+  }
+
+  try {
+    const backup = JSON.parse(raw);
+    if (!backup || backup.version !== 2 || !backup.state) {
+      throw new Error('Invalid backup payload');
+    }
+
+    applySharedStateV2(backup.state);
+    saveState();
+    renderAll();
+    updateSystemStatus();
+    if (typeof updateAdminModeUI === 'function') updateAdminModeUI();
+    if (typeof updateModeMenuBtn === 'function') updateModeMenuBtn();
+
+    localStorage.removeItem(STORAGE_KEYS.PRE_IMPORT_BACKUP);
+    updateRestoreBackupButtonVisibility();
+    showToast('取り込み前の状態に戻しました', 'success');
+  } catch (error) {
+    console.error('Failed to restore pre-import backup:', error);
+    showToast('バックアップ復元に失敗しました', 'error');
+  }
+}
+
+/**
  * 状態をLocalStorageに保存（サイズ制限チェック付き）
  */
 function saveState() {
@@ -67,6 +164,7 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
     localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
     localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(adminMode));
+    touchShareMeta();
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
     
@@ -206,6 +304,10 @@ function buildSharePayload() {
 
   return {
     version: 2,
+    meta: {
+      revision: getShareRevision(),
+      savedAt: getShareSavedAt() || new Date().toISOString()
+    },
     state: compactState
   };
 }
@@ -393,16 +495,32 @@ async function importStateFromShareUrl() {
       throw new Error('Invalid payload format');
     }
 
-    const shouldImport = window.confirm('共有されたタスクデータを取り込みますか？\n現在の端末データは上書きされます。');
+    const incomingRevision = Number(payload.meta?.revision || 0);
+    const incomingSavedAt = payload.meta?.savedAt || '不明';
+    const currentRevision = getShareRevision();
+    const currentSavedAt = getShareSavedAt() || '不明';
+    const hasConflict = currentRevision > 0 && incomingRevision > 0 && incomingRevision !== currentRevision;
+
+    const confirmMessage = hasConflict
+      ? `競合を検出しました。\n\n端末: rev ${currentRevision} (${currentSavedAt})\n共有: rev ${incomingRevision} (${incomingSavedAt})\n\n共有データで端末状態を置き換えます。\n必要なら取り込み後に「取り込み前に戻す」で復元できます。\n\nこのまま取り込みますか？`
+      : '共有されたタスクデータを取り込みますか？\n現在の端末データは上書きされます。\n（取り込み前状態は1件バックアップします）';
+
+    const shouldImport = window.confirm(confirmMessage);
     if (!shouldImport) {
       clearShareParamFromUrl();
       return;
     }
 
+    savePreImportBackup();
+    if (incomingRevision > getShareRevision()) {
+      setShareMeta(incomingRevision, incomingSavedAt);
+    }
+
     applySharedStateV2(payload.state);
     saveState();
     clearShareParamFromUrl();
-    showToast('共有データを取り込みました', 'success');
+    updateRestoreBackupButtonVisibility();
+    showToast('共有データで置き換えました（必要なら「取り込み前に戻す」で復元可能）', 'success', 5000);
   } catch (error) {
     console.error('Failed to import shared data:', error);
     clearShareParamFromUrl();

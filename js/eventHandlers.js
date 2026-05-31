@@ -17,6 +17,11 @@ function setupEventListeners() {
   if (shareTasksBtn) {
     shareTasksBtn.addEventListener('click', handleShareTasks);
   }
+
+  const restoreImportBackupBtn = getElement('restoreImportBackupBtn');
+  if (restoreImportBackupBtn) {
+    restoreImportBackupBtn.addEventListener('click', restorePreImportBackup);
+  }
   
   // 設定モーダル閉じるボタン
   const closeSettingsBtn = getElement('closeSettingsBtn');
