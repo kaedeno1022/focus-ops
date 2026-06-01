@@ -219,6 +219,20 @@ function initAssigneeSelector(selectedAssignees = []) {
 }
 
 /**
+ * 開始日・終了日の逆転チェック
+ * @returns {boolean} 問題なければ true、逆転していれば alert して false
+ */
+function validateTaskDateOrder() {
+  const startVal = document.getElementById('taskStartDate')?.value || '';
+  const endVal = document.getElementById('taskEndDate')?.value || '';
+  if (startVal && endVal && startVal > endVal) {
+    alert('終了日は開始日より後の日付を設定してください。');
+    return false;
+  }
+  return true;
+}
+
+/**
  * タスクメタデータをフォームから取得
  * @returns {Object} メタデータオブジェクト
  */

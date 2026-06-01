@@ -480,6 +480,9 @@ function addCustomTask(e) {
     alert('同じ名前のタスクが既に存在します。');
     return;
   }
+
+  // 開始日・終了日の逆転チェック
+  if (!validateTaskDateOrder()) return;
   
   // カスタムタスクを追加
   if (!customTasks[type]) {
@@ -723,6 +726,9 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
       };
     }
   }
+
+  // 開始日・終了日の逆転チェック
+  if (!validateTaskDateOrder()) return;
 
   // チェック状態・コメント・メタデータを移行（currentKeyから新しいキーへ）
   if (currentKey !== newKey) {
