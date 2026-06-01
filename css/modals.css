@@ -561,7 +561,32 @@
 .custom-task-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 24px;
+}
+
+/* タスクグループヘッダー */
+.task-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 2px solid var(--purple);
+  margin-bottom: 12px;
+}
+
+.task-group-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.task-group-header .task-count {
+  font-size: 13px;
+  color: var(--sub);
+  background: rgba(124, 58, 237, 0.08);
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
 .custom-task-item {

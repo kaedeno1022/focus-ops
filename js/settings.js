@@ -200,8 +200,8 @@ function renderCustomTaskList() {
   
   container.innerHTML = '';
   
-  // 全タスクを収集
-  const allTasksList = [];
+  // 期間ごとにタスクを収集
+  const tasksByType = { daily: [], weekly: [], season: [] };
   
   ['daily', 'weekly', 'season'].forEach(type => {
     // デフォルトタスクを収集
@@ -232,7 +232,7 @@ function renderCustomTaskList() {
         const category = getCategoryFromPriority(taskInfo.priority);
         const taskKey = edited[key] ? createKey(type, category, taskInfo.title) : key;
         
-        allTasksList.push({
+        tasksByType[type].push({
           type,
           title: taskInfo.title,
           priority: taskInfo.priority,
@@ -255,7 +255,7 @@ function renderCustomTaskList() {
       const category = getCategoryFromPriority(task.priority);
       const key = createKey(type, category, task.title);
       
-      allTasksList.push({
+      tasksByType[type].push({
         type,
         title: task.title,
         priority: task.priority,
@@ -267,25 +267,25 @@ function renderCustomTaskList() {
     });
   });
   
-  // タスクをソート: タイプ → 優先度 → タイトル順
-  const typeOrder = { daily: 1, weekly: 2, season: 3 };
+  // 各期間のタスクを優先度 → タイトル順でソート
   const priorityOrder = { high: 1, mid: 2, low: 3 };
   
-  allTasksList.sort((a, b) => {
-    // タイプでソート
-    if (typeOrder[a.type] !== typeOrder[b.type]) {
-      return typeOrder[a.type] - typeOrder[b.type];
-    }
-    // 優先度でソート
-    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    }
-    // タイトルでソート
-    return a.title.localeCompare(b.title, 'ja');
+  ['daily', 'weekly', 'season'].forEach(type => {
+    tasksByType[type].sort((a, b) => {
+      // 優先度でソート
+      if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      }
+      // タイトルでソート
+      return a.title.localeCompare(b.title, 'ja');
+    });
   });
   
+  // 全タスク数を確認
+  const totalTasks = tasksByType.daily.length + tasksByType.weekly.length + tasksByType.season.length;
+  
   // タスクが存在しない場合
-  if (allTasksList.length === 0) {
+  if (totalTasks === 0) {
     const emptyWrap = document.createElement('div');
     emptyWrap.className = 'empty-state-wrap';
 
@@ -310,19 +310,33 @@ function renderCustomTaskList() {
     return;
   }
   
-  // タスクを表示
-  allTasksList.forEach(task => {
+  // 期間ごとにグループ表示
+  const typeLabels = {
+    daily: '今日のタスク',
+    weekly: '今週のタスク',
+    season: '長期のタスク'
+  };
+  
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const tasks = tasksByType[type];
+    if (tasks.length === 0) return;
+    
+    // グループヘッダー
+    const groupHeader = document.createElement('div');
+    groupHeader.className = 'task-group-header';
+    groupHeader.innerHTML = `
+      <h3>${typeLabels[type]}</h3>
+      <span class="task-count">${tasks.length}件</span>
+    `;
+    container.appendChild(groupHeader);
+    
+    // タスクを表示
+    tasks.forEach(task => {
     const item = document.createElement('div');
     item.className = 'custom-task-item';
     
     const info = document.createElement('div');
     info.className = 'task-info';
-    
-    const typeLabel = {
-      daily: '今日のタスク',
-      weekly: '今週のタスク',
-      season: '長期のタスク'
-    }[task.type];
     
     const priorityLabel = {
       high: '高',
@@ -334,7 +348,7 @@ function renderCustomTaskList() {
     
     info.innerHTML = `
       <strong>${task.title}</strong><br>
-      <small>${typeLabel} / ${task.category} / 優先度: ${priorityLabel}</small>
+      <small>${task.category} / 優先度: ${priorityLabel}</small>
       ${comment ? `<br><small class="task-comment-small">💬 ${comment}</small>` : ''}
     `;
     
@@ -413,9 +427,10 @@ function renderCustomTaskList() {
     buttonGroup.appendChild(editBtn);
     buttonGroup.appendChild(deleteBtn);
     
-    item.appendChild(info);
-    item.appendChild(buttonGroup);
-    container.appendChild(item);
+      item.appendChild(info);
+      item.appendChild(buttonGroup);
+      container.appendChild(item);
+    });
   });
 }
 
