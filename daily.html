@@ -155,6 +155,19 @@
         </div>
       </div>
 
+      <div class="reset-dropdown-wrap project-filter-dropdown-wrap">
+        <button
+          id="projectFilterBtn"
+          class="btn-main"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          プロジェクト: 全て ▾
+        </button>
+        <div id="projectFilterDropdown" class="reset-dropdown" hidden></div>
+      </div>
+
       <button
         id="kanbanViewBtn"
         class="btn-main toggle-btn"
@@ -304,8 +317,15 @@
             </div>
 
             <div class="form-group">
-              <label for="taskDeadline">締め切り（任意）</label>
-              <input type="date" id="taskDeadline">
+              <label for="taskStartDate">開始日（任意）</label>
+              <input type="date" id="taskStartDate">
+              <small class="form-help-text">開始日または終了日が今週内にある長期タスクは、今週へ自動表示されます</small>
+            </div>
+
+            <div class="form-group">
+              <label for="taskEndDate">終了日（任意）</label>
+              <input type="date" id="taskEndDate">
+              <small class="form-help-text">終了日は締め切りとして表示されます</small>
             </div>
 
             <div class="form-group">

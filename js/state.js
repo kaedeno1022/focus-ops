@@ -31,9 +31,6 @@ let deletedDefaultTasks = new Set(loadFromStorage(STORAGE_KEYS.DELETED_DEFAULT_T
 /** タスクのプロジェクト紐付け */
 let taskProjects = loadFromStorage(STORAGE_KEYS.PROJECTS) || {};
 
-/** タスクの締め切り */
-let taskDeadlines = loadFromStorage(STORAGE_KEYS.DEADLINES) || {};
-
 /** タスクのタグ */
 let taskTags = loadFromStorage(STORAGE_KEYS.TAGS) || {};
 
@@ -46,8 +43,17 @@ let taskAssignees = loadFromStorage(STORAGE_KEYS.ASSIGNEES) || {};
 /** タスクのカンバンステータス */
 let taskStatus = loadFromStorage(STORAGE_KEYS.TASK_STATUS) || {};
 
+/** タスクの開始日 */
+let taskStartDates = loadFromStorage(STORAGE_KEYS.START_DATES) || {};
+
+/** タスクの終了日 */
+let taskEndDates = loadFromStorage(STORAGE_KEYS.END_DATES) || {};
+
 /** カンバンビューモード */
 let kanbanViewMode = false;
+
+/** プロジェクトフィルター（選択中のプロジェクトID、nullは全て表示） */
+let projectFilter = loadFromStorage(STORAGE_KEYS.PROJECT_FILTER) || null;
 
 /** タスク表示モード ('simple' | 'detail') */
 let displayMode = loadFromStorage(STORAGE_KEYS.DISPLAY_MODE) || 'simple';

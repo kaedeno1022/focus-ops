@@ -15,14 +15,17 @@
   }
 
   .topbar .reset-dropdown-wrap,
-  .topbar .mode-dropdown-wrap {
+  .topbar .mode-dropdown-wrap,
+  .topbar .project-filter-wrap {
     width: 100%;
   }
 
   .topbar > button,
   .topbar .reset-dropdown-wrap > button,
-  .topbar .mode-dropdown-wrap > button {
+  .topbar .mode-dropdown-wrap > button,
+  .topbar .project-filter-wrap > select {
     width: 100%;
+    min-width: auto;
   }
 }
 

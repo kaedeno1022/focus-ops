@@ -358,6 +358,10 @@ function setupEventListeners() {
     if (importWrap && !importWrap.contains(e.target)) {
       closeImportBackupDropdown();
     }
+    const projectFilterWrap = document.querySelector('.project-filter-dropdown-wrap');
+    if (projectFilterWrap && !projectFilterWrap.contains(e.target)) {
+      closeProjectFilterDropdown();
+    }
   });
 
   // Cookie同意バナー（ページによって存在しない場合あり）
@@ -395,6 +399,33 @@ function setupEventListeners() {
   const kanbanViewBtn = getElement('kanbanViewBtn');
   if (kanbanViewBtn) {
     kanbanViewBtn.addEventListener('click', toggleKanbanView);
+  }
+
+  // プロジェクトフィルタードロップダウン
+  const projectFilterBtn = getElement('projectFilterBtn');
+  if (projectFilterBtn) {
+    projectFilterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = getElement('projectFilterDropdown');
+      const isOpen = !dropdown.hidden;
+      closeProjectFilterDropdown();
+      closeResetDropdown();
+      closeModeDropdown();
+      if (!isOpen) {
+        dropdown.hidden = false;
+        projectFilterBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  const projectFilterDropdown = getElement('projectFilterDropdown');
+  if (projectFilterDropdown) {
+    projectFilterDropdown.addEventListener('click', (e) => {
+      const item = e.target.closest('.project-filter-item');
+      if (!item) return;
+      handleProjectFilterChange(item.dataset.value);
+      closeProjectFilterDropdown();
+    });
   }
 
   // ステータス管理フォーム
@@ -474,3 +505,26 @@ function toggleKanbanView() {
     renderAll();
   }
 }
+
+/**
+ * プロジェクトフィルタードロップダウンを閉じる
+ */
+function closeProjectFilterDropdown() {
+  const dropdown = getElement('projectFilterDropdown');
+  const btn = getElement('projectFilterBtn');
+  if (dropdown) dropdown.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+/**
+ * プロジェクトフィルターを変更
+ */
+function handleProjectFilterChange(value) {
+  projectFilter = value || null;
+  saveState();
+  renderAll();
+  if (typeof updateProjectFilterBtnLabel === 'function') {
+    updateProjectFilterBtnLabel();
+  }
+}
+

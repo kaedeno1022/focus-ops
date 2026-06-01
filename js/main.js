@@ -76,6 +76,9 @@ async function init() {
   const kanbanViewBtn = getElement('kanbanViewBtn');
   if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
 
+  // プロジェクトフィルターセレクトを初期化
+  initProjectFilterSelect();
+
   // プロジェクトとタグのセレクタを初期化
   initProjectSelector();
   initTagSelector();

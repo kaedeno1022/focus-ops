@@ -159,7 +159,8 @@ function saveState() {
     const editedDefaultData = JSON.stringify(editedDefaultTasks);
     const deletedDefaultData = JSON.stringify([...deletedDefaultTasks]);
     const projectsData = JSON.stringify(taskProjects);
-    const deadlinesData = JSON.stringify(taskDeadlines);
+    const startDatesData = JSON.stringify(taskStartDates);
+    const endDatesData = JSON.stringify(taskEndDates);
     const tagsData = JSON.stringify(taskTags);
     const estimatedTimeData = JSON.stringify(taskEstimatedTime);
     const assigneesData = JSON.stringify(taskAssignees);
@@ -177,7 +178,8 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.EDITED_DEFAULT_TASKS, editedDefaultData);
     localStorage.setItem(STORAGE_KEYS.DELETED_DEFAULT_TASKS, deletedDefaultData);
     localStorage.setItem(STORAGE_KEYS.PROJECTS, projectsData);
-    localStorage.setItem(STORAGE_KEYS.DEADLINES, deadlinesData);
+    localStorage.setItem(STORAGE_KEYS.START_DATES, startDatesData);
+    localStorage.setItem(STORAGE_KEYS.END_DATES, endDatesData);
     localStorage.setItem(STORAGE_KEYS.TAGS, tagsData);
     localStorage.setItem(STORAGE_KEYS.ESTIMATED_TIME, estimatedTimeData);
     localStorage.setItem(STORAGE_KEYS.ASSIGNEES, assigneesData);
@@ -188,6 +190,7 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
     localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
     localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(adminMode));
+    localStorage.setItem(STORAGE_KEYS.PROJECT_FILTER, JSON.stringify(projectFilter));
     touchShareMeta();
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
@@ -312,7 +315,8 @@ function buildSharePayload() {
   if (deletedKeys.length > 0) compactState.x = deletedKeys;
 
   if (hasOwnValues(taskProjects)) compactState.p = taskProjects;
-  if (hasOwnValues(taskDeadlines)) compactState.l = taskDeadlines;
+  if (hasOwnValues(taskStartDates)) compactState.sd = taskStartDates;
+  if (hasOwnValues(taskEndDates)) compactState.ed = taskEndDates;
   if (hasOwnValues(taskTags)) compactState.g = taskTags;
   if (hasOwnValues(taskEstimatedTime)) compactState.t = taskEstimatedTime;
   if (hasOwnValues(taskAssignees)) compactState.a = taskAssignees;
@@ -325,6 +329,7 @@ function buildSharePayload() {
 
   if (displayMode === 'detail') compactState.d = 1;
   if (adminMode) compactState.r = 1;
+  if (projectFilter) compactState.pf = projectFilter;
 
   return {
     version: 2,
@@ -370,13 +375,15 @@ function applySharedStateV2(state) {
   editedDefaultTasks = state.e && typeof state.e === 'object' ? state.e : {};
   deletedDefaultTasks = new Set(Array.isArray(state.x) ? state.x : []);
   taskProjects = state.p && typeof state.p === 'object' ? state.p : {};
-  taskDeadlines = state.l && typeof state.l === 'object' ? state.l : {};
+  taskStartDates = state.sd && typeof state.sd === 'object' ? state.sd : {};
+  taskEndDates = state.ed && typeof state.ed === 'object' ? state.ed : {};
   taskTags = state.g && typeof state.g === 'object' ? state.g : {};
   taskEstimatedTime = state.t && typeof state.t === 'object' ? state.t : {};
   taskAssignees = state.a && typeof state.a === 'object' ? state.a : {};
   taskStatus = state.k && typeof state.k === 'object' ? state.k : {};
   displayMode = toBooleanFlag(state.d) ? 'detail' : 'simple';
   adminMode = toBooleanFlag(state.r);
+  projectFilter = state.pf || null;
 
   PROJECTS.length = 0;
   PROJECTS.push(...(Array.isArray(state.pm) ? state.pm : DEFAULT_PROJECTS.map(project => ({ ...project }))));

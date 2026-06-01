@@ -13,7 +13,6 @@ const STORAGE_KEYS = {
   COOKIE_CONSENT: 'work_tasks_cookie_consent',
   PROJECTS: 'work_tasks_projects',
   PROJECT_MASTER: 'work_tasks_project_master',
-  DEADLINES: 'work_tasks_deadlines',
   TAGS: 'work_tasks_tags',
   TAG_MASTER: 'work_tasks_tag_master',
   ASSIGNEE_MASTER: 'work_tasks_assignee_master',
@@ -26,7 +25,10 @@ const STORAGE_KEYS = {
   ADMIN_MODE: 'work_tasks_admin_mode',
   SHARE_REVISION: 'work_tasks_share_revision',
   SHARE_SAVED_AT: 'work_tasks_share_saved_at',
-  PRE_IMPORT_BACKUP: 'work_tasks_pre_import_backup'
+  PRE_IMPORT_BACKUP: 'work_tasks_pre_import_backup',
+  START_DATES: 'work_tasks_start_dates',
+  END_DATES: 'work_tasks_end_dates',
+  PROJECT_FILTER: 'work_tasks_project_filter'
 };
 
 /** 完了ステータスのID（変更不可の固定値） */

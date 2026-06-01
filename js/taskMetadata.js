@@ -77,6 +77,58 @@ function initProjectSelector() {
 }
 
 /**
+ * プロジェクトフィルターセレクトを初期化
+ */
+function initProjectFilterSelect() {
+  const dropdown = document.getElementById('projectFilterDropdown');
+  const btn = document.getElementById('projectFilterBtn');
+  if (!dropdown || !btn) return;
+
+  // ドロップダウンをリセット
+  dropdown.innerHTML = '';
+
+  // 「全て」項目を追加
+  const allItem = document.createElement('button');
+  allItem.className = 'reset-dropdown-item project-filter-item';
+  allItem.type = 'button';
+  allItem.dataset.value = '';
+  allItem.innerHTML = '<span class="reset-item-label">全て表示</span>';
+  dropdown.appendChild(allItem);
+
+  // プロジェクト項目を追加
+  const projects = getManagedProjects();
+  if (projects.length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'reset-dropdown-divider';
+    dropdown.appendChild(divider);
+
+    projects.forEach(project => {
+      const item = document.createElement('button');
+      item.className = 'reset-dropdown-item project-filter-item';
+      item.type = 'button';
+      item.dataset.value = project.id;
+      item.innerHTML = `<span class="reset-item-label">${project.name}</span>`;
+      dropdown.appendChild(item);
+    });
+  }
+
+  // 現在のフィルターに合わせてボタンテキストを更新
+  updateProjectFilterBtnLabel();
+}
+
+function updateProjectFilterBtnLabel() {
+  const btn = document.getElementById('projectFilterBtn');
+  if (!btn) return;
+  if (projectFilter) {
+    const projects = getManagedProjects();
+    const found = projects.find(p => p.id === projectFilter);
+    btn.textContent = found ? `${found.name} ▾` : 'プロジェクト: 全て ▾';
+  } else {
+    btn.textContent = 'プロジェクト: 全て ▾';
+  }
+}
+
+/**
  * タグセレクタを初期化
  */
 function initTagSelector() {
@@ -173,7 +225,8 @@ function initAssigneeSelector(selectedAssignees = []) {
 function getTaskMetadataFromForm() {
   const projectSelect = document.getElementById('taskProject');
   const assigneeCheckboxes = document.querySelectorAll('.assignee-checkbox:checked');
-  const deadlineInput = document.getElementById('taskDeadline');
+  const startDateInput = document.getElementById('taskStartDate');
+  const endDateInput = document.getElementById('taskEndDate');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
   const tagCheckboxes = document.querySelectorAll('.tag-checkbox:checked');
@@ -188,9 +241,14 @@ function getTaskMetadataFromForm() {
   // 担当者
   metadata.assignee = Array.from(assigneeCheckboxes).map(checkbox => checkbox.value).filter(Boolean);
   
-  // 締め切り
-  if (deadlineInput && deadlineInput.value) {
-    metadata.deadline = deadlineInput.value;
+  // 開始日
+  if (startDateInput && startDateInput.value) {
+    metadata.startDate = startDateInput.value;
+  }
+  
+  // 終了日
+  if (endDateInput && endDateInput.value) {
+    metadata.endDate = endDateInput.value;
   }
   
   // タグ
@@ -216,7 +274,8 @@ function getTaskMetadataFromForm() {
 function setTaskMetadataToForm(metadata) {
   const projectSelect = document.getElementById('taskProject');
   const assigneeContainer = document.getElementById('taskAssigneeChecklist');
-  const deadlineInput = document.getElementById('taskDeadline');
+  const startDateInput = document.getElementById('taskStartDate');
+  const endDateInput = document.getElementById('taskEndDate');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
   
@@ -232,11 +291,18 @@ function setTaskMetadataToForm(metadata) {
     initAssigneeSelector(selectedAssignees);
   }
   
-  // 締め切り
-  if (deadlineInput && metadata.deadline) {
-    deadlineInput.value = metadata.deadline;
-  } else if (deadlineInput) {
-    deadlineInput.value = '';
+  // 開始日
+  if (startDateInput && metadata.startDate) {
+    startDateInput.value = metadata.startDate;
+  } else if (startDateInput) {
+    startDateInput.value = '';
+  }
+  
+  // 終了日
+  if (endDateInput && metadata.endDate) {
+    endDateInput.value = metadata.endDate;
+  } else if (endDateInput) {
+    endDateInput.value = '';
   }
   
   // タグ
@@ -263,14 +329,16 @@ function setTaskMetadataToForm(metadata) {
 function clearTaskMetadataForm() {
   const projectSelect = document.getElementById('taskProject');
   const assigneeCheckboxes = document.querySelectorAll('.assignee-checkbox');
-  const deadlineInput = document.getElementById('taskDeadline');
+  const startDateInput = document.getElementById('taskStartDate');
+  const endDateInput = document.getElementById('taskEndDate');
   const hoursInput = document.getElementById('taskEstimatedHours');
   const minutesInput = document.getElementById('taskEstimatedMinutes');
   const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
   
   if (projectSelect) projectSelect.value = '';
   assigneeCheckboxes.forEach(checkbox => checkbox.checked = false);
-  if (deadlineInput) deadlineInput.value = '';
+  if (startDateInput) startDateInput.value = '';
+  if (endDateInput) endDateInput.value = '';
   if (hoursInput) hoursInput.value = '';
   if (minutesInput) minutesInput.value = '';
   tagCheckboxes.forEach(cb => cb.checked = false);
@@ -285,6 +353,7 @@ function renderMetadataManagers() {
   renderAssigneeManagerList();
   initAssigneeSelector();
   renderStatusManagerList();
+  initProjectFilterSelect();
 }
 
 /**
@@ -870,10 +939,16 @@ function saveTaskMetadata(key, metadata) {
     delete taskProjects[key];
   }
 
-  if (metadata.deadline) {
-    taskDeadlines[key] = metadata.deadline;
+  if (metadata.startDate) {
+    taskStartDates[key] = metadata.startDate;
   } else {
-    delete taskDeadlines[key];
+    delete taskStartDates[key];
+  }
+
+  if (metadata.endDate) {
+    taskEndDates[key] = metadata.endDate;
+  } else {
+    delete taskEndDates[key];
   }
 
   if (metadata.tags && metadata.tags.length > 0) {
@@ -907,7 +982,8 @@ function getTaskMetadata(key) {
   return {
     project: taskProjects[key],
     assignee: normalizeAssigneeList(taskAssignees[key]),
-    deadline: taskDeadlines[key],
+    startDate: taskStartDates[key],
+    endDate: taskEndDates[key],
     tags: taskTags[key],
     estimatedTime: taskEstimatedTime[key]
   };
@@ -920,7 +996,8 @@ function getTaskMetadata(key) {
 function deleteTaskMetadata(key) {
   delete taskProjects[key];
   delete taskAssignees[key];
-  delete taskDeadlines[key];
+  delete taskStartDates[key];
+  delete taskEndDates[key];
   delete taskTags[key];
   delete taskEstimatedTime[key];
   saveState();

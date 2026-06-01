@@ -199,8 +199,8 @@ function createTaskElement(type, category, title, priority) {
     metaContainer.appendChild(assigneeBadge);
   }
 
-  // 締め切り表示
-  const deadlineBadge = createDeadlineBadge(taskDeadlines[key]);
+  // 終了日表示（締め切りとして表示）
+  const deadlineBadge = createDeadlineBadge(taskEndDates[key]);
   if (deadlineBadge) {
     metaContainer.appendChild(deadlineBadge);
   }
@@ -311,6 +311,11 @@ function updateProgressOnly() {
           return;
         }
         
+        // プロジェクトフィルターを適用
+        if (projectFilter && taskProjects[key] !== projectFilter) {
+          return;
+        }
+        
         total++;
         
         if (checkedState[key]) {
@@ -342,6 +347,31 @@ function renderSection(type) {
     return;
   }
 
+  // 今週表示の場合、長期タスクから期間内のものを追加
+  let additionalTasks = [];
+  if (type === 'weekly') {
+    const seasonCategories = getAllTasks('season');
+    if (seasonCategories) {
+      seasonCategories.forEach(group => {
+        group.tasks.forEach(([title, priority]) => {
+          const key = createKey('season', group.category, title);
+          if (isTaskVisible(key) && isTaskInActivePeriod(key)) {
+            // プロジェクトフィルターを適用
+            if (projectFilter && taskProjects[key] !== projectFilter) {
+              return;
+            }
+            additionalTasks.push({
+              category: group.category,
+              title,
+              priority,
+              originalType: 'season'
+            });
+          }
+        });
+      });
+    }
+  }
+
   categories.forEach(group => {
     // 最低限モードで優先度：高以外をスキップ
     if (minimumMode && group.category !== REQUIRED_CATEGORY) {
@@ -369,6 +399,11 @@ function renderSection(type) {
         return;
       }
       
+      // プロジェクトフィルターを適用
+      if (projectFilter && taskProjects[key] !== projectFilter) {
+        return;
+      }
+      
       visibleTasksInCategory++;
       total++;
 
@@ -386,6 +421,40 @@ function renderSection(type) {
       container.appendChild(section);
     }
   });
+
+  // 今週表示の場合、長期タスクから自動追加されたタスクを表示
+  if (type === 'weekly' && additionalTasks.length > 0) {
+    const autoSection = document.createElement('div');
+    autoSection.className = 'category';
+    autoSection.setAttribute('role', 'group');
+    autoSection.setAttribute('aria-label', '自動追加（長期タスク）');
+
+    const autoHeader = document.createElement('div');
+    autoHeader.className = 'category-header';
+    autoHeader.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;';
+    autoHeader.textContent = '📌 自動追加（長期 ⇒ 今週）';
+
+    autoSection.appendChild(autoHeader);
+
+    let autoVisibleCount = 0;
+
+    additionalTasks.forEach(({ category, title, priority, originalType }) => {
+      const key = createKey(originalType, category, title);
+      const task = createTaskElement(originalType, category, title, priority);
+
+      if (task.checked) {
+        done++;
+      }
+
+      total++;
+      autoVisibleCount++;
+      autoSection.appendChild(task.element);
+    });
+
+    if (autoVisibleCount > 0) {
+      container.appendChild(autoSection);
+    }
+  }
 
   updateProgress(type, total, done);
 }
@@ -419,6 +488,49 @@ function updateProgress(type, total, done) {
     barElement.setAttribute('aria-valuemax', '100');
     barElement.setAttribute('aria-valuetext', `${done}個中${total}個完了、${percent}パーセント`);
   }
+}
+
+/**
+ * タスクが今週内かどうかを判定（開始日または終了日が今週内）
+ * @param {string} key - タスクキー
+ * @returns {boolean}
+ */
+function isTaskInActivePeriod(key) {
+  const startDate = taskStartDates[key];
+  const endDate = taskEndDates[key];
+  
+  // 両方とも未設定の場合はfalse
+  if (!startDate && !endDate) return false;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // 今週の開始（月曜）と終了（日曜）を計算
+  const dayOfWeek = today.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + diffToMonday);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+  
+  // 開始日が今週内にある
+  if (startDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    if (start >= weekStart && start <= weekEnd) return true;
+  }
+  
+  // 終了日が今週内にある
+  if (endDate) {
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0);
+    if (end >= weekStart && end <= weekEnd) return true;
+  }
+  
+  return false;
 }
 
 /**
@@ -700,7 +812,7 @@ function createKanbanCard(type, category, title, priority, key) {
     metaRow.appendChild(tagBadge);
   });
 
-  const kanbanDeadlineBadge = createDeadlineBadge(taskDeadlines[key]);
+  const kanbanDeadlineBadge = createDeadlineBadge(taskEndDates[key]);
   if (kanbanDeadlineBadge) {
     kanbanDeadlineBadge.classList.add('kanban-deadline');
     metaRow.appendChild(kanbanDeadlineBadge);
