@@ -60,11 +60,10 @@ function openSettingsModal() {
     if (closeBtn) closeBtn.focus();
   }, 100);
   
-  renderVisibilitySettings();
   renderCustomTaskList();
   renderMetadataManagers();
   if (!editingTask) {
-    switchTab('visibility');
+    switchTab('custom');
   }
   scrollSettingsModalToTop();
   closeMenu();
@@ -89,7 +88,7 @@ function closeSettingsModal() {
   cancelProjectEdit();
   cancelAssigneeEdit();
   cancelStatusEdit();
-  switchTab('visibility');
+  switchTab('custom');
   scrollSettingsModalToTop();
 
   if (lastModalFocusElement && document.body.contains(lastModalFocusElement)) {
@@ -98,8 +97,34 @@ function closeSettingsModal() {
 }
 
 /**
+ * タスク追加フォームを特定のタイプで開く
+ * @param {string} taskType - タスクタイプ ('daily' | 'weekly' | 'season')
+ */
+function openTaskFormWithType(taskType) {
+  // 設定モーダルを開く
+  openSettingsModal();
+  
+  // タスク管理タブに切り替え
+  switchTab('custom');
+  
+  // タスクタイプを設定
+  const taskTypeSelect = getElement('taskType');
+  if (taskTypeSelect) {
+    taskTypeSelect.value = taskType;
+  }
+  
+  // タスク名入力フォームにフォーカス
+  setTimeout(() => {
+    const taskTitleInput = getElement('taskTitle');
+    if (taskTitleInput) {
+      taskTitleInput.focus();
+    }
+  }, 200);
+}
+
+/**
  * タブを切り替える
- * @param {string} tabName - タブ名 ('visibility' | 'custom' | 'tagProject')
+ * @param {string} tabName - タブ名 ('custom' | 'tagProject')
  */
 function switchTab(tabName) {
   if (tabName !== 'custom') {
@@ -107,7 +132,6 @@ function switchTab(tabName) {
   }
 
   const tabs = {
-    visibility: { btn: getElement('visibilityTab'),  panel: getElement('visibilityPanel') },
     custom:     { btn: getElement('customTaskTab'),   panel: getElement('customTaskPanel') },
     tagProject: { btn: getElement('tagProjectTab'),   panel: getElement('tagProjectPanel') },
   };
@@ -160,171 +184,15 @@ function switchManagementSubTab(subTabName) {
 }
 
 /**
- * 表示設定をレンダリング
+ * 表示設定をレンダリング（廃止: タスク一覧に統合）
  */
 function renderVisibilitySettings() {
-  ['daily', 'weekly', 'season'].forEach(type => {
-    const container = getElement(`${type}VisibilitySettings`);
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    // 重複を防ぐため、既に表示したタスクキーを記録
-    const displayedKeys = new Set();
-    
-    const categories = getAllTasks(type);
-    const edited = editedDefaultTasks[type] || {};
-    
-    // 元のデフォルトタスクも確認するため
-    const defaultTasks = DATA[type] || [];
-    const originalTasksMap = new Map(); // key -> {originalTitle, originalPriority, originalCategory}
-    
-    defaultTasks.forEach(group => {
-      group.tasks.forEach(([title, priority]) => {
-        const key = createKey(type, group.category, title);
-        originalTasksMap.set(key, {
-          originalTitle: title,
-          originalPriority: priority,
-          originalCategory: group.category
-        });
-      });
-    });
-    
-    categories.forEach(group => {
-      group.tasks.forEach(([title, priority]) => {
-        const key = createKey(type, group.category, title);
-        
-        // 既に表示済みの場合はスキップ
-        if (displayedKeys.has(key)) {
-          return;
-        }
-        displayedKeys.add(key);
-        
-        const visible = isTaskVisible(key);
-        
-        const item = document.createElement('div');
-        item.className = 'visibility-item';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = visible;
-        checkbox.id = `vis_${key}`;
-        
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.textContent = `[${group.category}] ${title}`;
-        
-        checkbox.addEventListener('change', () => {
-          taskVisibility[key] = checkbox.checked;
-          saveState();
-          renderAll();
-        });
-        
-        // 編集ボタンを追加
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn-main btn-small';
-        editBtn.textContent = '編集';
-        editBtn.type = 'button';
-        
-        // タスクがカスタムかデフォルトかを判定
-        const isCustomTask = customTasks[type]?.some(t => 
-          t.title === title && getCategoryFromPriority(t.priority) === group.category
-        );
-        
-        // 元のタスク情報を特定（編集済みの場合を考慮）
-        let originalInfo = null;
-        if (!isCustomTask) {
-          // 編集済みタスクから元の情報を探す
-          for (const [origKey, editData] of Object.entries(edited)) {
-            if (editData.title === title && getCategoryFromPriority(editData.priority) === group.category) {
-              originalInfo = originalTasksMap.get(origKey);
-              break;
-            }
-          }
-          // 編集されていない場合は元のまま
-          if (!originalInfo && originalTasksMap.has(key)) {
-            originalInfo = originalTasksMap.get(key);
-          }
-        }
-        
-        editBtn.addEventListener('click', () => {
-          if (originalInfo) {
-            // デフォルトタスクの場合、元の情報を渡して開く
-            openTaskEditForm(type, group.category, title, priority, false, originalInfo);
-          } else {
-            // カスタムタスクの場合
-            openTaskEditForm(type, group.category, title, priority, true);
-          }
-        });
-
-        // 2行レイアウト: 1行目にチェックボックス+ラベル、2行目にボタン群
-        const header = document.createElement('div');
-        header.className = 'visibility-item-header';
-        header.appendChild(checkbox);
-        header.appendChild(label);
-
-        const actions = document.createElement('div');
-        actions.className = 'visibility-item-actions';
-        actions.appendChild(editBtn);
-
-        // 削除ボタン（デフォルト・カスタム共通）
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-danger btn-small';
-        deleteBtn.textContent = '削除';
-        deleteBtn.type = 'button';
-        if (!isCustomTask) {
-          deleteBtn.addEventListener('click', () => deleteDefaultTask(type, group.category, title));
-        } else {
-          deleteBtn.addEventListener('click', () => {
-            if (confirm(`「${title}」を削除しますか？`)) {
-              const idx = customTasks[type]?.findIndex(t => t.title === title);
-              if (idx !== undefined && idx !== -1) {
-                customTasks[type].splice(idx, 1);
-                const key = createKey(type, group.category, title);
-                if (taskComments[key]) delete taskComments[key];
-                deleteTaskMetadata(key);
-                delete checkedState[key];
-                delete taskVisibility[key];
-                saveState();
-                renderAll();
-                renderVisibilitySettings();
-                showToast(`「${title}」を削除しました`, 'success');
-              }
-            }
-          });
-        }
-        actions.appendChild(deleteBtn);
-
-        item.appendChild(header);
-        item.appendChild(actions);
-        container.appendChild(item);
-      });
-    });
-  });
+  // この関数は廃止されました
+  // 表示設定はrenderCustomTaskList内で管理されています
 }
 
 /**
- * デフォルトタスクを削除（非表示ではなく完全除外）
- * @param {string} type - タスクタイプ
- * @param {string} category - カテゴリ
- * @param {string} title - タスクタイトル
- */
-function deleteDefaultTask(type, category, title) {
-  const key = createKey(type, category, title);
-  deletedDefaultTasks.add(key);
-
-  // チェック状態・表示設定など関連データも削除
-  delete checkedState[key];
-  delete taskVisibility[key];
-
-  saveState();
-  renderAll();
-  renderVisibilitySettings();
-  showToast(`「${title}」を削除しました`, 'success');
-}
-
-/**
- * カスタムタスクリストをレンダリング
+ * 全タスクリスト（デフォルト+カスタム）をレンダリング
  */
 function renderCustomTaskList() {
   const container = getElement('customTaskList');
@@ -332,98 +200,98 @@ function renderCustomTaskList() {
   
   container.innerHTML = '';
   
-  let hasCustomTasks = false;
+  // 全タスクを収集
+  const allTasksList = [];
   
   ['daily', 'weekly', 'season'].forEach(type => {
+    // デフォルトタスクを収集
+    const defaultTasks = DATA[type] || [];
+    const edited = editedDefaultTasks[type] || {};
+    
+    defaultTasks.forEach(group => {
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        // 削除済みタスクはスキップ
+        if (deletedDefaultTasks.has(key)) return;
+        
+        // 編集されている場合は編集後の情報を使用
+        const taskInfo = edited[key] ? {
+          title: edited[key].title,
+          priority: edited[key].priority,
+          originalCategory: group.category,
+          originalTitle: title,
+          originalPriority: priority
+        } : {
+          title: title,
+          priority: priority,
+          originalCategory: group.category,
+          originalTitle: title,
+          originalPriority: priority
+        };
+        
+        const category = getCategoryFromPriority(taskInfo.priority);
+        const taskKey = edited[key] ? createKey(type, category, taskInfo.title) : key;
+        
+        allTasksList.push({
+          type,
+          title: taskInfo.title,
+          priority: taskInfo.priority,
+          category,
+          key: taskKey,
+          originalKey: key,
+          originalCategory: taskInfo.originalCategory,
+          originalTitle: taskInfo.originalTitle,
+          originalPriority: taskInfo.originalPriority,
+          isCustom: false,
+          isEdited: !!edited[key]
+        });
+      });
+    });
+    
+    // カスタムタスクを収集
     const tasks = customTasks[type] || [];
     
     tasks.forEach((task, index) => {
-      hasCustomTasks = true;
-      
-      const item = document.createElement('div');
-      item.className = 'custom-task-item';
-      
-      const info = document.createElement('div');
-      info.className = 'task-info';
-      
-      const typeLabel = {
-        daily: '今日のタスク',
-        weekly: '今週のタスク',
-        season: '長期のタスク'
-      }[type];
-      
-      const priorityLabel = {
-        high: '高',
-        mid: '中',
-        low: '低'
-      }[task.priority];
-      
       const category = getCategoryFromPriority(task.priority);
-      
       const key = createKey(type, category, task.title);
-      const comment = taskComments[key] || '';
       
-      info.innerHTML = `
-        <strong>${task.title}</strong><br>
-        <small>${typeLabel} / ${category} / 優先度: ${priorityLabel}</small>
-        ${comment ? `<br><small class="task-comment-small">💬 ${comment}</small>` : ''}
-      `;
-      
-      const buttonGroup = document.createElement('div');
-      buttonGroup.className = 'button-group';
-      
-      // 編集ボタン
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn-main btn-small';
-      editBtn.textContent = '編集';
-      editBtn.type = 'button';
-      
-      editBtn.addEventListener('click', () => {
-        openTaskEditForm(type, category, task.title, task.priority, true);
+      allTasksList.push({
+        type,
+        title: task.title,
+        priority: task.priority,
+        category,
+        key,
+        isCustom: true,
+        customIndex: index
       });
-      
-      // 削除ボタン
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn-danger btn-small';
-      deleteBtn.textContent = '削除';
-      deleteBtn.type = 'button';
-      
-      deleteBtn.addEventListener('click', () => {
-        if (confirm(`「${task.title}」を削除しますか？`)) {
-          customTasks[type].splice(index, 1);
-          
-          // コメントとメタデータも削除
-          const category = getCategoryFromPriority(task.priority);
-          const key = createKey(type, category, task.title);
-          if (taskComments[key]) {
-            delete taskComments[key];
-          }
-          deleteTaskMetadata(key);
-          
-          saveState();
-          renderCustomTaskList();
-          renderAll();
-          // トーストメッセージを表示
-          showToast(`${task.title}を削除しました`, 'success');
-        }
-      });
-      
-      buttonGroup.appendChild(editBtn);
-      buttonGroup.appendChild(deleteBtn);
-      
-      item.appendChild(info);
-      item.appendChild(buttonGroup);
-      container.appendChild(item);
     });
   });
   
-  if (!hasCustomTasks) {
+  // タスクをソート: タイプ → 優先度 → タイトル順
+  const typeOrder = { daily: 1, weekly: 2, season: 3 };
+  const priorityOrder = { high: 1, mid: 2, low: 3 };
+  
+  allTasksList.sort((a, b) => {
+    // タイプでソート
+    if (typeOrder[a.type] !== typeOrder[b.type]) {
+      return typeOrder[a.type] - typeOrder[b.type];
+    }
+    // 優先度でソート
+    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    }
+    // タイトルでソート
+    return a.title.localeCompare(b.title, 'ja');
+  });
+  
+  // タスクが存在しない場合
+  if (allTasksList.length === 0) {
     const emptyWrap = document.createElement('div');
     emptyWrap.className = 'empty-state-wrap';
 
     const emptyMsg = document.createElement('p');
     emptyMsg.className = 'empty-message';
-    emptyMsg.textContent = 'カスタムタスクはまだ追加されていません。';
+    emptyMsg.textContent = 'タスクはまだ追加されていません。';
 
     const ctaBtn = document.createElement('button');
     ctaBtn.type = 'button';
@@ -439,7 +307,116 @@ function renderCustomTaskList() {
     emptyWrap.appendChild(emptyMsg);
     emptyWrap.appendChild(ctaBtn);
     container.appendChild(emptyWrap);
+    return;
   }
+  
+  // タスクを表示
+  allTasksList.forEach(task => {
+    const item = document.createElement('div');
+    item.className = 'custom-task-item';
+    
+    const info = document.createElement('div');
+    info.className = 'task-info';
+    
+    const typeLabel = {
+      daily: '今日のタスク',
+      weekly: '今週のタスク',
+      season: '長期のタスク'
+    }[task.type];
+    
+    const priorityLabel = {
+      high: '高',
+      mid: '中',
+      low: '低'
+    }[task.priority];
+    
+    const comment = taskComments[task.key] || '';
+    
+    info.innerHTML = `
+      <strong>${task.title}</strong><br>
+      <small>${typeLabel} / ${task.category} / 優先度: ${priorityLabel}</small>
+      ${comment ? `<br><small class="task-comment-small">💬 ${comment}</small>` : ''}
+    `;
+    
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+    
+    // 表示/非表示トグルボタン
+    const isVisible = taskVisibility[task.key] !== false;
+    const visibilityBtn = document.createElement('button');
+    visibilityBtn.className = 'btn-secondary btn-small';
+    visibilityBtn.textContent = isVisible ? '表示中' : '非表示';
+    visibilityBtn.type = 'button';
+    visibilityBtn.title = isVisible ? '非表示にする' : '表示する';
+    
+    visibilityBtn.addEventListener('click', () => {
+      taskVisibility[task.key] = !isVisible;
+      saveState();
+      renderCustomTaskList();
+      renderAll();
+      showToast(`${task.title}を${!isVisible ? '表示' : '非表示'}に設定`, 'success');
+    });
+    
+    // 編集ボタン
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-main btn-small';
+    editBtn.textContent = '編集';
+    editBtn.type = 'button';
+    
+    editBtn.addEventListener('click', () => {
+      // デフォルトタスクの場合は元の情報を渡す
+      const originalInfo = task.isCustom ? null : {
+        originalCategory: task.originalCategory,
+        originalTitle: task.originalTitle,
+        originalPriority: task.originalPriority
+      };
+      openTaskEditForm(task.type, task.category, task.title, task.priority, task.isCustom, originalInfo);
+    });
+    
+    // 削除ボタン
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-danger btn-small';
+    deleteBtn.textContent = '削除';
+    deleteBtn.type = 'button';
+    
+    deleteBtn.addEventListener('click', () => {
+      if (confirm(`「${task.title}」を削除しますか？`)) {
+        if (task.isCustom) {
+          // カスタムタスクの削除
+          customTasks[task.type].splice(task.customIndex, 1);
+        } else {
+          // デフォルトタスクの削除（deletedDefaultTasksに追加）
+          deletedDefaultTasks.add(task.originalKey);
+          // 編集情報も削除
+          if (editedDefaultTasks[task.type] && editedDefaultTasks[task.type][task.originalKey]) {
+            delete editedDefaultTasks[task.type][task.originalKey];
+          }
+        }
+        
+        // コメントとメタデータも削除
+        if (taskComments[task.key]) {
+          delete taskComments[task.key];
+        }
+        if (taskVisibility[task.key] !== undefined) {
+          delete taskVisibility[task.key];
+        }
+        deleteTaskMetadata(task.key);
+        
+        saveState();
+        renderCustomTaskList();
+        renderAll();
+        showToast(`${task.title}を削除`, 'success');
+      }
+    });
+    
+    buttonGroup.appendChild(visibilityBtn);
+    buttonGroup.appendChild(editBtn);
+    buttonGroup.appendChild(deleteBtn);
+    
+    item.appendChild(info);
+    item.appendChild(buttonGroup);
+    container.appendChild(item);
+  });
 }
 
 /**
@@ -770,7 +747,6 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
   saveState();
   renderCustomTaskList();
   renderAll();
-  renderVisibilitySettings();
 
   // 更新後は追加モードへ戻して、次の新規追加と区別しやすくする
   cancelTaskEdit();

@@ -68,11 +68,6 @@ function setupEventListeners() {
   }
   
   // タブ切り替え
-  const visibilityTab = getElement('visibilityTab');
-  if (visibilityTab) {
-    visibilityTab.addEventListener('click', () => switchTab('visibility'));
-  }
-  
   const customTaskTab = getElement('customTaskTab');
   if (customTaskTab) {
     customTaskTab.addEventListener('click', () => switchTab('custom'));
@@ -149,12 +144,6 @@ function setupEventListeners() {
     resetProjectsBtn.addEventListener('click', resetProjects);
   }
 
-  // 表示設定リセットボタン
-  const resetVisibilityBtn = getElement('resetVisibilityBtn');
-  if (resetVisibilityBtn) {
-    resetVisibilityBtn.addEventListener('click', resetVisibility);
-  }
-
   // カスタムタスクリセットボタン
   const resetCustomTasksBtn = getElement('resetCustomTasksBtn');
   if (resetCustomTasksBtn) {
@@ -165,6 +154,22 @@ function setupEventListeners() {
   const resetEditedDefaultTasksBtn = getElement('resetEditedDefaultTasksBtn');
   if (resetEditedDefaultTasksBtn) {
     resetEditedDefaultTasksBtn.addEventListener('click', resetEditedDefaultTasks);
+  }
+
+  // メイン画面のタスク追加ボタン
+  const addDailyTaskBtn = getElement('addDailyTaskBtn');
+  if (addDailyTaskBtn) {
+    addDailyTaskBtn.addEventListener('click', () => openTaskFormWithType('daily'));
+  }
+
+  const addWeeklyTaskBtn = getElement('addWeeklyTaskBtn');
+  if (addWeeklyTaskBtn) {
+    addWeeklyTaskBtn.addEventListener('click', () => openTaskFormWithType('weekly'));
+  }
+
+  const addSeasonTaskBtn = getElement('addSeasonTaskBtn');
+  if (addSeasonTaskBtn) {
+    addSeasonTaskBtn.addEventListener('click', () => openTaskFormWithType('season'));
   }
 
   // ハンバーガーメニュー

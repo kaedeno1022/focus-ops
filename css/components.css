@@ -119,6 +119,47 @@ button:active {
   margin-bottom: 16px;
 }
 
+/* セクションヘッダー（タイトル + タスク追加ボタン） */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+/* タスク追加ボタン */
+.btn-add-task {
+  background: linear-gradient(90deg, var(--neon), var(--purple));
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btn-add-task:hover {
+  transform: scale(1.1) translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.btn-add-task:active {
+  transform: scale(0.95);
+}
+
 /* ============================================================================
    進捗バー
    ============================================================================ */

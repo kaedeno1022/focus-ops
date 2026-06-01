@@ -381,26 +381,25 @@ function resetAll() {
  * 表示設定をリセット（全タスクを表示状態に戻す）
  */
 function resetVisibility() {
-  if (!confirm('全てのタスクを表示状態に戻しますか？\n（削除したデフォルトタスクも復元されます）')) {
+  if (!confirm('全てのタスクを表示状態に戻しますか?')) {
     return;
   }
 
   taskVisibility = {};
-  deletedDefaultTasks.clear();
   
   // トーストメッセージを表示
-  showToast('表示設定をリセットしました', 'success');
+  showToast('表示設定をリセット', 'success');
 
   saveState();
   renderAll();
-  renderVisibilitySettings();
+  renderCustomTaskList();
 }
 
 /**
- * カスタムタスクを全削除
+ * 全タスクを削除（デフォルト+カスタム）
  */
 function resetCustomTasks() {
-  if (!confirm('全てのカスタムタスクを削除しますか？\nこの操作は元に戻せません。')) {
+  if (!confirm('全てのタスクを削除しますか?\n(デフォルトタスクも全て削除されます)\nこの操作は元に戻せません。')) {
     return;
   }
 
@@ -426,8 +425,26 @@ function resetCustomTasks() {
     season: []
   };
   
+  // デフォルトタスクを全て削除済みに追加
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const defaultTasks = DATA[type] || [];
+    defaultTasks.forEach(group => {
+      group.tasks.forEach(([title, priority]) => {
+        const key = createKey(type, group.category, title);
+        deletedDefaultTasks.add(key);
+        delete checkedState[key];
+        delete taskComments[key];
+        delete taskVisibility[key];
+        deleteTaskMetadata(key);
+      });
+    });
+  });
+  
+  // 編集済みデフォルトタスクもクリア
+  editedDefaultTasks = {};
+  
   // トーストメッセージを表示
-  showToast('カスタムタスクを全て削除しました', 'success');
+  showToast('全タスクを削除', 'success');
 
   saveState();
   renderAll();
@@ -435,14 +452,33 @@ function resetCustomTasks() {
 }
 
 /**
- * デフォルトタスクの編集をリセット
+ * デフォルトタスクのみにリセット（カスタム削除+デフォルト復元）
  */
 function resetEditedDefaultTasks() {
-  if (!confirm('全てのデフォルトタスクの編集を元に戻しますか？\nこの操作は元に戻せません。')) {
+  if (!confirm('デフォルトタスクのみにリセットしますか?\n(カスタムタスクは全て削除されます)\nこの操作は元に戻せません。')) {
     return;
   }
 
   cancelTaskEdit();
+
+  // カスタムタスクを全削除
+  ['daily', 'weekly', 'season'].forEach(type => {
+    const tasks = customTasks[type] || [];
+    tasks.forEach(task => {
+      const category = getCategoryFromPriority(task.priority);
+      const key = createKey(type, category, task.title);
+      delete checkedState[key];
+      delete taskComments[key];
+      delete taskVisibility[key];
+      deleteTaskMetadata(key);
+    });
+  });
+
+  customTasks = {
+    daily: [],
+    weekly: [],
+    season: []
+  };
 
   // 編集されたデフォルトタスクの古いチェック状態とコメントを削除
   ['daily', 'weekly', 'season'].forEach(type => {
@@ -463,11 +499,13 @@ function resetEditedDefaultTasks() {
   // 編集されたデフォルトタスクをクリア
   editedDefaultTasks = {};
   
+  // 削除されたデフォルトタスクを復元
+  deletedDefaultTasks.clear();
+  
   // トーストメッセージを表示
-  showToast('デフォルトタスクの編集を全てリセットしました', 'success');
+  showToast('デフォルトタスクのみにリセット', 'success');
 
   saveState();
   renderAll();
   renderCustomTaskList();
-  renderVisibilitySettings();
 }

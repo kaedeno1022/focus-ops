@@ -173,7 +173,10 @@
 
     <main class="grid" aria-label="タスクリスト">
       <section class="card" aria-labelledby="daily-title">
-        <h2 id="daily-title">📅 今日のタスク</h2>
+        <div class="section-header">
+          <h2 id="daily-title">📅 今日のタスク</h2>
+          <button id="addDailyTaskBtn" class="btn-add-task" type="button" title="タスクを追加">+</button>
+        </div>
 
         <div class="progress-wrap">
           <div class="progress-top">
@@ -190,7 +193,10 @@
       </section>
 
       <section class="card" aria-labelledby="weekly-title">
-        <h2 id="weekly-title">📆 今週のタスク</h2>
+        <div class="section-header">
+          <h2 id="weekly-title">📆 今週のタスク</h2>
+          <button id="addWeeklyTaskBtn" class="btn-add-task" type="button" title="タスクを追加">+</button>
+        </div>
 
         <div class="progress-wrap">
           <div class="progress-top">
@@ -207,7 +213,10 @@
       </section>
 
       <section class="card" aria-labelledby="season-title">
-        <h2 id="season-title">📊 長期のタスク</h2>
+        <div class="section-header">
+          <h2 id="season-title">📊 長期のタスク</h2>
+          <button id="addSeasonTaskBtn" class="btn-add-task" type="button" title="タスクを追加">+</button>
+        </div>
 
         <div class="progress-wrap">
           <div class="progress-top">
@@ -243,41 +252,17 @@
 
       <div class="modal-body">
         <div class="tabs">
-          <button id="visibilityTab" class="tab-btn active" type="button">表示設定</button>
-          <button id="customTaskTab" class="tab-btn" type="button">カスタムタスク</button>
+          <button id="customTaskTab" class="tab-btn active" type="button">タスク管理</button>
           <button id="tagProjectTab" class="tab-btn" type="button">管理</button>
         </div>
 
-        <!-- 表示設定タブ -->
-        <div id="visibilityPanel" class="tab-panel active">
+        <!-- タスク管理タブ -->
+        <div id="customTaskPanel" class="tab-panel active">
           <div class="panel-header">
-            <p class="panel-description">各タスクの表示/非表示を設定できます。</p>
-            <button id="resetVisibilityBtn" class="btn-main btn-small" type="button">表示設定をリセット</button>
-          </div>
-          
-          <div class="settings-section">
-            <h3>今日のタスク</h3>
-            <div id="dailyVisibilitySettings" class="task-list"></div>
-          </div>
-
-          <div class="settings-section">
-            <h3>今週のタスク</h3>
-            <div id="weeklyVisibilitySettings" class="task-list"></div>
-          </div>
-
-          <div class="settings-section">
-            <h3>長期のタスク</h3>
-            <div id="seasonVisibilitySettings" class="task-list"></div>
-          </div>
-        </div>
-
-        <!-- カスタムタスクタブ -->
-        <div id="customTaskPanel" class="tab-panel">
-          <div class="panel-header">
-            <p class="panel-description">独自のタスクを追加できます。</p>
+            <p class="panel-description">タスクの追加・編集・削除・表示設定ができます。</p>
             <div class="button-group">
-              <button id="resetEditedDefaultTasksBtn" class="btn-main btn-small" type="button">デフォルトタスク編集をリセット</button>
-              <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全カスタムタスクを削除</button>
+              <button id="resetEditedDefaultTasksBtn" class="btn-main btn-small" type="button">デフォルトタスクのみにリセット</button>
+              <button id="resetCustomTasksBtn" class="btn-danger btn-small" type="button">全タスクを削除</button>
             </div>
           </div>
           
@@ -347,7 +332,7 @@
           </form>
 
           <div class="settings-section">
-            <h3>追加済みカスタムタスク</h3>
+            <h3>タスク一覧</h3>
             <div id="customTaskList" class="custom-task-list"></div>
           </div>
 
