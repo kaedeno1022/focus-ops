@@ -666,6 +666,7 @@ function deleteAssignee(assigneeId) {
   saveState();
   renderAssigneeManagerList();
   initAssigneeSelector();
+  renderAll();
   showToast('担当者を削除しました', 'success');
 }
 

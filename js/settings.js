@@ -563,10 +563,6 @@ function openTaskEditForm(type, category, title, priority, isCustomTask, origina
   const currentKey = createKey(type, currentCategory, title);
   form.taskComment.value = taskComments[currentKey] || '';
 
-  // メタデータをフォームに反映
-  const metadata = getTaskMetadata(currentKey);
-  setTaskMetadataToForm(metadata);
-
   // 送信ボタンのテキストを変更
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn) {
@@ -600,6 +596,10 @@ function openTaskEditForm(type, category, title, priority, isCustomTask, origina
   // 設定モーダルを開いてカスタムタスクタブに切り替え
   openSettingsModal();
   switchTab('custom');
+
+  // メタデータをフォームに反映（openSettingsModal 後に呼ぶことで initAssigneeSelector による上書きを防ぐ）
+  const metadata = getTaskMetadata(currentKey);
+  setTaskMetadataToForm(metadata);
 
   // タイトル入力欄にフォーカス
   setTimeout(() => form.taskTitle.focus(), 100);
