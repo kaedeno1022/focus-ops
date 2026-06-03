@@ -133,6 +133,11 @@
       privacyBtn.addEventListener('click', openPrivacyModal);
     }
 
+    const privacyBtnInConsent = getEl('privacyPolicyBtnInConsent');
+    if (privacyBtnInConsent) {
+      privacyBtnInConsent.addEventListener('click', openPrivacyModal);
+    }
+
     const closePrivacyBtn = getEl('closePrivacyBtn');
     if (closePrivacyBtn) {
       closePrivacyBtn.addEventListener('click', closePrivacyModal);
