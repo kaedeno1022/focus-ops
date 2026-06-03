@@ -128,6 +128,7 @@ function createTaskElement(type, category, title, priority) {
   const titleDiv = document.createElement('div');
   titleDiv.className = 'task-title';
   titleDiv.textContent = title;
+  titleDiv.title = title;
 
   const label = document.createElement('label');
   if (!isDetail) {
@@ -171,7 +172,11 @@ function createTaskElement(type, category, title, priority) {
     if (project && project.id !== 'proj-none') {
       const projectBadge = document.createElement('span');
       projectBadge.className = 'task-badge project-badge';
-      projectBadge.textContent = project.name;
+      const maxLen = 12;
+      projectBadge.textContent = project.name.length > maxLen
+        ? project.name.slice(0, maxLen) + '…'
+        : project.name;
+      projectBadge.title = project.name;
       projectBadge.style.backgroundColor = project.color;
       metaContainer.appendChild(projectBadge);
     }
@@ -184,7 +189,11 @@ function createTaskElement(type, category, title, priority) {
     if (tag) {
       const tagBadge = document.createElement('span');
       tagBadge.className = 'task-badge tag-badge';
-      tagBadge.textContent = tag.name;
+      const maxLen = 10;
+      tagBadge.textContent = tag.name.length > maxLen
+        ? tag.name.slice(0, maxLen) + '…'
+        : tag.name;
+      tagBadge.title = tag.name;
       tagBadge.style.backgroundColor = tag.color;
       metaContainer.appendChild(tagBadge);
     }
@@ -195,7 +204,12 @@ function createTaskElement(type, category, title, priority) {
   if (adminMode && assigneeNames.length > 0) {
     const assigneeBadge = document.createElement('span');
     assigneeBadge.className = 'task-badge assignee-badge';
-    assigneeBadge.textContent = `担当: ${assigneeNames.join(' / ')}`;
+    const fullText = `担当: ${assigneeNames.join(' / ')}`;
+    const maxLen = 20;
+    assigneeBadge.textContent = fullText.length > maxLen
+      ? fullText.slice(0, maxLen) + '…'
+      : fullText;
+    assigneeBadge.title = fullText;
     metaContainer.appendChild(assigneeBadge);
   }
 
@@ -246,7 +260,13 @@ function createTaskElement(type, category, title, priority) {
   if (comment) {
     const commentDisplay = document.createElement('div');
     commentDisplay.className = 'comment-display';
-    commentDisplay.textContent = comment;
+    const MAX_COMMENT_DISPLAY = 100;
+    if (comment.length > MAX_COMMENT_DISPLAY) {
+      commentDisplay.textContent = comment.slice(0, MAX_COMMENT_DISPLAY) + '…';
+    } else {
+      commentDisplay.textContent = comment;
+    }
+    commentDisplay.title = comment;
     if (!isDetail) {
       commentDisplay.style.cursor = 'pointer';
       commentDisplay.addEventListener('click', () => {

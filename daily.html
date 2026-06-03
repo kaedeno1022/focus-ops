@@ -291,7 +291,8 @@
 
             <div class="form-group">
               <label for="taskTitle">タスク名</label>
-              <input type="text" id="taskTitle" placeholder="例: 新しいタスク" required>
+              <input type="text" id="taskTitle" placeholder="例: 新しいタスク" maxlength="50" required>
+              <small class="char-counter" id="taskTitleCounter">0/50</small>
             </div>
 
             <div class="form-group">
@@ -345,7 +346,8 @@
 
             <div class="form-group">
               <label for="taskComment">メモ（任意）</label>
-              <textarea id="taskComment" placeholder="例: 毎週月曜日に実施" rows="3"></textarea>
+              <textarea id="taskComment" placeholder="例: 毎週月曜日に実施" rows="3" maxlength="200"></textarea>
+              <small class="char-counter" id="taskCommentCounter">0/200</small>
             </div>
 
             <button type="submit" class="btn-main">タスクを追加</button>
@@ -378,6 +380,7 @@
                 <div class="form-group">
                   <label for="tagManagerName">タグ名</label>
                   <input type="text" id="tagManagerName" maxlength="20" placeholder="例: 顧客対応" required>
+                  <small class="char-counter" id="tagManagerNameCounter">0/20</small>
                 </div>
                 <div class="form-group">
                   <label for="tagManagerColor">色</label>
@@ -401,6 +404,7 @@
                 <div class="form-group">
                   <label for="projectManagerName">プロジェクト名</label>
                   <input type="text" id="projectManagerName" maxlength="20" placeholder="例: 新規施策" required>
+                  <small class="char-counter" id="projectManagerNameCounter">0/20</small>
                 </div>
                 <div class="form-group">
                   <label for="projectManagerColor">色</label>
@@ -423,6 +427,7 @@
                 <div class="form-group">
                   <label for="assigneeManagerName">担当者名</label>
                   <input type="text" id="assigneeManagerName" maxlength="30" placeholder="例: 山田 / Team-A" required>
+                  <small class="char-counter" id="assigneeManagerNameCounter">0/30</small>
                 </div>
                 <button type="submit" class="btn-main">担当者を追加</button>
                 <button type="button" id="assigneeManagerCancelEdit" class="btn-secondary cancel-edit-btn">編集をキャンセル</button>
@@ -442,6 +447,7 @@
                 <div class="form-group">
                   <label for="statusManagerName">ステータス名</label>
                   <input type="text" id="statusManagerName" maxlength="20" placeholder="例: テスト中" required>
+                  <small class="char-counter" id="statusManagerNameCounter">0/20</small>
                 </div>
                 <div class="form-group">
                   <label for="statusManagerColor">色</label>

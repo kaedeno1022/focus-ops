@@ -415,6 +415,23 @@
   color: var(--sub);
 }
 
+.char-counter {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--sub);
+  text-align: right;
+}
+
+.char-counter.char-counter--warn {
+  color: #f59e0b;
+}
+
+.char-counter.char-counter--limit {
+  color: #ef4444;
+  font-weight: bold;
+}
+
 /* 時間入力グループ */
 .time-input-group {
   display: flex;

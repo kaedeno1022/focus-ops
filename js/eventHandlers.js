@@ -26,9 +26,44 @@ function withButtonGuard(button, handler, lockMs = 450) {
 }
 
 /**
+ * 文字カウンターを設定・更新する
+ * @param {string} inputId - 入力要素のID
+ * @param {string} counterId - カウンター要素のID
+ */
+function setupCharCounter(inputId, counterId) {
+  const input = getElement(inputId);
+  const counter = getElement(counterId);
+  if (!input || !counter) return;
+  const max = input.maxLength > 0 ? input.maxLength : null;
+  if (!max) return;
+
+  const update = () => {
+    const len = input.value.length;
+    counter.textContent = `${len}/${max}`;
+    counter.classList.remove('char-counter--warn', 'char-counter--limit');
+    if (len >= max) {
+      counter.classList.add('char-counter--limit');
+    } else if (len >= Math.floor(max * 0.8)) {
+      counter.classList.add('char-counter--warn');
+    }
+  };
+
+  input.addEventListener('input', update);
+  update();
+}
+
+/**
  * イベントリスナーを設定
  */
 function setupEventListeners() {
+  // 文字カウンター
+  setupCharCounter('taskTitle', 'taskTitleCounter');
+  setupCharCounter('taskComment', 'taskCommentCounter');
+  setupCharCounter('tagManagerName', 'tagManagerNameCounter');
+  setupCharCounter('projectManagerName', 'projectManagerNameCounter');
+  setupCharCounter('assigneeManagerName', 'assigneeManagerNameCounter');
+  setupCharCounter('statusManagerName', 'statusManagerNameCounter');
+
   // 設定ボタン
   const settingsBtn = getElement('settingsBtn');
   if (settingsBtn) {
