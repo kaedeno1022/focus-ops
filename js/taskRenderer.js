@@ -199,7 +199,7 @@ function createTaskElement(type, category, title, priority) {
     }
   });
 
-  // 担当者表示（管理者モード時のみ）
+  // 担当者表示（担当者管理モード時のみ）
   const assigneeNames = normalizeAssigneeListForRender(taskAssignees[key]);
   if (adminMode && assigneeNames.length > 0) {
     const assigneeBadge = document.createElement('span');

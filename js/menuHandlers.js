@@ -255,7 +255,7 @@ function updateModeMenuBtn() {
 }
 
 /**
- * 管理者モードUIを更新
+ * 担当者管理モードUIを更新
  */
 function updateAdminModeUI() {
   const badge = document.getElementById('adminModeBadge');
@@ -287,7 +287,7 @@ function updateAdminModeUI() {
 }
 
 /**
- * 管理者モードをトグル
+ * 担当者管理モードをトグル
  */
 function toggleAdminMode() {
   adminMode = !adminMode;
@@ -296,8 +296,8 @@ function toggleAdminMode() {
 
   announceToScreenReader(
     adminMode
-      ? '管理者モードをオンにしました。担当者入力と表示が有効になります。'
-      : '管理者モードをオフにしました。担当者入力と表示を非表示にしました。'
+      ? '担当者管理モードをオンにしました。担当者入力と表示が有効になります。'
+      : '担当者管理モードをオフにしました。担当者入力と表示を非表示にしました。'
   );
 
   saveState();

@@ -58,7 +58,7 @@ let projectFilter = loadFromStorage(STORAGE_KEYS.PROJECT_FILTER) || null;
 /** タスク表示モード ('simple' | 'detail') */
 let displayMode = loadFromStorage(STORAGE_KEYS.DISPLAY_MODE) || 'simple';
 
-/** 管理者モード */
+/** 担当者管理モード */
 const adminModeRaw = loadFromStorage(STORAGE_KEYS.ADMIN_MODE);
 let adminMode = adminModeRaw === true || adminModeRaw === 'true' || adminModeRaw === 1 || adminModeRaw === '1';
 

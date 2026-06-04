@@ -63,7 +63,7 @@ async function init() {
     if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
   }
 
-  // 管理者モードの初期化
+  // 担当者管理モードの初期化
   if (typeof updateAdminModeUI === 'function') {
     updateAdminModeUI();
   }
