@@ -51,6 +51,7 @@
   .card {
     padding: 16px;
     border-radius: 18px;
+    min-width: 0;
   }
 
   .grid {

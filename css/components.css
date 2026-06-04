@@ -129,6 +129,8 @@ button:active {
 
 .section-header h2 {
   margin: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 /* タスク追加ボタン */
