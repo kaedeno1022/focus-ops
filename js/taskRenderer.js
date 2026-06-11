@@ -701,8 +701,10 @@ function showStatusDropdown(anchor, key) {
 function renderKanbanView() {
   const board = document.getElementById('kanbanBoard');
   if (!board) return;
-
   board.innerHTML = '';
+
+  // プロジェクトフィルタの選択値を取得
+  const selectedProject = getSelectedProject(); // 仮にこの関数がプロジェクトの選択値を返すとします
 
   const allTasks = [];
   ['daily', 'weekly', 'season'].forEach(type => {
@@ -713,6 +715,10 @@ function renderKanbanView() {
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
         if (!isTaskVisible(key)) return;
+
+        // プロジェクトフィルタを考慮してタスクをフィルタリング
+        if (selectedProject && group.project !== selectedProject) return;
+
         allTasks.push({ type, category: group.category, title, priority, key });
       });
     });
@@ -721,38 +727,43 @@ function renderKanbanView() {
   KANBAN_STATUSES.forEach(status => {
     const column = document.createElement('div');
     column.className = 'kanban-column';
-
     const header = document.createElement('div');
     header.className = 'kanban-column-header';
     header.style.borderTopColor = status.color;
-
     const titleSpan = document.createElement('span');
     titleSpan.className = 'kanban-column-title';
     titleSpan.textContent = status.name;
-
     const countSpan = document.createElement('span');
     countSpan.className = 'kanban-count';
-
     header.appendChild(titleSpan);
     header.appendChild(countSpan);
     column.appendChild(header);
-
     const cards = document.createElement('div');
     cards.className = 'kanban-cards';
-
     const tasksInColumn = allTasks.filter(t => {
       const sid = taskStatus[t.key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
       return sid === status.id;
     });
-
     countSpan.textContent = tasksInColumn.length;
     tasksInColumn.forEach(({ type, category, title, priority, key }) => {
       cards.appendChild(createKanbanCard(type, category, title, priority, key));
     });
-
     column.appendChild(cards);
     board.appendChild(column);
   });
+}
+
+function getSelectedProject() {
+  const dropdown = document.getElementById('projectFilterDropdown');
+  if (!dropdown) return null;
+
+  // 選択されている input タグを取得
+  const selectedOption = dropdown.querySelector('input:checked');
+  if (!selectedOption) return null;
+
+  // 選択値を取得
+  const selectedProject = selectedOption.value;
+  return selectedProject;
 }
 
 /**

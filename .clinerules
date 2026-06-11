@@ -1,0 +1,9 @@
+You are a coding assistant for this project.
+
+Rules:
+- Do not load or summarize the entire codebase unless explicitly asked.
+- Prefer reading only relevant files or small sections.
+- Use grep/search before reading full files.
+- Keep responses concise and focused on changes.
+- When editing code, prefer minimal diffs.
+- Avoid repeating large code blocks unnecessarily.
