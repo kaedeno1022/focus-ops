@@ -521,14 +521,14 @@ function closeImportBackupDropdown() {
  * カンバンビューを切り替える
  */
 function toggleKanbanView() {
-  if (displayMode === 'simple') return; // シンプルモードでは無効
-  kanbanViewMode = !kanbanViewMode;
+  if (AppState.displayMode === 'simple') return; // シンプルモードでは無効
+  AppState.kanbanViewMode = !AppState.kanbanViewMode;
 
   const mainGrid = document.querySelector('.grid');
   const kanbanBoard = getElement('kanbanBoard');
   const btn = getElement('kanbanViewBtn');
 
-  if (kanbanViewMode) {
+  if (AppState.kanbanViewMode) {
     if (mainGrid) mainGrid.style.display = 'none';
     if (kanbanBoard) kanbanBoard.style.display = 'flex';
     if (btn) { btn.textContent = 'カンバン表示中'; btn.classList.add('active'); }
@@ -556,7 +556,7 @@ function closeProjectFilterDropdown() {
  * プロジェクトフィルターを変更
  */
 function handleProjectFilterChange(value) {
-  projectFilter = value || null;
+  AppState.projectFilter = value || null;
   saveState();
   renderAll();
   if (typeof updateProjectFilterBtnLabel === 'function') {

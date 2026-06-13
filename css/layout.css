@@ -101,6 +101,38 @@ header .subtitle {
   }
 }
 
+/* テーマ切り替えボタン */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--theme-btn-bg, rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--theme-btn-hover, rgba(255, 255, 255, 0.35));
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
 /* ハンバーガーメニューボタン */
 .menu-toggle {
   display: none;

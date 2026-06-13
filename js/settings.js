@@ -62,7 +62,7 @@ function openSettingsModal() {
   
   renderCustomTaskList();
   renderMetadataManagers();
-  if (!editingTask) {
+  if (!AppState.editingTask) {
     switchTab('custom');
   }
   scrollSettingsModalToTop();
@@ -152,7 +152,7 @@ function switchTab(tabName) {
  * @param {string} subTabName - サブタブ名 ('tag' | 'project' | 'assignee' | 'kanban')
  */
 function switchManagementSubTab(subTabName) {
-  if (subTabName === 'assignee' && !adminMode) {
+  if (subTabName === 'assignee' && !AppState.adminMode) {
     subTabName = 'tag';
   }
 
@@ -206,13 +206,13 @@ function renderCustomTaskList() {
   ['daily', 'weekly', 'season'].forEach(type => {
     // デフォルトタスクを収集
     const defaultTasks = DATA[type] || [];
-    const edited = editedDefaultTasks[type] || {};
+    const edited = AppState.editedDefaultTasks[type] || {};
     
     defaultTasks.forEach(group => {
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
         // 削除済みタスクはスキップ
-        if (deletedDefaultTasks.has(key)) return;
+        if (AppState.deletedDefaultTasks.has(key)) return;
         
         // 編集されている場合は編集後の情報を使用
         const taskInfo = edited[key] ? {
@@ -249,7 +249,7 @@ function renderCustomTaskList() {
     });
     
     // カスタムタスクを収集
-    const tasks = customTasks[type] || [];
+    const tasks = AppState.customTasks[type] || [];
     
     tasks.forEach((task, index) => {
       const category = getCategoryFromPriority(task.priority);
@@ -344,7 +344,7 @@ function renderCustomTaskList() {
       low: '低'
     }[task.priority];
     
-    const comment = taskComments[task.key] || '';
+    const comment = AppState.taskComments[task.key] || '';
     
     info.innerHTML = `
       <strong>${task.title}</strong><br>
@@ -356,7 +356,7 @@ function renderCustomTaskList() {
     buttonGroup.className = 'button-group';
     
     // 表示/非表示トグルボタン
-    const isVisible = taskVisibility[task.key] !== false;
+    const isVisible = AppState.taskVisibility[task.key] !== false;
     const visibilityBtn = document.createElement('button');
     visibilityBtn.className = 'btn-secondary btn-small';
     visibilityBtn.textContent = isVisible ? '表示中' : '非表示';
@@ -364,7 +364,7 @@ function renderCustomTaskList() {
     visibilityBtn.title = isVisible ? '非表示にする' : '表示する';
     
     visibilityBtn.addEventListener('click', () => {
-      taskVisibility[task.key] = !isVisible;
+      AppState.taskVisibility[task.key] = !isVisible;
       saveState();
       renderCustomTaskList();
       renderAll();
@@ -397,22 +397,22 @@ function renderCustomTaskList() {
       if (confirm(`「${task.title}」を削除しますか？`)) {
         if (task.isCustom) {
           // カスタムタスクの削除
-          customTasks[task.type].splice(task.customIndex, 1);
+          AppState.customTasks[task.type].splice(task.customIndex, 1);
         } else {
           // デフォルトタスクの削除（deletedDefaultTasksに追加）
-          deletedDefaultTasks.add(task.originalKey);
+          AppState.deletedDefaultTasks.add(task.originalKey);
           // 編集情報も削除
-          if (editedDefaultTasks[task.type] && editedDefaultTasks[task.type][task.originalKey]) {
-            delete editedDefaultTasks[task.type][task.originalKey];
+          if (AppState.editedDefaultTasks[task.type] && AppState.editedDefaultTasks[task.type][task.originalKey]) {
+            delete AppState.editedDefaultTasks[task.type][task.originalKey];
           }
         }
         
         // コメントとメタデータも削除
-        if (taskComments[task.key]) {
-          delete taskComments[task.key];
+        if (AppState.taskComments[task.key]) {
+          delete AppState.taskComments[task.key];
         }
-        if (taskVisibility[task.key] !== undefined) {
-          delete taskVisibility[task.key];
+        if (AppState.taskVisibility[task.key] !== undefined) {
+          delete AppState.taskVisibility[task.key];
         }
         deleteTaskMetadata(task.key);
         
@@ -485,18 +485,18 @@ function addCustomTask(e) {
   if (!validateTaskDateOrder()) return;
   
   // カスタムタスクを追加
-  if (!customTasks[type]) {
-    customTasks[type] = [];
+  if (!AppState.customTasks[type]) {
+    AppState.customTasks[type] = [];
   }
   
-  customTasks[type].push({
+  AppState.customTasks[type].push({
     title,
     priority
   });
   
   // コメントがある場合は保存
   if (comment) {
-    taskComments[key] = comment;
+    AppState.taskComments[key] = comment;
   }
   
   // メタデータを保存
@@ -544,7 +544,7 @@ function openTaskEditForm(type, category, title, priority, isCustomTask, origina
   const editTitle = originalInfo ? originalInfo.originalTitle : title;
   const editPriority = originalInfo ? originalInfo.originalPriority : priority;
   
-  editingTask = {
+  AppState.editingTask = {
     type,
     category: editCategory,
     title: editTitle,
@@ -561,7 +561,7 @@ function openTaskEditForm(type, category, title, priority, isCustomTask, origina
   // コメントを取得（現在のキーで）
   const currentCategory = getCategoryFromPriority(priority);
   const currentKey = createKey(type, currentCategory, title);
-  form.taskComment.value = taskComments[currentKey] || '';
+  form.taskComment.value = AppState.taskComments[currentKey] || '';
 
   // 送信ボタンのテキストを変更
   const submitBtn = form.querySelector('button[type="submit"]');
@@ -635,7 +635,7 @@ function cancelTaskEdit() {
   }
 
   // 編集中のタスク情報をクリア
-  editingTask = null;
+  AppState.editingTask = null;
 }
 
 /**
@@ -646,16 +646,16 @@ function cancelTaskEdit() {
  * @param {string} newComment - 新しいコメント
  */
 function saveTaskEdit(newType, newTitle, newPriority, newComment) {
-  if (!editingTask) return;
+  if (!AppState.editingTask) return;
 
-  const { type: oldType, category: oldCategory, title: oldTitle, isCustomTask, originalKey } = editingTask;
+  const { type: oldType, category: oldCategory, title: oldTitle, isCustomTask, originalKey } = AppState.editingTask;
   const newCategory = getCategoryFromPriority(newPriority);
   const newKey = createKey(newType, newCategory, newTitle);
   
   // 現在のタスクのキーを取得（編集済みの場合は編集後のキー）
   let currentKey = originalKey;
   if (!isCustomTask) {
-    const edited = editedDefaultTasks[oldType] || {};
+    const edited = AppState.editedDefaultTasks[oldType] || {};
     if (edited[originalKey]) {
       // 既に編集されている場合、現在のキーは編集後のもの
       const currentCategory = getCategoryFromPriority(edited[originalKey].priority);
@@ -667,7 +667,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
 
   if (isCustomTask) {
     // カスタムタスクの編集
-    const taskIndex = customTasks[oldType]?.findIndex(t => 
+    const taskIndex = AppState.customTasks[oldType]?.findIndex(t => 
       t.title === oldTitle && getCategoryFromPriority(t.priority) === oldCategory
     );
 
@@ -675,18 +675,18 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
       // タスクタイプが変更された場合
       if (oldType !== newType) {
         // 古いタイプから削除
-        customTasks[oldType].splice(taskIndex, 1);
+        AppState.customTasks[oldType].splice(taskIndex, 1);
         // 新しいタイプに追加
-        if (!customTasks[newType]) {
-          customTasks[newType] = [];
+        if (!AppState.customTasks[newType]) {
+          AppState.customTasks[newType] = [];
         }
-        customTasks[newType].push({
+        AppState.customTasks[newType].push({
           title: newTitle,
           priority: newPriority
         });
       } else {
         // 同じタイプ内で更新
-        customTasks[oldType][taskIndex] = {
+        AppState.customTasks[oldType][taskIndex] = {
           title: newTitle,
           priority: newPriority
         };
@@ -694,35 +694,35 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
     }
   } else {
     // デフォルトタスクの編集
-    if (!editedDefaultTasks[oldType]) {
-      editedDefaultTasks[oldType] = {};
+    if (!AppState.editedDefaultTasks[oldType]) {
+      AppState.editedDefaultTasks[oldType] = {};
     }
     
     // タスクタイプが変更された場合は、カスタムタスクとして追加
     if (oldType !== newType) {
       // 元のデフォルトタスクを非表示にする
-      taskVisibility[originalKey] = false;
+      AppState.taskVisibility[originalKey] = false;
       
       // 編集記録から削除
-      if (editedDefaultTasks[oldType] && editedDefaultTasks[oldType][originalKey]) {
-        delete editedDefaultTasks[oldType][originalKey];
+      if (AppState.editedDefaultTasks[oldType] && AppState.editedDefaultTasks[oldType][originalKey]) {
+        delete AppState.editedDefaultTasks[oldType][originalKey];
       }
       
       // 新しいタイプにカスタムタスクとして追加
-      if (!customTasks[newType]) {
-        customTasks[newType] = [];
+      if (!AppState.customTasks[newType]) {
+        AppState.customTasks[newType] = [];
       }
-      customTasks[newType].push({
+      AppState.customTasks[newType].push({
         title: newTitle,
         priority: newPriority
       });
     } else {
       // 同じタイプ内で編集情報を保存（originalKeyをキーとして使用）
-      editedDefaultTasks[oldType][originalKey] = {
+      AppState.editedDefaultTasks[oldType][originalKey] = {
         title: newTitle,
         priority: newPriority,
         originalTitle: oldTitle,
-        originalPriority: editingTask.priority
+        originalPriority: AppState.editingTask.priority
       };
     }
   }
@@ -732,17 +732,17 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
 
   // チェック状態・コメント・メタデータを移行（currentKeyから新しいキーへ）
   if (currentKey !== newKey) {
-    if (checkedState[currentKey]) {
-      checkedState[newKey] = checkedState[currentKey];
-      delete checkedState[currentKey];
+    if (AppState.checkedState[currentKey]) {
+      AppState.checkedState[newKey] = AppState.checkedState[currentKey];
+      delete AppState.checkedState[currentKey];
     }
     
-    if (taskComments[currentKey]) {
+    if (AppState.taskComments[currentKey]) {
       // 古いコメントを新しいキーに移動（新しいコメントがない場合）
       if (!newComment) {
-        taskComments[newKey] = taskComments[currentKey];
+        AppState.taskComments[newKey] = AppState.taskComments[currentKey];
       }
-      delete taskComments[currentKey];
+      delete AppState.taskComments[currentKey];
     }
 
     // メタデータを移行
@@ -759,10 +759,10 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
 
   // 新しいコメントを保存
   if (newComment) {
-    taskComments[newKey] = newComment;
-  } else if (!taskComments[newKey]) {
+    AppState.taskComments[newKey] = newComment;
+  } else if (!AppState.taskComments[newKey]) {
     // 新しいコメントがなく、移行もされていない場合は削除
-    delete taskComments[newKey];
+    delete AppState.taskComments[newKey];
   }
 
   saveState();
@@ -800,7 +800,7 @@ function saveTaskEdit(newType, newTitle, newPriority, newComment) {
  */
 function openTaskEditFromMain(type, category, title, priority) {
   const key = createKey(type, category, title);
-  const isCustomTask = customTasks[type]?.some(task => (
+  const isCustomTask = AppState.customTasks[type]?.some(task => (
     task.title === title && getCategoryFromPriority(task.priority) === category
   ));
 
@@ -820,7 +820,7 @@ function openTaskEditFromMain(type, category, title, priority) {
       });
     });
 
-    const edited = editedDefaultTasks[type] || {};
+    const edited = AppState.editedDefaultTasks[type] || {};
     for (const [originalKey, editData] of Object.entries(edited)) {
       if (editData.title === title && getCategoryFromPriority(editData.priority) === category) {
         originalInfo = originalTasksMap.get(originalKey) || null;

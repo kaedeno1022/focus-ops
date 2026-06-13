@@ -50,9 +50,9 @@ function updateMinimumModeNotice() {
   const text = getElement('minimumModeNoticeText');
   if (!notice || !text) return;
 
-  notice.setAttribute('aria-hidden', minimumMode ? 'false' : 'true');
+  notice.setAttribute('aria-hidden', AppState.minimumMode ? 'false' : 'true');
 
-  if (!minimumMode) {
+  if (!AppState.minimumMode) {
     text.textContent = '';
     notice.hidden = true;
     return;
@@ -89,8 +89,8 @@ function updateMinimumModeNotice() {
  */
 function createResetUndoSnapshot() {
   return {
-    checkedState: { ...checkedState },
-    taskStatus: { ...taskStatus }
+    checkedState: { ...AppState.checkedState },
+    taskStatus: { ...AppState.taskStatus }
   };
 }
 
@@ -99,8 +99,8 @@ function createResetUndoSnapshot() {
  */
 function undoResetFromSnapshot() {
   if (!resetUndoSnapshot) return;
-  checkedState = { ...resetUndoSnapshot.checkedState };
-  taskStatus = { ...resetUndoSnapshot.taskStatus };
+  AppState.checkedState = { ...resetUndoSnapshot.checkedState };
+  AppState.taskStatus = { ...resetUndoSnapshot.taskStatus };
   saveState();
   renderAll();
   showToast('リセットを取り消しました', 'success', 2600, { dedupeKey: 'reset-undo' });
@@ -140,15 +140,15 @@ function toggleMenu() {
     }, 100);
     
     // フォーカストラップを設定
-    cleanupFocusTrap = trapFocus(topbar);
+    AppState.cleanupFocusTrap = trapFocus(topbar);
   } else {
     // メニューを閉じた時
     announceToScreenReader('メニューを閉じました');
     
     // フォーカストラップをクリーンアップ
-    if (cleanupFocusTrap) {
-      cleanupFocusTrap();
-      cleanupFocusTrap = null;
+    if (AppState.cleanupFocusTrap) {
+      AppState.cleanupFocusTrap();
+      AppState.cleanupFocusTrap = null;
     }
     
     // メニューボタンにフォーカスを戻す（スクロール位置は維持）
@@ -174,9 +174,9 @@ function closeMenu() {
   unlockPageScrollForMenu();
   
   // フォーカストラップをクリーンアップ
-  if (cleanupFocusTrap) {
-    cleanupFocusTrap();
-    cleanupFocusTrap = null;
+  if (AppState.cleanupFocusTrap) {
+    AppState.cleanupFocusTrap();
+    AppState.cleanupFocusTrap = null;
   }
 }
 
@@ -184,20 +184,20 @@ function closeMenu() {
  * 最低限モードをトグル
  */
 function toggleMinimumMode() {
-  minimumMode = !minimumMode;
+  AppState.minimumMode = !AppState.minimumMode;
 
   const badge = document.getElementById('minimumModeBadge');
-  if (badge) badge.textContent = minimumMode ? 'ON' : 'OFF';
+  if (badge) badge.textContent = AppState.minimumMode ? 'ON' : 'OFF';
   const btn = getElement('minimumBtn');
   if (btn) {
-    btn.classList.toggle('active', minimumMode);
-    btn.setAttribute('aria-pressed', minimumMode.toString());
+    btn.classList.toggle('active', AppState.minimumMode);
+    btn.setAttribute('aria-pressed', AppState.minimumMode.toString());
   }
   updateModeMenuBtn();
 
   // スクリーンリーダーへの通知
   announceToScreenReader(
-    minimumMode
+    AppState.minimumMode
       ? '最低限モードをオンにしました。高優先度タスクのみ表示され、進捗母数も高優先度のみになります。'
       : '最低限モードをオフにしました。全てのタスクが表示されます。'
   );
@@ -212,21 +212,21 @@ function toggleMinimumMode() {
  * 表示モードをトグル（シンプルモード ⇔ 詳細モード）
  */
 function toggleDisplayMode() {
-  displayMode = displayMode === 'simple' ? 'detail' : 'simple';
+  AppState.displayMode = AppState.displayMode === 'simple' ? 'detail' : 'simple';
   const badge = document.getElementById('displayModeBadge');
-  if (badge) badge.textContent = displayMode === 'detail' ? '詳細' : 'シンプル';
+  if (badge) badge.textContent = AppState.displayMode === 'detail' ? '詳細' : 'シンプル';
   const btn = getElement('displayModeBtn');
   if (btn) {
-    btn.classList.toggle('active', displayMode === 'detail');
-    btn.setAttribute('aria-pressed', (displayMode === 'detail').toString());
+    btn.classList.toggle('active', AppState.displayMode === 'detail');
+    btn.setAttribute('aria-pressed', (AppState.displayMode === 'detail').toString());
   }
   // カンバンビューボタンの表示制御
   const kanbanViewBtn = getElement('kanbanViewBtn');
-  if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
+  if (kanbanViewBtn) kanbanViewBtn.style.display = AppState.displayMode === 'simple' ? 'none' : '';
 
   // シンプルモードへの切り替え時、カンバンビューが起動中なら終了
-  if (displayMode === 'simple' && kanbanViewMode) {
-    kanbanViewMode = false;
+  if (AppState.displayMode === 'simple' && AppState.kanbanViewMode) {
+    AppState.kanbanViewMode = false;
     const mainGrid = document.querySelector('.grid');
     const kanbanBoard = getElement('kanbanBoard');
     if (mainGrid) mainGrid.style.display = '';
@@ -235,7 +235,7 @@ function toggleDisplayMode() {
 
   updateModeMenuBtn();
   announceToScreenReader(
-    displayMode === 'detail'
+    AppState.displayMode === 'detail'
       ? '詳細モードに切り替えました。着手状況が完了になるとタスクが完了扱いになります。'
       : 'シンプルモードに切り替えました。チェックボックスで完了管理します。'
   );
@@ -250,7 +250,7 @@ function toggleDisplayMode() {
 function updateModeMenuBtn() {
   const btn = getElement('modeMenuBtn');
   if (!btn) return;
-  const anyActive = minimumMode || displayMode === 'detail' || adminMode;
+  const anyActive = AppState.minimumMode || AppState.displayMode === 'detail' || AppState.adminMode;
   btn.classList.toggle('active', anyActive);
 }
 
@@ -259,29 +259,29 @@ function updateModeMenuBtn() {
  */
 function updateAdminModeUI() {
   const badge = document.getElementById('adminModeBadge');
-  if (badge) badge.textContent = adminMode ? 'ON' : 'OFF';
+  if (badge) badge.textContent = AppState.adminMode ? 'ON' : 'OFF';
 
   const btn = getElement('adminModeBtn');
   if (btn) {
-    btn.classList.toggle('active', adminMode);
-    btn.setAttribute('aria-pressed', adminMode.toString());
+    btn.classList.toggle('active', AppState.adminMode);
+    btn.setAttribute('aria-pressed', AppState.adminMode.toString());
   }
 
   const assigneeGroup = document.getElementById('taskAssigneeGroup');
   if (assigneeGroup) {
-    assigneeGroup.style.display = adminMode ? '' : 'none';
+    assigneeGroup.style.display = AppState.adminMode ? '' : 'none';
   }
 
   const assigneeSubTab = document.getElementById('assigneeManagementSubTab');
   const assigneeSubPanel = document.getElementById('assigneeManagementSubPanel');
   if (assigneeSubTab) {
-    assigneeSubTab.style.display = adminMode ? '' : 'none';
+    assigneeSubTab.style.display = AppState.adminMode ? '' : 'none';
   }
   if (assigneeSubPanel) {
-    assigneeSubPanel.style.display = adminMode ? '' : 'none';
+    assigneeSubPanel.style.display = AppState.adminMode ? '' : 'none';
   }
 
-  if (!adminMode && assigneeSubTab?.classList.contains('active') && typeof switchManagementSubTab === 'function') {
+  if (!AppState.adminMode && assigneeSubTab?.classList.contains('active') && typeof switchManagementSubTab === 'function') {
     switchManagementSubTab('tag');
   }
 }
@@ -290,12 +290,12 @@ function updateAdminModeUI() {
  * 担当者管理モードをトグル
  */
 function toggleAdminMode() {
-  adminMode = !adminMode;
+  AppState.adminMode = !AppState.adminMode;
   updateAdminModeUI();
   updateModeMenuBtn();
 
   announceToScreenReader(
-    adminMode
+    AppState.adminMode
       ? '担当者管理モードをオンにしました。担当者入力と表示が有効になります。'
       : '担当者管理モードをオフにしました。担当者入力と表示を非表示にしました。'
   );
@@ -322,15 +322,15 @@ function resetCategory(type) {
 
   resetUndoSnapshot = createResetUndoSnapshot();
 
-  Object.keys(checkedState).forEach(key => {
+  Object.keys(AppState.checkedState).forEach(key => {
     if (key.startsWith(`${type}_`)) {
-      checkedState[key] = false;
+      AppState.checkedState[key] = false;
     }
   });
 
-  Object.keys(taskStatus).forEach(key => {
+  Object.keys(AppState.taskStatus).forEach(key => {
     if (key.startsWith(`${type}_`)) {
-      delete taskStatus[key];
+      delete AppState.taskStatus[key];
     }
   });
 
@@ -359,8 +359,8 @@ function resetAll() {
 
   resetUndoSnapshot = createResetUndoSnapshot();
 
-  checkedState = {};
-  taskStatus = {};
+  AppState.checkedState = {};
+  AppState.taskStatus = {};
 
   showToast('全タスクのチェック・進捗状態をリセットしました', 'success', 8000, {
     dedupeKey: 'reset-undo',
@@ -385,7 +385,7 @@ function resetVisibility() {
     return;
   }
 
-  taskVisibility = {};
+  AppState.taskVisibility = {};
   
   // トーストメッセージを表示
   showToast('表示設定をリセット', 'success');
@@ -407,19 +407,19 @@ function resetCustomTasks() {
 
   // カスタムタスクのチェック状態も削除
   ['daily', 'weekly', 'season'].forEach(type => {
-    const tasks = customTasks[type] || [];
+    const tasks = AppState.customTasks[type] || [];
     tasks.forEach(task => {
       const category = getCategoryFromPriority(task.priority);
       const key = createKey(type, category, task.title);
-      delete checkedState[key];
-      delete taskComments[key];
-      delete taskVisibility[key];
+      delete AppState.checkedState[key];
+      delete AppState.taskComments[key];
+      delete AppState.taskVisibility[key];
       deleteTaskMetadata(key);
     });
   });
 
   // カスタムタスクをクリア
-  customTasks = {
+  AppState.customTasks = {
     daily: [],
     weekly: [],
     season: []
@@ -431,17 +431,17 @@ function resetCustomTasks() {
     defaultTasks.forEach(group => {
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
-        deletedDefaultTasks.add(key);
-        delete checkedState[key];
-        delete taskComments[key];
-        delete taskVisibility[key];
+        AppState.deletedDefaultTasks.add(key);
+        delete AppState.checkedState[key];
+        delete AppState.taskComments[key];
+        delete AppState.taskVisibility[key];
         deleteTaskMetadata(key);
       });
     });
   });
   
   // 編集済みデフォルトタスクもクリア
-  editedDefaultTasks = {};
+  AppState.editedDefaultTasks = {};
   
   // トーストメッセージを表示
   showToast('全タスクを削除', 'success');
@@ -463,18 +463,18 @@ function resetEditedDefaultTasks() {
 
   // カスタムタスクを全削除
   ['daily', 'weekly', 'season'].forEach(type => {
-    const tasks = customTasks[type] || [];
+    const tasks = AppState.customTasks[type] || [];
     tasks.forEach(task => {
       const category = getCategoryFromPriority(task.priority);
       const key = createKey(type, category, task.title);
-      delete checkedState[key];
-      delete taskComments[key];
-      delete taskVisibility[key];
+      delete AppState.checkedState[key];
+      delete AppState.taskComments[key];
+      delete AppState.taskVisibility[key];
       deleteTaskMetadata(key);
     });
   });
 
-  customTasks = {
+  AppState.customTasks = {
     daily: [],
     weekly: [],
     season: []
@@ -482,7 +482,7 @@ function resetEditedDefaultTasks() {
 
   // 編集されたデフォルトタスクの古いチェック状態とコメントを削除
   ['daily', 'weekly', 'season'].forEach(type => {
-    const edited = editedDefaultTasks[type] || {};
+    const edited = AppState.editedDefaultTasks[type] || {};
     Object.keys(edited).forEach(key => {
       const editData = edited[key];
       const newCategory = getCategoryFromPriority(editData.priority);
@@ -490,17 +490,17 @@ function resetEditedDefaultTasks() {
       
       // 編集後のキーのデータを削除
       if (newKey !== key) {
-        delete checkedState[newKey];
-        delete taskComments[newKey];
+        delete AppState.checkedState[newKey];
+        delete AppState.taskComments[newKey];
       }
     });
   });
 
   // 編集されたデフォルトタスクをクリア
-  editedDefaultTasks = {};
+  AppState.editedDefaultTasks = {};
   
   // 削除されたデフォルトタスクを復元
-  deletedDefaultTasks.clear();
+  AppState.deletedDefaultTasks.clear();
   
   // トーストメッセージを表示
   showToast('デフォルトタスクのみにリセット', 'success');

@@ -143,10 +143,10 @@ function discardPreImportBackup() {
  */
 function saveState() {
   try {
-    const checkedData = JSON.stringify(checkedState);
-    const minimumData = JSON.stringify(minimumMode);
-    const visibilityData = JSON.stringify(taskVisibility);
-    const customData = JSON.stringify(customTasks);
+    const checkedData = JSON.stringify(AppState.checkedState);
+    const minimumData = JSON.stringify(AppState.minimumMode);
+    const visibilityData = JSON.stringify(AppState.taskVisibility);
+    const customData = JSON.stringify(AppState.customTasks);
     
     // データサイズチェック
     const totalSize = new Blob([checkedData, minimumData, visibilityData, customData]).size;
@@ -155,19 +155,19 @@ function saveState() {
       announceToScreenReader('データ容量が上限に近づいています');
     }
     
-    const commentsData = JSON.stringify(taskComments);
-    const editedDefaultData = JSON.stringify(editedDefaultTasks);
-    const deletedDefaultData = JSON.stringify([...deletedDefaultTasks]);
-    const projectsData = JSON.stringify(taskProjects);
-    const startDatesData = JSON.stringify(taskStartDates);
-    const endDatesData = JSON.stringify(taskEndDates);
-    const tagsData = JSON.stringify(taskTags);
-    const estimatedTimeData = JSON.stringify(taskEstimatedTime);
-    const assigneesData = JSON.stringify(taskAssignees);
+    const commentsData = JSON.stringify(AppState.taskComments);
+    const editedDefaultData = JSON.stringify(AppState.editedDefaultTasks);
+    const deletedDefaultData = JSON.stringify([...AppState.deletedDefaultTasks]);
+    const projectsData = JSON.stringify(AppState.taskProjects);
+    const startDatesData = JSON.stringify(AppState.taskStartDates);
+    const endDatesData = JSON.stringify(AppState.taskEndDates);
+    const tagsData = JSON.stringify(AppState.taskTags);
+    const estimatedTimeData = JSON.stringify(AppState.taskEstimatedTime);
+    const assigneesData = JSON.stringify(AppState.taskAssignees);
     const assigneeMasterData = JSON.stringify(ASSIGNEE_MASTER);
     const projectMasterData = JSON.stringify(PROJECTS);
     const tagMasterData = JSON.stringify(TAGS);
-    const taskStatusData = JSON.stringify(taskStatus);
+    const taskStatusData = JSON.stringify(AppState.taskStatus);
     const statusMasterData = JSON.stringify(KANBAN_STATUSES);
     
     localStorage.setItem(STORAGE_KEYS.CHECKED, checkedData);
@@ -188,10 +188,10 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.TAG_MASTER, tagMasterData);
     localStorage.setItem(STORAGE_KEYS.TASK_STATUS, taskStatusData);
     localStorage.setItem(STORAGE_KEYS.STATUS_MASTER, statusMasterData);
-    localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
-    localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(adminMode));
-    localStorage.setItem(STORAGE_KEYS.PROJECT_FILTER, JSON.stringify(projectFilter));
-    localStorage.setItem(STORAGE_KEYS.KANBAN_VIEW_MODE, JSON.stringify(kanbanViewMode));
+    localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(AppState.displayMode));
+    localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(AppState.adminMode));
+    localStorage.setItem(STORAGE_KEYS.PROJECT_FILTER, JSON.stringify(AppState.projectFilter));
+    localStorage.setItem(STORAGE_KEYS.KANBAN_VIEW_MODE, JSON.stringify(AppState.kanbanViewMode));
     touchShareMeta();
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);
@@ -292,45 +292,45 @@ function buildSharePayload() {
     })
   );
 
-  const checkedDoneKeys = Object.keys(checkedState).filter((key) => checkedState[key] === true);
-  const hiddenTaskKeys = Object.keys(taskVisibility).filter((key) => taskVisibility[key] === false);
+  const checkedDoneKeys = Object.keys(AppState.checkedState).filter((key) => AppState.checkedState[key] === true);
+  const hiddenTaskKeys = Object.keys(AppState.taskVisibility).filter((key) => AppState.taskVisibility[key] === false);
 
   const compactCustomTasks = {};
-  if (Array.isArray(customTasks.daily) && customTasks.daily.length > 0) compactCustomTasks.d = customTasks.daily;
-  if (Array.isArray(customTasks.weekly) && customTasks.weekly.length > 0) compactCustomTasks.w = customTasks.weekly;
-  if (Array.isArray(customTasks.season) && customTasks.season.length > 0) compactCustomTasks.s = customTasks.season;
+  if (Array.isArray(AppState.customTasks.daily) && AppState.customTasks.daily.length > 0) compactCustomTasks.d = AppState.customTasks.daily;
+  if (Array.isArray(AppState.customTasks.weekly) && AppState.customTasks.weekly.length > 0) compactCustomTasks.w = AppState.customTasks.weekly;
+  if (Array.isArray(AppState.customTasks.season) && AppState.customTasks.season.length > 0) compactCustomTasks.s = AppState.customTasks.season;
 
   const compactState = {};
 
   if (checkedDoneKeys.length > 0) compactState.c = checkedDoneKeys;
-  if (minimumMode) compactState.m = 1;
+  if (AppState.minimumMode) compactState.m = 1;
   if (hiddenTaskKeys.length > 0) compactState.v = hiddenTaskKeys;
   if (hasOwnValues(compactCustomTasks)) compactState.u = compactCustomTasks;
 
-  const compactComments = omitEmptyStringValues(taskComments);
+  const compactComments = omitEmptyStringValues(AppState.taskComments);
   if (hasOwnValues(compactComments)) compactState.o = compactComments;
 
-  if (hasOwnValues(editedDefaultTasks)) compactState.e = editedDefaultTasks;
+  if (hasOwnValues(AppState.editedDefaultTasks)) compactState.e = AppState.editedDefaultTasks;
 
-  const deletedKeys = [...deletedDefaultTasks];
+  const deletedKeys = [...AppState.deletedDefaultTasks];
   if (deletedKeys.length > 0) compactState.x = deletedKeys;
 
-  if (hasOwnValues(taskProjects)) compactState.p = taskProjects;
-  if (hasOwnValues(taskStartDates)) compactState.sd = taskStartDates;
-  if (hasOwnValues(taskEndDates)) compactState.ed = taskEndDates;
-  if (hasOwnValues(taskTags)) compactState.g = taskTags;
-  if (hasOwnValues(taskEstimatedTime)) compactState.t = taskEstimatedTime;
-  if (hasOwnValues(taskAssignees)) compactState.a = taskAssignees;
-  if (hasOwnValues(taskStatus)) compactState.k = taskStatus;
+  if (hasOwnValues(AppState.taskProjects)) compactState.p = AppState.taskProjects;
+  if (hasOwnValues(AppState.taskStartDates)) compactState.sd = AppState.taskStartDates;
+  if (hasOwnValues(AppState.taskEndDates)) compactState.ed = AppState.taskEndDates;
+  if (hasOwnValues(AppState.taskTags)) compactState.g = AppState.taskTags;
+  if (hasOwnValues(AppState.taskEstimatedTime)) compactState.t = AppState.taskEstimatedTime;
+  if (hasOwnValues(AppState.taskAssignees)) compactState.a = AppState.taskAssignees;
+  if (hasOwnValues(AppState.taskStatus)) compactState.k = AppState.taskStatus;
 
   if (!isJsonEqual(PROJECTS, DEFAULT_PROJECTS)) compactState.pm = PROJECTS;
   if (!isJsonEqual(TAGS, DEFAULT_TAGS)) compactState.tm = TAGS;
   if (!isJsonEqual(ASSIGNEE_MASTER, DEFAULT_ASSIGNEE_MASTER)) compactState.am = ASSIGNEE_MASTER;
   if (!isJsonEqual(KANBAN_STATUSES, DEFAULT_KANBAN_STATUSES)) compactState.sm = KANBAN_STATUSES;
 
-  if (displayMode === 'detail') compactState.d = 1;
-  if (adminMode) compactState.r = 1;
-  if (projectFilter) compactState.pf = projectFilter;
+  if (AppState.displayMode === 'detail') compactState.d = 1;
+  if (AppState.adminMode) compactState.r = 1;
+  if (AppState.projectFilter) compactState.pf = AppState.projectFilter;
 
   return {
     version: 2,
@@ -349,42 +349,42 @@ function buildSharePayload() {
 function applySharedStateV2(state) {
   const toBooleanFlag = (value) => value === true || value === 'true' || value === 1 || value === '1';
 
-  checkedState = {};
+  AppState.checkedState = {};
   if (Array.isArray(state.c)) {
     state.c.forEach((key) => {
-      checkedState[key] = true;
+      AppState.checkedState[key] = true;
     });
   }
 
-  minimumMode = toBooleanFlag(state.m);
+  AppState.minimumMode = toBooleanFlag(state.m);
 
-  taskVisibility = {};
+  AppState.taskVisibility = {};
   if (Array.isArray(state.v)) {
     state.v.forEach((key) => {
-      taskVisibility[key] = false;
+      AppState.taskVisibility[key] = false;
     });
   }
 
-  customTasks = { daily: [], weekly: [], season: [] };
+  AppState.customTasks = { daily: [], weekly: [], season: [] };
   if (state.u && typeof state.u === 'object') {
-    if (Array.isArray(state.u.d)) customTasks.daily = state.u.d;
-    if (Array.isArray(state.u.w)) customTasks.weekly = state.u.w;
-    if (Array.isArray(state.u.s)) customTasks.season = state.u.s;
+    if (Array.isArray(state.u.d)) AppState.customTasks.daily = state.u.d;
+    if (Array.isArray(state.u.w)) AppState.customTasks.weekly = state.u.w;
+    if (Array.isArray(state.u.s)) AppState.customTasks.season = state.u.s;
   }
 
-  taskComments = state.o && typeof state.o === 'object' ? state.o : {};
-  editedDefaultTasks = state.e && typeof state.e === 'object' ? state.e : {};
-  deletedDefaultTasks = new Set(Array.isArray(state.x) ? state.x : []);
-  taskProjects = state.p && typeof state.p === 'object' ? state.p : {};
-  taskStartDates = state.sd && typeof state.sd === 'object' ? state.sd : {};
-  taskEndDates = state.ed && typeof state.ed === 'object' ? state.ed : {};
-  taskTags = state.g && typeof state.g === 'object' ? state.g : {};
-  taskEstimatedTime = state.t && typeof state.t === 'object' ? state.t : {};
-  taskAssignees = state.a && typeof state.a === 'object' ? state.a : {};
-  taskStatus = state.k && typeof state.k === 'object' ? state.k : {};
-  displayMode = toBooleanFlag(state.d) ? 'detail' : 'simple';
-  adminMode = toBooleanFlag(state.r);
-  projectFilter = state.pf || null;
+  AppState.taskComments = state.o && typeof state.o === 'object' ? state.o : {};
+  AppState.editedDefaultTasks = state.e && typeof state.e === 'object' ? state.e : {};
+  AppState.deletedDefaultTasks = new Set(Array.isArray(state.x) ? state.x : []);
+  AppState.taskProjects = state.p && typeof state.p === 'object' ? state.p : {};
+  AppState.taskStartDates = state.sd && typeof state.sd === 'object' ? state.sd : {};
+  AppState.taskEndDates = state.ed && typeof state.ed === 'object' ? state.ed : {};
+  AppState.taskTags = state.g && typeof state.g === 'object' ? state.g : {};
+  AppState.taskEstimatedTime = state.t && typeof state.t === 'object' ? state.t : {};
+  AppState.taskAssignees = state.a && typeof state.a === 'object' ? state.a : {};
+  AppState.taskStatus = state.k && typeof state.k === 'object' ? state.k : {};
+  AppState.displayMode = toBooleanFlag(state.d) ? 'detail' : 'simple';
+  AppState.adminMode = toBooleanFlag(state.r);
+  AppState.projectFilter = state.pf || null;
 
   PROJECTS.length = 0;
   PROJECTS.push(...(Array.isArray(state.pm) ? state.pm : DEFAULT_PROJECTS.map(project => ({ ...project }))));

@@ -6,14 +6,27 @@
   <meta name="description" content="作業表ツール - 勤務時間・作業内容の記録管理">
   <title>作業表ツール | Focus Ops</title>
   <link rel="stylesheet" href="css/worksheet.css">
+  <script src="js/theme.js"></script>
+  <script>initTheme();</script>
 </head>
 <body>
 
 <!-- App Header -->
 <header class="app-header">
-  <a href="index.html" class="home-link">← ホームに戻る</a>
-  <h1>📋 作業表ツール</h1>
-  <p>勤務時間・作業内容の記録管理</p>
+  <div class="app-header-content">
+    <div>
+      <a href="index.html" class="home-link">← ホームに戻る</a>
+      <h1>📋 作業表ツール</h1>
+      <p>勤務時間・作業内容の記録管理</p>
+    </div>
+    <button
+      class="theme-toggle-btn"
+      type="button"
+      aria-label="ダークモードに切り替え"
+      aria-pressed="false"
+      onclick="toggleTheme()"
+    >🌙</button>
+  </div>
 </header>
 
 <!-- モード切り替え -->

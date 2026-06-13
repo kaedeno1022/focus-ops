@@ -78,7 +78,7 @@ function createDeadlineBadge(deadline) {
  * @returns {boolean}
  */
 function isTaskDetailDone(key) {
-  const currentStatusId = taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+  const currentStatusId = AppState.taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
   return currentStatusId === DONE_STATUS_ID;
 }
 
@@ -92,8 +92,8 @@ function isTaskDetailDone(key) {
  */
 function createTaskElement(type, category, title, priority) {
   const key = createKey(type, category, title);
-  const isDetail = displayMode === 'detail';
-  const checked = checkedState[key] || false;
+  const isDetail = AppState.displayMode === 'detail';
+  const checked = AppState.checkedState[key] || false;
 
   const task = document.createElement('div');
   task.className = `task ${checked ? 'done' : ''}`;
@@ -166,7 +166,7 @@ function createTaskElement(type, category, title, priority) {
   metaContainer.className = 'task-meta';
 
   // プロジェクト表示
-  const projectId = taskProjects[key];
+  const projectId = AppState.taskProjects[key];
   if (projectId) {
     const project = PROJECTS.find(p => p.id === projectId);
     if (project && project.id !== 'proj-none') {
@@ -183,7 +183,7 @@ function createTaskElement(type, category, title, priority) {
   }
 
   // タグ表示
-  const tags = taskTags[key] || [];
+  const tags = AppState.taskTags[key] || [];
   tags.forEach(tagId => {
     const tag = TAGS.find(t => t.id === tagId);
     if (tag) {
@@ -200,8 +200,8 @@ function createTaskElement(type, category, title, priority) {
   });
 
   // 担当者表示（担当者管理モード時のみ）
-  const assigneeNames = normalizeAssigneeListForRender(taskAssignees[key]);
-  if (adminMode && assigneeNames.length > 0) {
+  const assigneeNames = normalizeAssigneeListForRender(AppState.taskAssignees[key]);
+  if (AppState.adminMode && assigneeNames.length > 0) {
     const assigneeBadge = document.createElement('span');
     assigneeBadge.className = 'task-badge assignee-badge';
     const fullText = `担当: ${assigneeNames.join(' / ')}`;
@@ -214,13 +214,13 @@ function createTaskElement(type, category, title, priority) {
   }
 
   // 終了日表示（締め切りとして表示）
-  const deadlineBadge = createDeadlineBadge(taskEndDates[key]);
+  const deadlineBadge = createDeadlineBadge(AppState.taskEndDates[key]);
   if (deadlineBadge) {
     metaContainer.appendChild(deadlineBadge);
   }
 
   // 予想作業時間表示
-  const estimatedTime = taskEstimatedTime[key];
+  const estimatedTime = AppState.taskEstimatedTime[key];
   if (estimatedTime) {
     const timeElem = document.createElement('span');
     timeElem.className = 'task-time';
@@ -236,7 +236,7 @@ function createTaskElement(type, category, title, priority) {
 
   // カンバンステータスバッジ（詳細モード時のみ表示）
   if (KANBAN_STATUSES.length > 0 && isDetail) {
-    const currentStatusId = taskStatus[key] || KANBAN_STATUSES[0].id;
+    const currentStatusId = AppState.taskStatus[key] || KANBAN_STATUSES[0].id;
     const currentStatus = KANBAN_STATUSES.find(s => s.id === currentStatusId) || KANBAN_STATUSES[0];
     const statusBadge = document.createElement('button');
     statusBadge.type = 'button';
@@ -256,7 +256,7 @@ function createTaskElement(type, category, title, priority) {
   task.appendChild(metaContainer);
 
   // コメント表示（コメントがある場合のみ）
-  const comment = taskComments[key];
+  const comment = AppState.taskComments[key];
   if (comment) {
     const commentDisplay = document.createElement('div');
     commentDisplay.className = 'comment-display';
@@ -287,10 +287,10 @@ function createTaskElement(type, category, title, priority) {
         checkbox.dataset.locked = 'false';
       }, 260);
 
-      checkedState[key] = checkbox.checked;
+      AppState.checkedState[key] = checkbox.checked;
       // taskStatusも連動
       if (KANBAN_STATUSES.length > 0) {
-        taskStatus[key] = checkbox.checked ? getDoneStatusId() : getTodoStatusId();
+        AppState.taskStatus[key] = checkbox.checked ? getDoneStatusId() : getTodoStatusId();
       }
       const statusText = checkbox.checked ? '完了' : '未完了';
       announceToScreenReader(`${title}を${statusText}にしました`);
@@ -319,7 +319,7 @@ function updateProgressOnly() {
     
     categories.forEach(group => {
       // 最低限モードで優先度：高以外をスキップ
-      if (minimumMode && group.category !== REQUIRED_CATEGORY) {
+      if (AppState.minimumMode && group.category !== REQUIRED_CATEGORY) {
         return;
       }
       
@@ -332,13 +332,13 @@ function updateProgressOnly() {
         }
         
         // プロジェクトフィルターを適用
-        if (projectFilter && taskProjects[key] !== projectFilter) {
+        if (AppState.projectFilter && AppState.taskProjects[key] !== AppState.projectFilter) {
           return;
         }
         
         total++;
         
-        if (checkedState[key]) {
+        if (AppState.checkedState[key]) {
           done++;
         }
       });
@@ -377,7 +377,7 @@ function renderSection(type) {
           const key = createKey('season', group.category, title);
           if (isTaskVisible(key) && isTaskInActivePeriod(key)) {
             // プロジェクトフィルターを適用
-            if (projectFilter && taskProjects[key] !== projectFilter) {
+            if (AppState.projectFilter && AppState.taskProjects[key] !== AppState.projectFilter) {
               return;
             }
             additionalTasks.push({
@@ -394,7 +394,7 @@ function renderSection(type) {
 
   categories.forEach(group => {
     // 最低限モードで優先度：高以外をスキップ
-    if (minimumMode && group.category !== REQUIRED_CATEGORY) {
+    if (AppState.minimumMode && group.category !== REQUIRED_CATEGORY) {
       return;
     }
 
@@ -420,7 +420,7 @@ function renderSection(type) {
       }
       
       // プロジェクトフィルターを適用
-      if (projectFilter && taskProjects[key] !== projectFilter) {
+      if (AppState.projectFilter && AppState.taskProjects[key] !== AppState.projectFilter) {
         return;
       }
       
@@ -516,8 +516,8 @@ function updateProgress(type, total, done) {
  * @returns {boolean}
  */
 function isTaskInActivePeriod(key) {
-  const startDate = taskStartDates[key];
-  const endDate = taskEndDates[key];
+  const startDate = AppState.taskStartDates[key];
+  const endDate = AppState.taskEndDates[key];
   
   // 両方とも未設定の場合はfalse
   if (!startDate && !endDate) return false;
@@ -559,7 +559,7 @@ function isTaskInActivePeriod(key) {
 function renderAll() {
   // パフォーマンス最適化: requestAnimationFrame で描画を最適化
   requestAnimationFrame(() => {
-    if (kanbanViewMode) {
+    if (AppState.kanbanViewMode) {
       renderKanbanView();
     } else {
       renderSection('daily');
@@ -583,7 +583,7 @@ function showStatusDropdown(anchor, key) {
 
   const dropdown = document.createElement('div');
   dropdown.className = 'status-dropdown';
-  const currentStatusId = taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+  const currentStatusId = AppState.taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
 
   KANBAN_STATUSES.forEach(status => {
     const item = document.createElement('button');
@@ -598,11 +598,11 @@ function showStatusDropdown(anchor, key) {
 
     item.addEventListener('click', (e) => {
       e.stopPropagation();
-      taskStatus[key] = status.id;
+      AppState.taskStatus[key] = status.id;
 
       // checkedStateも連動（完了ステータス↔チェック状態の双方向同期）
       const isDone = isTaskDetailDone(key);
-      checkedState[key] = isDone;
+      AppState.checkedState[key] = isDone;
       const taskEl = anchor.closest('.task');
       if (taskEl) taskEl.classList.toggle('done', isDone);
       announceToScreenReader(`ステータスを${status.name}に変更しました`);
@@ -610,7 +610,7 @@ function showStatusDropdown(anchor, key) {
 
       saveState();
       closeDropdown();
-      if (kanbanViewMode) {
+      if (AppState.kanbanViewMode) {
         renderKanbanView();
       } else {
         anchor.textContent = `状態: ${status.name}`;
@@ -709,11 +709,11 @@ function renderKanbanView() {
     const categories = getAllTasks(type);
     if (!categories) return;
     categories.forEach(group => {
-      if (minimumMode && group.category !== REQUIRED_CATEGORY) return;
+      if (AppState.minimumMode && group.category !== REQUIRED_CATEGORY) return;
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
         if (!isTaskVisible(key)) return;
-        if (projectFilter && taskProjects[key] !== projectFilter) return;
+        if (AppState.projectFilter && AppState.taskProjects[key] !== AppState.projectFilter) return;
         allTasks.push({ type, category: group.category, title, priority, key });
       });
     });
@@ -742,7 +742,7 @@ function renderKanbanView() {
     cards.className = 'kanban-cards';
 
     const tasksInColumn = allTasks.filter(t => {
-      const sid = taskStatus[t.key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
+      const sid = AppState.taskStatus[t.key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id);
       return sid === status.id;
     });
 
@@ -767,7 +767,7 @@ function renderKanbanView() {
  */
 function createKanbanCard(type, category, title, priority, key) {
   const card = document.createElement('div');
-  card.className = 'kanban-card' + (checkedState[key] ? ' done' : '');
+  card.className = 'kanban-card' + (AppState.checkedState[key] ? ' done' : '');
 
   const topRow = document.createElement('div');
   topRow.className = 'kanban-card-top';
@@ -810,7 +810,7 @@ function createKanbanCard(type, category, title, priority, key) {
   const metaRow = document.createElement('div');
   metaRow.className = 'kanban-card-meta';
 
-  const projectId = taskProjects[key];
+  const projectId = AppState.taskProjects[key];
   if (projectId) {
     const project = PROJECTS.find(p => p.id === projectId);
     if (project && project.id !== 'proj-none') {
@@ -822,7 +822,7 @@ function createKanbanCard(type, category, title, priority, key) {
     }
   }
 
-  const tagIds = taskTags[key] || [];
+  const tagIds = AppState.taskTags[key] || [];
   tagIds.forEach(tagId => {
     const tag = TAGS.find(t => t.id === tagId);
     if (!tag) return;
@@ -833,7 +833,7 @@ function createKanbanCard(type, category, title, priority, key) {
     metaRow.appendChild(tagBadge);
   });
 
-  const kanbanDeadlineBadge = createDeadlineBadge(taskEndDates[key]);
+  const kanbanDeadlineBadge = createDeadlineBadge(AppState.taskEndDates[key]);
   if (kanbanDeadlineBadge) {
     kanbanDeadlineBadge.classList.add('kanban-deadline');
     metaRow.appendChild(kanbanDeadlineBadge);
@@ -843,7 +843,7 @@ function createKanbanCard(type, category, title, priority, key) {
     card.appendChild(metaRow);
   }
 
-  const comment = taskComments[key];
+  const comment = AppState.taskComments[key];
   if (comment) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'kanban-card-comment';
@@ -851,8 +851,8 @@ function createKanbanCard(type, category, title, priority, key) {
     card.appendChild(commentDiv);
   }
 
-  const assigneeNames = normalizeAssigneeListForRender(taskAssignees[key]);
-  if (adminMode && assigneeNames.length > 0) {
+  const assigneeNames = normalizeAssigneeListForRender(AppState.taskAssignees[key]);
+  if (AppState.adminMode && assigneeNames.length > 0) {
     const assigneeDiv = document.createElement('div');
     assigneeDiv.className = 'kanban-card-assignee';
     assigneeDiv.textContent = `担当: ${assigneeNames.join(' / ')}`;
@@ -868,11 +868,11 @@ function createKanbanCard(type, category, title, priority, key) {
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = s.name;
-    opt.selected = (taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id)) === s.id;
+    opt.selected = (AppState.taskStatus[key] || (KANBAN_STATUSES[0] && KANBAN_STATUSES[0].id)) === s.id;
     statusSelect.appendChild(opt);
   });
   statusSelect.addEventListener('change', () => {
-    taskStatus[key] = statusSelect.value;
+    AppState.taskStatus[key] = statusSelect.value;
     saveState();
     renderKanbanView();
   });

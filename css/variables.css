@@ -19,4 +19,50 @@
   --high: #ef4444;
   --mid: #f59e0b;
   --low: #3b82f6;
+
+  /* テーマ切り替えボタン */
+  --theme-btn-bg: rgba(255, 255, 255, 0.2);
+  --theme-btn-hover: rgba(255, 255, 255, 0.35);
+}
+
+/* ダークモード */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --line: #334155;
+
+  --text: #e2e8f0;
+  --sub: #94a3b8;
+
+  --neon: #8b5cf6;
+  --purple: #6d28d9;
+
+  --high: #f87171;
+  --mid: #fbbf24;
+  --low: #60a5fa;
+
+  --theme-btn-bg: rgba(0, 0, 0, 0.2);
+  --theme-btn-hover: rgba(0, 0, 0, 0.35);
+}
+
+/* OSのダークモード設定に追従（ユーザーが明示的にテーマを指定していない場合） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --line: #334155;
+
+    --text: #e2e8f0;
+    --sub: #94a3b8;
+
+    --neon: #8b5cf6;
+    --purple: #6d28d9;
+
+    --high: #f87171;
+    --mid: #fbbf24;
+    --low: #60a5fa;
+
+    --theme-btn-bg: rgba(0, 0, 0, 0.2);
+    --theme-btn-hover: rgba(0, 0, 0, 0.35);
+  }
 }

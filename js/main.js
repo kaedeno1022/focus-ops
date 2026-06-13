@@ -48,7 +48,7 @@ async function init() {
   }
   
   // 最低限モードの初期化
-  if (minimumMode) {
+  if (AppState.minimumMode) {
     const badge = document.getElementById('minimumModeBadge');
     if (badge) badge.textContent = 'ON';
     const btn = getElement('minimumBtn');
@@ -56,7 +56,7 @@ async function init() {
   }
 
   // 表示モードの初期化
-  if (displayMode === 'detail') {
+  if (AppState.displayMode === 'detail') {
     const badge = document.getElementById('displayModeBadge');
     if (badge) badge.textContent = '詳細';
     const btn = getElement('displayModeBtn');
@@ -74,10 +74,10 @@ async function init() {
 
   // シンプルモード時はカンバンビューボタンを非表示
   const kanbanViewBtn = getElement('kanbanViewBtn');
-  if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
+  if (kanbanViewBtn) kanbanViewBtn.style.display = AppState.displayMode === 'simple' ? 'none' : '';
 
   // カンバンビューモードの UI を復元
-  if (kanbanViewMode && displayMode !== 'simple') {
+  if (AppState.kanbanViewMode && AppState.displayMode !== 'simple') {
     const mainGrid = document.querySelector('.grid');
     const kanbanBoard = getElement('kanbanBoard');
     if (mainGrid) mainGrid.style.display = 'none';

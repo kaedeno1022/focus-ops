@@ -164,7 +164,7 @@ function createKey(type, category, title) {
  */
 function isTaskVisible(key) {
   // デフォルトは表示
-  return taskVisibility[key] !== false;
+  return AppState.taskVisibility[key] !== false;
 }
 
 /**
@@ -188,8 +188,8 @@ function getCategoryFromPriority(priority) {
  */
 function getAllTasks(type) {
   const defaultTasks = DATA[type] || [];
-  const custom = customTasks[type] || [];
-  const edited = editedDefaultTasks[type] || {};
+  const custom = AppState.customTasks[type] || [];
+  const edited = AppState.editedDefaultTasks[type] || {};
   
   // カスタムタスクを優先度に基づいてカテゴリごとにグループ化
   const customGrouped = {};
@@ -210,7 +210,7 @@ function getAllTasks(type) {
     const tasks = group.tasks.map(([title, priority]) => {
       const key = createKey(type, group.category, title);
       // 削除済みのデフォルトタスクはスキップ
-      if (deletedDefaultTasks.has(key)) {
+      if (AppState.deletedDefaultTasks.has(key)) {
         return null;
       }
       if (edited[key]) {

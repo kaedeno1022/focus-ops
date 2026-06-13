@@ -29,6 +29,51 @@
   --checkin-status-in: #dcfce7;
   --checkin-status-out: #fee2e2;
   --transition: .2s cubic-bezier(.4,0,.2,1);
+  --theme-btn-bg: rgba(255, 255, 255, 0.2);
+  --theme-btn-hover: rgba(255, 255, 255, 0.35);
+}
+
+/* ダークモード */
+[data-theme="dark"] {
+  --primary-light: #2e1065;
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --border: #334155;
+  --border-hover: #475569;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  --th-bg: #1e293b;
+  --checkin-bg: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+  --checkin-status-in: #14532d;
+  --checkin-status-out: #450a0a;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+  --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+  --theme-btn-bg: rgba(0, 0, 0, 0.2);
+  --theme-btn-hover: rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --primary-light: #2e1065;
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --border: #334155;
+    --border-hover: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-light: #64748b;
+    --th-bg: #1e293b;
+    --checkin-bg: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+    --checkin-status-in: #14532d;
+    --checkin-status-out: #450a0a;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+    --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+    --theme-btn-bg: rgba(0, 0, 0, 0.2);
+    --theme-btn-hover: rgba(0, 0, 0, 0.35);
+  }
 }
 
 /* ===== Reset & Base ===== */
@@ -58,6 +103,39 @@ body {
 }
 .app-header h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: .02em; }
 .app-header p  { margin: 4px 0 0; font-size: .875rem; opacity: .85; }
+
+.app-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.app-header .theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--theme-btn-bg, rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-weight: normal;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.app-header .theme-toggle-btn:hover {
+  background: var(--theme-btn-hover, rgba(255, 255, 255, 0.35));
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
 
 /* ===== Tabs ===== */
 .tabs {

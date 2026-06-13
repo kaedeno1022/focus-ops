@@ -119,9 +119,9 @@ function initProjectFilterSelect() {
 function updateProjectFilterBtnLabel() {
   const btn = document.getElementById('projectFilterBtn');
   if (!btn) return;
-  if (projectFilter) {
+  if (AppState.projectFilter) {
     const projects = getManagedProjects();
-    const found = projects.find(p => p.id === projectFilter);
+    const found = projects.find(p => p.id === AppState.projectFilter);
     btn.textContent = found ? `${found.name} ▾` : 'プロジェクト: 全て ▾';
   } else {
     btn.textContent = 'プロジェクト: 全て ▾';
@@ -132,7 +132,7 @@ function updateProjectFilterBtnLabel() {
  * タグセレクタを初期化
  */
 function initTagSelector() {
-  const tagContainer = document.getElementById('taskTags');
+  const tagContainer = document.getElementById('AppState.taskTags');
   if (!tagContainer) return;
   
   tagContainer.innerHTML = '';
@@ -562,20 +562,20 @@ function handleAssigneeManagerSubmit(e) {
   const name = nameInput.value.trim();
   if (!name) return;
 
-  if (editingAssigneeId) {
-    const target = ASSIGNEE_MASTER.find(assignee => assignee.id === editingAssigneeId);
+  if (AppState.editingAssigneeId) {
+    const target = ASSIGNEE_MASTER.find(assignee => assignee.id === AppState.editingAssigneeId);
     if (target) {
       const oldName = target.name;
       target.name = name;
 
-      Object.keys(taskAssignees).forEach(key => {
-        const current = normalizeAssigneeList(taskAssignees[key]);
+      Object.keys(AppState.taskAssignees).forEach(key => {
+        const current = normalizeAssigneeList(AppState.taskAssignees[key]);
         if (current.length === 0 || !current.includes(oldName)) {
           return;
         }
 
         const updated = current.map(assigneeName => assigneeName === oldName ? name : assigneeName);
-        taskAssignees[key] = updated;
+        AppState.taskAssignees[key] = updated;
       });
     }
     showToast('担当者を更新しました', 'success');
@@ -611,7 +611,7 @@ function startAssigneeEdit(assigneeId) {
     switchManagementSubTab('assignee');
   }
 
-  editingAssigneeId = assigneeId;
+  AppState.editingAssigneeId = assigneeId;
   nameInput.value = target.name;
   submitBtn.textContent = '担当者を更新';
   cancelBtn.style.display = 'inline-block';
@@ -628,7 +628,7 @@ function cancelAssigneeEdit() {
   if (form) form.reset();
   if (submitBtn) submitBtn.textContent = '担当者を追加';
   if (cancelBtn) cancelBtn.style.display = 'none';
-  editingAssigneeId = null;
+  AppState.editingAssigneeId = null;
 }
 
 /**
@@ -645,21 +645,21 @@ function deleteAssignee(assigneeId) {
     ASSIGNEE_MASTER.splice(index, 1);
   }
 
-  if (editingAssigneeId === assigneeId) {
+  if (AppState.editingAssigneeId === assigneeId) {
     cancelAssigneeEdit();
   }
 
-  Object.keys(taskAssignees).forEach(key => {
-    const current = normalizeAssigneeList(taskAssignees[key]);
+  Object.keys(AppState.taskAssignees).forEach(key => {
+    const current = normalizeAssigneeList(AppState.taskAssignees[key]);
     if (!current.includes(target.name)) {
       return;
     }
 
     const updated = current.filter(name => name !== target.name);
     if (updated.length === 0) {
-      delete taskAssignees[key];
+      delete AppState.taskAssignees[key];
     } else {
-      taskAssignees[key] = updated;
+      AppState.taskAssignees[key] = updated;
     }
   });
 
@@ -684,8 +684,8 @@ function handleTagManagerSubmit(e) {
   const color = colorInput.value;
   if (!name) return;
 
-  if (editingTagId) {
-    const target = TAGS.find(tag => tag.id === editingTagId);
+  if (AppState.editingTagId) {
+    const target = TAGS.find(tag => tag.id === AppState.editingTagId);
     if (target) {
       target.name = name;
       target.color = color;
@@ -718,8 +718,8 @@ function handleProjectManagerSubmit(e) {
   const color = colorInput.value;
   if (!name) return;
 
-  if (editingProjectId) {
-    const target = PROJECTS.find(project => project.id === editingProjectId);
+  if (AppState.editingProjectId) {
+    const target = PROJECTS.find(project => project.id === AppState.editingProjectId);
     if (target) {
       target.name = name;
       target.color = color;
@@ -758,7 +758,7 @@ function startTagEdit(tagId) {
     switchManagementSubTab('tag');
   }
 
-  editingTagId = tagId;
+  AppState.editingTagId = tagId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'タグを更新';
@@ -786,7 +786,7 @@ function startProjectEdit(projectId) {
     switchManagementSubTab('project');
   }
 
-  editingProjectId = projectId;
+  AppState.editingProjectId = projectId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'プロジェクトを更新';
@@ -806,7 +806,7 @@ function cancelTagEdit() {
   if (cancelBtn) cancelBtn.style.display = 'none';
   const colorInput = document.getElementById('tagManagerColor');
   if (colorInput) colorInput.value = '#3b82f6';
-  editingTagId = null;
+  AppState.editingTagId = null;
 }
 
 /**
@@ -821,7 +821,7 @@ function cancelProjectEdit() {
   if (cancelBtn) cancelBtn.style.display = 'none';
   const colorInput = document.getElementById('projectManagerColor');
   if (colorInput) colorInput.value = '#8b5cf6';
-  editingProjectId = null;
+  AppState.editingProjectId = null;
 }
 
 /**
@@ -838,14 +838,14 @@ function deleteTag(tagId) {
     TAGS.splice(index, 1);
   }
 
-  Object.keys(taskTags).forEach(key => {
-    taskTags[key] = (taskTags[key] || []).filter(id => id !== tagId);
-    if (taskTags[key].length === 0) {
-      delete taskTags[key];
+  Object.keys(AppState.taskTags).forEach(key => {
+    AppState.taskTags[key] = (AppState.taskTags[key] || []).filter(id => id !== tagId);
+    if (AppState.taskTags[key].length === 0) {
+      delete AppState.taskTags[key];
     }
   });
 
-  if (editingTagId === tagId) {
+  if (AppState.editingTagId === tagId) {
     cancelTagEdit();
   }
 
@@ -870,13 +870,13 @@ function deleteProject(projectId) {
     PROJECTS.splice(index, 1);
   }
 
-  Object.keys(taskProjects).forEach(key => {
-    if (taskProjects[key] === projectId) {
-      delete taskProjects[key];
+  Object.keys(AppState.taskProjects).forEach(key => {
+    if (AppState.taskProjects[key] === projectId) {
+      delete AppState.taskProjects[key];
     }
   });
 
-  if (editingProjectId === projectId) {
+  if (AppState.editingProjectId === projectId) {
     cancelProjectEdit();
   }
 
@@ -899,12 +899,12 @@ function resetTags() {
   TAGS.push(...DEFAULT_TAGS.map(tag => ({ ...tag })));
 
   const validTagIds = new Set(TAGS.map(tag => tag.id));
-  Object.keys(taskTags).forEach(key => {
-    const nextTags = (taskTags[key] || []).filter(id => validTagIds.has(id));
+  Object.keys(AppState.taskTags).forEach(key => {
+    const nextTags = (AppState.taskTags[key] || []).filter(id => validTagIds.has(id));
     if (nextTags.length > 0) {
-      taskTags[key] = nextTags;
+      AppState.taskTags[key] = nextTags;
     } else {
-      delete taskTags[key];
+      delete AppState.taskTags[key];
     }
   });
 
@@ -928,9 +928,9 @@ function resetProjects() {
   PROJECTS.push(...DEFAULT_PROJECTS.map(project => ({ ...project })));
 
   const validProjectIds = new Set(PROJECTS.map(project => project.id));
-  Object.keys(taskProjects).forEach(key => {
-    if (!validProjectIds.has(taskProjects[key])) {
-      delete taskProjects[key];
+  Object.keys(AppState.taskProjects).forEach(key => {
+    if (!validProjectIds.has(AppState.taskProjects[key])) {
+      delete AppState.taskProjects[key];
     }
   });
 
@@ -949,40 +949,40 @@ function resetProjects() {
  */
 function saveTaskMetadata(key, metadata) {
   if (metadata.project) {
-    taskProjects[key] = metadata.project;
+    AppState.taskProjects[key] = metadata.project;
   } else {
-    delete taskProjects[key];
+    delete AppState.taskProjects[key];
   }
 
   if (metadata.startDate) {
-    taskStartDates[key] = metadata.startDate;
+    AppState.taskStartDates[key] = metadata.startDate;
   } else {
-    delete taskStartDates[key];
+    delete AppState.taskStartDates[key];
   }
 
   if (metadata.endDate) {
-    taskEndDates[key] = metadata.endDate;
+    AppState.taskEndDates[key] = metadata.endDate;
   } else {
-    delete taskEndDates[key];
+    delete AppState.taskEndDates[key];
   }
 
   if (metadata.tags && metadata.tags.length > 0) {
-    taskTags[key] = metadata.tags;
+    AppState.taskTags[key] = metadata.tags;
   } else {
-    delete taskTags[key];
+    delete AppState.taskTags[key];
   }
 
   if (metadata.estimatedTime) {
-    taskEstimatedTime[key] = metadata.estimatedTime;
+    AppState.taskEstimatedTime[key] = metadata.estimatedTime;
   } else {
-    delete taskEstimatedTime[key];
+    delete AppState.taskEstimatedTime[key];
   }
 
   const assigneeList = normalizeAssigneeList(metadata.assignee);
   if (assigneeList.length > 0) {
-    taskAssignees[key] = assigneeList;
+    AppState.taskAssignees[key] = assigneeList;
   } else {
-    delete taskAssignees[key];
+    delete AppState.taskAssignees[key];
   }
   
   saveState();
@@ -995,12 +995,12 @@ function saveTaskMetadata(key, metadata) {
  */
 function getTaskMetadata(key) {
   return {
-    project: taskProjects[key],
-    assignee: normalizeAssigneeList(taskAssignees[key]),
-    startDate: taskStartDates[key],
-    endDate: taskEndDates[key],
-    tags: taskTags[key],
-    estimatedTime: taskEstimatedTime[key]
+    project: AppState.taskProjects[key],
+    assignee: normalizeAssigneeList(AppState.taskAssignees[key]),
+    startDate: AppState.taskStartDates[key],
+    endDate: AppState.taskEndDates[key],
+    tags: AppState.taskTags[key],
+    estimatedTime: AppState.taskEstimatedTime[key]
   };
 }
 
@@ -1009,12 +1009,12 @@ function getTaskMetadata(key) {
  * @param {string} key - タスクキー
  */
 function deleteTaskMetadata(key) {
-  delete taskProjects[key];
-  delete taskAssignees[key];
-  delete taskStartDates[key];
-  delete taskEndDates[key];
-  delete taskTags[key];
-  delete taskEstimatedTime[key];
+  delete AppState.taskProjects[key];
+  delete AppState.taskAssignees[key];
+  delete AppState.taskStartDates[key];
+  delete AppState.taskEndDates[key];
+  delete AppState.taskTags[key];
+  delete AppState.taskEstimatedTime[key];
   saveState();
 }
 
@@ -1141,12 +1141,12 @@ function handleStatusManagerSubmit(e) {
   const color = colorInput.value;
   if (!name) return;
 
-  if (editingStatusId) {
-    if (editingStatusId === DONE_STATUS_ID) {
+  if (AppState.editingStatusId) {
+    if (AppState.editingStatusId === DONE_STATUS_ID) {
       showToast('完了ステータスは編集できません。', 'warning');
       return;
     }
-    const target = KANBAN_STATUSES.find(s => s.id === editingStatusId);
+    const target = KANBAN_STATUSES.find(s => s.id === AppState.editingStatusId);
     if (target) {
       target.name = name;
       target.color = color;
@@ -1184,7 +1184,7 @@ function startStatusEdit(statusId) {
     switchManagementSubTab('kanban');
   }
 
-  editingStatusId = statusId;
+  AppState.editingStatusId = statusId;
   nameInput.value = target.name;
   colorInput.value = target.color;
   submitBtn.textContent = 'ステータスを更新';
@@ -1204,7 +1204,7 @@ function cancelStatusEdit() {
   if (cancelBtn) cancelBtn.style.display = 'none';
   const colorInput = document.getElementById('statusManagerColor');
   if (colorInput) colorInput.value = '#6b7280';
-  editingStatusId = null;
+  AppState.editingStatusId = null;
 }
 
 /**
@@ -1228,17 +1228,17 @@ function deleteStatus(statusId) {
   const index = KANBAN_STATUSES.findIndex(s => s.id === statusId);
   if (index > -1) KANBAN_STATUSES.splice(index, 1);
 
-  Object.keys(taskStatus).forEach(key => {
-    if (taskStatus[key] === statusId) {
+  Object.keys(AppState.taskStatus).forEach(key => {
+    if (AppState.taskStatus[key] === statusId) {
       if (fallbackId) {
-        taskStatus[key] = fallbackId;
+        AppState.taskStatus[key] = fallbackId;
       } else {
-        delete taskStatus[key];
+        delete AppState.taskStatus[key];
       }
     }
   });
 
-  if (editingStatusId === statusId) cancelStatusEdit();
+  if (AppState.editingStatusId === statusId) cancelStatusEdit();
 
   saveState();
   renderStatusManagerList();
@@ -1253,9 +1253,9 @@ function resetKanbanStatuses() {
   if (!confirm('カンバンステータスをデフォルトに戻しますか？\nカスタムステータスは削除されます。')) return;
 
   const defaultIds = new Set(DEFAULT_KANBAN_STATUSES.map(s => s.id));
-  Object.keys(taskStatus).forEach(key => {
-    if (!defaultIds.has(taskStatus[key])) {
-      taskStatus[key] = DEFAULT_KANBAN_STATUSES[0].id;
+  Object.keys(AppState.taskStatus).forEach(key => {
+    if (!defaultIds.has(AppState.taskStatus[key])) {
+      AppState.taskStatus[key] = DEFAULT_KANBAN_STATUSES[0].id;
     }
   });
 

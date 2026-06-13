@@ -15,6 +15,10 @@
   <link rel="stylesheet" href="./css/modals.css?v=2.0.0">
   <link rel="stylesheet" href="./css/responsive.css?v=2.0.0">
   
+  <!-- テーマ: flashを防ぐため defer なしで先に読み込む -->
+  <script src="./js/theme.js"></script>
+  <script>initTheme();</script>
+
   <!-- JavaScript Modules -->
   <script defer src="./js/constants.js?v=2.0.0"></script>
   <script defer src="./js/storage.js?v=2.0.0"></script>
@@ -41,10 +45,17 @@
           <p class="subtitle">プロジェクトとタスクを一元管理</p>
         </div>
         <div class="mobile-actions">
-          <button 
-            id="menuToggleBtn" 
-            class="menu-toggle" 
-            type="button" 
+          <button
+            class="theme-toggle-btn"
+            type="button"
+            aria-label="ダークモードに切り替え"
+            aria-pressed="false"
+            onclick="toggleTheme()"
+          >🌙</button>
+          <button
+            id="menuToggleBtn"
+            class="menu-toggle"
+            type="button"
             aria-label="メニューを開く"
             aria-expanded="false"
           >

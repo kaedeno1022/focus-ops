@@ -15,6 +15,8 @@
     gtag('config', 'G-P8W3KFM8ZX');
   </script>
   
+  <script src="./js/theme.js"></script>
+  <script>initTheme();</script>
   <script defer src="./js/cookieConsent.js"></script>
   
   <link rel="stylesheet" href="css/variables.css">
@@ -56,6 +58,13 @@
     <div class="footer">
       <p>© 2026 Focus Ops - All rights reserved</p>
       <div class="footer-links">
+        <button
+          class="theme-toggle-btn btn-text-link"
+          type="button"
+          aria-label="ダークモードに切り替え"
+          aria-pressed="false"
+          onclick="toggleTheme()"
+        >🌙 ダークモード</button>
         <button id="privacyPolicyBtn" class="btn-text-link">プライバシーポリシー</button>
       </div>
     </div>
