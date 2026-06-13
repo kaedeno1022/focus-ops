@@ -29,6 +29,10 @@
   --checkin-status-in: #dcfce7;
   --checkin-status-out: #fee2e2;
   --transition: .2s cubic-bezier(.4,0,.2,1);
+  --input-bg: #ffffff;
+  --input-bg-disabled: #f8fafc;
+  --input-disabled-text: #94a3b8;
+
   --theme-btn-bg: rgba(255, 255, 255, 0.2);
   --theme-btn-hover: rgba(255, 255, 255, 0.35);
 }
@@ -50,6 +54,10 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
   --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
   --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+  --input-bg: #0f172a;
+  --input-bg-disabled: #1e293b;
+  --input-disabled-text: #475569;
+
   --theme-btn-bg: rgba(0, 0, 0, 0.2);
   --theme-btn-hover: rgba(0, 0, 0, 0.35);
 }
@@ -71,6 +79,9 @@
     --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
     --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
     --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+    --input-bg: #0f172a;
+    --input-bg-disabled: #1e293b;
+    --input-disabled-text: #475569;
     --theme-btn-bg: rgba(0, 0, 0, 0.2);
     --theme-btn-hover: rgba(0, 0, 0, 0.35);
   }
@@ -230,7 +241,7 @@ body {
   font-weight: 700;
   padding: 6px 22px;
   border-radius: 20px;
-  background: #f1f5f9;
+  background: var(--th-bg);
   color: var(--text-muted);
   border: 1.5px solid var(--border);
   transition: all var(--transition);
@@ -264,7 +275,7 @@ body {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
-  font-size: .95em; background: #fff;
+  font-size: .95em; background: var(--card-bg);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .checkin-content    { width: 100%; max-width: 280px; }
@@ -303,7 +314,7 @@ body {
   padding: 9px 12px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: .95em; background: #fff; color: var(--text);
+  font-size: .95em; background: var(--input-bg); color: var(--text);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .form-item input[type="date"] { max-width: 180px; width: 100%; }
@@ -312,7 +323,7 @@ body {
   border-color: var(--primary); outline: none;
   box-shadow: 0 0 0 3px rgba(59,130,246,.12);
 }
-.form-item input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+.form-item input:disabled { background: var(--input-bg-disabled); color: var(--input-disabled-text); cursor: not-allowed; }
 
 .date-row { display: flex; align-items: center; gap: 6px; }
 .weekday-label { font-size: .88em; color: var(--primary); font-weight: 600; }
@@ -403,10 +414,10 @@ thead th {
 thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
 thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
 tbody tr { transition: background var(--transition); }
-tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:nth-child(even) { background: var(--th-bg); }
 tbody tr:hover { background: var(--primary-light); }
 td {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border);
   padding: 10px 8px; text-align: center; white-space: nowrap; color: var(--text);
 }
 /* BPモード: 列幅を適切に調整 */
@@ -432,7 +443,7 @@ td:last-child { min-width: 150px; text-align: center; }
 /* ===== Calendar Grid ===== */
 #calendar-grid {
   display: grid; grid-template-columns: repeat(7, 40px); gap: 2px;
-  margin-bottom: 10px; background: #f8fafc;
+  margin-bottom: 10px; background: var(--th-bg);
   padding: 10px 6px; border-radius: var(--radius); border: 1px solid var(--border);
 }
 .calendar-header {
@@ -511,7 +522,7 @@ td:last-child { min-width: 150px; text-align: center; }
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--th-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   max-width: 450px;
@@ -524,7 +535,7 @@ td:last-child { min-width: 150px; text-align: center; }
   color: var(--text-muted);
   text-align: center;
   padding: 6px 0;
-  background: white;
+  background: var(--card-bg);
   border-radius: 4px;
 }
 
@@ -534,7 +545,7 @@ td:last-child { min-width: 150px; text-align: center; }
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  background: white;
+  background: var(--card-bg);
   border: 1.5px solid var(--border);
   cursor: pointer;
   font-size: .9em;
@@ -599,7 +610,7 @@ td:last-child { min-width: 150px; text-align: center; }
   top: calc(100% + 6px);
   right: 0;
   min-width: 220px;
-  background: #fff;
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -615,7 +626,7 @@ td:last-child { min-width: 150px; text-align: center; }
   gap: 12px;
   padding: 10px 14px;
   border: none;
-  background: #fff;
+  background: var(--card-bg);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -721,7 +732,7 @@ td:last-child { min-width: 150px; text-align: center; }
 
 .toast {
   position: relative;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0,0,0,.15), 0 2px 6px rgba(0,0,0,.08);
   padding: 14px 16px 8px 16px;
@@ -862,7 +873,7 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 .confirm-dialog {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: 28px 32px;
@@ -904,7 +915,7 @@ td:last-child { min-width: 150px; text-align: center; }
 .date-selected-info {
   margin-top: 8px;
   padding: 8px 12px;
-  background: #f1f5f9;
+  background: var(--th-bg);
   border-radius: 6px;
   font-size: 0.85em;
 }
@@ -912,7 +923,7 @@ td:last-child { min-width: 150px; text-align: center; }
 .date-selected-text { color: var(--primary); font-weight: 500; line-height: 1.6; }
 
 /* ===== Rule Card ===== */
-.rule-card { padding: 12px 20px; background: #f8fafc; border: 1px solid #cbd5e1; }
+.rule-card { padding: 12px 20px; background: var(--th-bg); border: 1px solid #cbd5e1; }
 .rule-card-text { font-size: 0.88em; color: #64748b; line-height: 1.6; }
 
 /* ===== Checkbox Row ===== */
@@ -963,7 +974,7 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 .confirm-cancel {
-  background: #e2e8f0;
+  background: var(--border);
   color: var(--text);
 }
 
@@ -1000,7 +1011,7 @@ td:last-child { min-width: 150px; text-align: center; }
     border-radius: var(--radius);
     margin-bottom: 12px;
     padding: 10px 12px;
-    background: #fff;
+    background: var(--card-bg);
     box-shadow: var(--shadow-sm);
   }
   .table-wrap td {

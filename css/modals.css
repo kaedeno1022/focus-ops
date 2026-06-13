@@ -318,7 +318,7 @@
 .form-group textarea {
   width: 100%;
   padding: 10px 14px;
-  background: #f8fafc;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
@@ -337,7 +337,7 @@
 .form-group select {
   appearance: none;
   background-image: none;
-  background-color: #f8fafc;
+  background-color: var(--input-bg);
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: auto;
@@ -381,7 +381,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px;
-  background: #f8fafc;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   border-radius: 8px;
   min-height: 56px;
@@ -464,7 +464,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px;
-  background: #f8fafc;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   border-radius: 8px;
   min-height: 50px;
@@ -507,7 +507,7 @@
 
 /* セレクトボックスのオプション */
 .form-group select option {
-  background: #ffffff;
+  background: var(--card);
   color: var(--text);
   padding: 10px;
 }
@@ -521,7 +521,7 @@
 .form-group input:hover,
 .form-group textarea:hover {
   border-color: rgba(124, 58, 237, 0.4);
-  background: #f1f5f9;
+  background: var(--input-bg-hover);
 }
 
 /* リセットパネル */
@@ -565,7 +565,7 @@
   outline: none;
   border-color: var(--neon);
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
-  background: #ffffff;
+  background: var(--input-bg-focus);
 }
 
 .form-group input::placeholder,
@@ -690,7 +690,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
+  background: var(--card);
   border-top: 2px solid var(--neon);
   padding: 20px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);

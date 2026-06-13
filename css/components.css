@@ -179,7 +179,7 @@ button:active {
 
 .progress {
   height: 10px;
-  background: #e2e8f0;
+  background: var(--line);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -207,7 +207,7 @@ button:active {
 }
 
 .toast {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--neon);
   border-radius: 12px;
   padding: 16px 20px;
@@ -249,7 +249,7 @@ button:active {
   border-radius: 8px;
   border: 1px solid var(--line);
   color: var(--text);
-  background: #f8fafc;
+  background: var(--input-bg);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 9px;

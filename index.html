@@ -27,8 +27,17 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎯 Focus Ops</h1>
-      <p>今日のタスク・今週のタスク・長期のタスクと作業表を一元管理</p>
+      <div class="header-main">
+        <h1>🎯 Focus Ops</h1>
+        <p>今日のタスク・今週のタスク・長期のタスクと作業表を一元管理</p>
+      </div>
+      <button
+        class="theme-toggle-btn"
+        type="button"
+        aria-label="ダークモードに切り替え"
+        aria-pressed="false"
+        onclick="toggleTheme()"
+      >🌙</button>
     </div>
 
     <div class="tools-grid">
@@ -58,13 +67,6 @@
     <div class="footer">
       <p>© 2026 Focus Ops - All rights reserved</p>
       <div class="footer-links">
-        <button
-          class="theme-toggle-btn btn-text-link"
-          type="button"
-          aria-label="ダークモードに切り替え"
-          aria-pressed="false"
-          onclick="toggleTheme()"
-        >🌙 ダークモード</button>
         <button id="privacyPolicyBtn" class="btn-text-link">プライバシーポリシー</button>
       </div>
     </div>

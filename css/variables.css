@@ -20,6 +20,12 @@
   --mid: #f59e0b;
   --low: #3b82f6;
 
+  /* 入力欄 */
+  --input-bg: #f8fafc;
+  --input-bg-hover: #f1f5f9;
+  --input-bg-focus: #ffffff;
+  --input-bg-disabled: #f1f5f9;
+
   /* テーマ切り替えボタン */
   --theme-btn-bg: rgba(255, 255, 255, 0.2);
   --theme-btn-hover: rgba(255, 255, 255, 0.35);
@@ -41,6 +47,11 @@
   --mid: #fbbf24;
   --low: #60a5fa;
 
+  --input-bg: #0f172a;
+  --input-bg-hover: #162032;
+  --input-bg-focus: #1a2744;
+  --input-bg-disabled: #1e293b;
+
   --theme-btn-bg: rgba(0, 0, 0, 0.2);
   --theme-btn-hover: rgba(0, 0, 0, 0.35);
 }
@@ -61,6 +72,11 @@
     --high: #f87171;
     --mid: #fbbf24;
     --low: #60a5fa;
+
+    --input-bg: #0f172a;
+    --input-bg-hover: #162032;
+    --input-bg-focus: #1a2744;
+    --input-bg-disabled: #1e293b;
 
     --theme-btn-bg: rgba(0, 0, 0, 0.2);
     --theme-btn-hover: rgba(0, 0, 0, 0.35);
