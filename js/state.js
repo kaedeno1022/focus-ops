@@ -50,7 +50,8 @@ let taskStartDates = loadFromStorage(STORAGE_KEYS.START_DATES) || {};
 let taskEndDates = loadFromStorage(STORAGE_KEYS.END_DATES) || {};
 
 /** カンバンビューモード */
-let kanbanViewMode = false;
+const kanbanViewModeRaw = loadFromStorage(STORAGE_KEYS.KANBAN_VIEW_MODE);
+let kanbanViewMode = kanbanViewModeRaw === true || kanbanViewModeRaw === 1 || kanbanViewModeRaw === '1' || kanbanViewModeRaw === 'true';
 
 /** プロジェクトフィルター（選択中のプロジェクトID、nullは全て表示） */
 let projectFilter = loadFromStorage(STORAGE_KEYS.PROJECT_FILTER) || null;

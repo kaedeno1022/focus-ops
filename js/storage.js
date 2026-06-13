@@ -191,6 +191,7 @@ function saveState() {
     localStorage.setItem(STORAGE_KEYS.DISPLAY_MODE, JSON.stringify(displayMode));
     localStorage.setItem(STORAGE_KEYS.ADMIN_MODE, JSON.stringify(adminMode));
     localStorage.setItem(STORAGE_KEYS.PROJECT_FILTER, JSON.stringify(projectFilter));
+    localStorage.setItem(STORAGE_KEYS.KANBAN_VIEW_MODE, JSON.stringify(kanbanViewMode));
     touchShareMeta();
   } catch (error) {
     console.error('Failed to save state to localStorage:', error);

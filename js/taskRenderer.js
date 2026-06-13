@@ -713,6 +713,7 @@ function renderKanbanView() {
       group.tasks.forEach(([title, priority]) => {
         const key = createKey(type, group.category, title);
         if (!isTaskVisible(key)) return;
+        if (projectFilter && taskProjects[key] !== projectFilter) return;
         allTasks.push({ type, category: group.category, title, priority, key });
       });
     });

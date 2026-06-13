@@ -28,7 +28,8 @@ const STORAGE_KEYS = {
   PRE_IMPORT_BACKUP: 'work_tasks_pre_import_backup',
   START_DATES: 'work_tasks_start_dates',
   END_DATES: 'work_tasks_end_dates',
-  PROJECT_FILTER: 'work_tasks_project_filter'
+  PROJECT_FILTER: 'work_tasks_project_filter',
+  KANBAN_VIEW_MODE: 'work_tasks_kanban_view_mode'
 };
 
 /** 完了ステータスのID（変更不可の固定値） */

@@ -76,6 +76,15 @@ async function init() {
   const kanbanViewBtn = getElement('kanbanViewBtn');
   if (kanbanViewBtn) kanbanViewBtn.style.display = displayMode === 'simple' ? 'none' : '';
 
+  // カンバンビューモードの UI を復元
+  if (kanbanViewMode && displayMode !== 'simple') {
+    const mainGrid = document.querySelector('.grid');
+    const kanbanBoard = getElement('kanbanBoard');
+    if (mainGrid) mainGrid.style.display = 'none';
+    if (kanbanBoard) kanbanBoard.style.display = 'flex';
+    if (kanbanViewBtn) { kanbanViewBtn.textContent = 'カンバン表示中'; kanbanViewBtn.classList.add('active'); }
+  }
+
   // プロジェクトフィルターセレクトを初期化
   initProjectFilterSelect();
 

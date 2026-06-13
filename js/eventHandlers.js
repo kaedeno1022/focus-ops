@@ -539,6 +539,7 @@ function toggleKanbanView() {
     if (btn) { btn.textContent = 'リスト表示中'; btn.classList.remove('active'); }
     renderAll();
   }
+  saveState();
 }
 
 /**
