@@ -44,29 +44,13 @@ async function simpleCheckIn() {
 function doCheckIn() {
   const now   = nowTimeStr();
   const today = getTodayJST();
-  let matchedContent = '';
-  if (eventData?.length) {
-    const matched = eventData.filter(ev => {
-      const st  = ev.startDate || ev.date || null;
-      const ed  = ev.endDate   || ev.date || null;
-      const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
-      if (exc.includes(today)) return false;
-      if (st && today < st) return false;
-      if (ed && today > ed) return false;
-      return true;
-    });
-    if (matched.length) matchedContent = matched.map(ev => ev.content).join(',');
-  }
 
   localStorage.setItem(CHECKIN_KEY, JSON.stringify({
-    status: 'in', startTime: now, date: today, content: matchedContent,
+    status: 'in', startTime: now, date: today,
   }));
 
-  const contentEl = document.getElementById('simple_content');
-  if (contentEl && matchedContent) contentEl.value = matchedContent.slice(0, 27);
-
   updateCheckinUI();
-  showToast(`出社しました (${now})\n内容: ${matchedContent || '(なし)'}`, 'success', 4000);
+  showToast(`出社しました (${now})`, 'success', 4000);
 }
 
 function showCheckinTimeDialog() {
