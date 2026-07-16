@@ -151,9 +151,9 @@ function openEditEventModal(i) {
     }
   }
 
-  const primaryEventDate = Array.isArray(ev.dates) && ev.dates.length > 0
-    ? ev.dates[0]
-    : (ev.startDate || ev.date || '');
+  const primaryEventDate = ev.alwaysShow
+    ? ''
+    : (Array.isArray(ev.dates) && ev.dates.length > 0 ? ev.dates[0] : (ev.startDate || ev.date || ''));
   if (primaryEventDate) {
     setEditEventCalendarMonth(primaryEventDate.slice(0, 7));
   } else if (selectedEventMonth) {
