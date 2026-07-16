@@ -1,23 +1,8 @@
 # Focus Ops
 
-業務タスク管理と作業記録の統合ツール
+作業記録ツール
 
 ## 機能
-
-### 業務タスク管理（daily.html）
-
-- 今日/今週/長期のタスクをチェックリストで管理
-- リアルタイム進捗バー（カテゴリ別の完了率）
-- シンプルモード（チェックボックス）/ 詳細モード（カンバン風ステータス管理）
-- カンバンビュー（ステータスレーン別に並べて表示）
-- 最低限モード（高優先度タスクのみ表示）
-- 担当者管理モード（担当者の入力・表示を有効化）
-- プロジェクト・タグ・締め切り・予想作業時間・担当者をタスクに付与
-- カスタムタスクの追加・編集・削除（デフォルトタスクの編集も可）
-- プロジェクトフィルター（選択プロジェクトのタスクのみ表示）
-- カテゴリ別・全リセット（元に戻す対応）
-- 共有リンク（gzip 圧縮 URL で状態を共有・取り込み）
-- ダークモード対応
 
 ### 作業表ツール（work_sheet.html）
 
@@ -51,31 +36,16 @@
 ```
 focus-ops/
 ├── index.html              # ランディングページ
-├── daily.html              # 業務タスク管理
 ├── work_sheet.html         # 作業表ツール
 ├── css/
 │   ├── variables.css       # CSS変数・カラーパレット（ダークモード含む）
-│   ├── base.css            # リセット・アクセシビリティ
-│   ├── layout.css          # ヘッダー・トップバー・レイアウト
-│   ├── components.css      # ボタン・カード・進捗バー
-│   ├── tasks.css           # タスク要素・カテゴリー
-│   ├── modals.css          # 設定モーダル・Cookie バナー
-│   ├── responsive.css      # レスポンシブ
+│   ├── components.css      # ボタン・カード・進捗バー（index.html用）
+│   ├── modals.css          # 設定モーダル・Cookie バナー（index.html用）
 │   ├── index.css           # ランディング専用
 │   └── worksheet.css       # 作業表専用（独立したCSS変数体系）
 └── js/
     ├── theme.js            # ダークモード管理
-    ├── constants.js        # 定数・タスクデータ・マスターデータ
-    ├── storage.js          # LocalStorage・共有リンク生成
-    ├── state.js            # AppState（アプリ全状態を一元管理）
-    ├── utils.js            # ユーティリティ関数
-    ├── taskMetadata.js     # プロジェクト・タグ・担当者・ステータス管理
-    ├── taskRenderer.js     # タスク要素の生成・レンダリング
-    ├── menuHandlers.js     # メニュー・リセット・モード切り替え
-    ├── settings.js         # 設定モーダル・タスク編集フォーム
     ├── cookieConsent.js    # Cookie同意・プライバシーポリシー
-    ├── eventHandlers.js    # イベントリスナー設定
-    ├── main.js             # 初期化
     └── workSheets/         # 作業表ツール専用モジュール
         ├── main.js
         ├── state.js

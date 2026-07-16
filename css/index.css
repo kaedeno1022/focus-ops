@@ -84,6 +84,8 @@ body {
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  max-width: 400px;
+  margin: 0 auto;
   gap: 30px;
   animation: fadeInUp 0.8s ease 0.2s both;
 }

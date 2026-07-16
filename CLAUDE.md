@@ -7,33 +7,26 @@
 
 | ページ | 役割 |
 |--------|------|
-| `daily.html` | 業務タスク管理 |
-| `work_sheet.html` | 作業表（勤怠記録） |
-| `index.html` | ランディング |
+| `work_sheet.html` | 作業表（勤怠記録）。メイン機能 |
+| `index.html` | ランディング。work_sheet.html への入り口 |
 
-`work_sheet.html` は `css/worksheet.css` のみを読む。`daily.html` 用の CSS クラスや変数は使えない。
+`work_sheet.html` は `css/worksheet.css` のみを読む。`index.html` 用の `css/components.css` `css/modals.css` 等のクラスや変数は使えない。
 
 ---
 
-## 状態管理: AppState
+## 状態管理: js/workSheets/state.js
 
-すべてのアプリ状態は `js/state.js` の `const AppState` に集約されている。
+`AppState` のような単一オブジェクトへの集約はしていない。モジュールスコープの `let` 変数と setter 関数の組で管理する。
 
 ```javascript
-// 正しい
-AppState.checkedState[key] = true;
-AppState.minimumMode = !AppState.minimumMode;
-
-// NG（変数として存在しない）
-checkedState[key] = true;
+// state.js
+let data = [];
+let currentMode = 'employee'; // 'employee' | 'bp'
+function setData(newData) { data = newData; }
+function setCurrentMode(mode) { currentMode = mode; }
 ```
 
-状態変更後は必ず `saveState()` → `renderAll()` を呼ぶ。
-
-### AppState に含まれない定数配列
-
-`PROJECTS`, `TAGS`, `ASSIGNEE_MASTER`, `KANBAN_STATUSES` は `constants.js` で定義。
-再代入不可。中身の差し替えは `.length = 0` → `.push()` で行う。
+他ファイルから状態を書き換えるときは setter を経由する（`<script>` の分割ロードでスコープが共有されているため直接代入も動くが、setter 経由が既存の作法）。
 
 ---
 
@@ -42,17 +35,22 @@ checkedState[key] = true;
 依存関係があるため順序は厳守。
 
 ```
-theme.js        ← defer なし（flash防止のため同期ロード）
-constants.js    ← STORAGE_KEYS, DATA, マスター配列
-storage.js      ← loadFromStorage()
-state.js        ← AppState（constants/storage に依存）
-utils.js
-taskMetadata.js
-taskRenderer.js
-menuHandlers.js
-settings.js
-eventHandlers.js
-main.js         ← 最後
+theme.js               ← defer なし（flash防止のため同期ロード）
+js/workSheets/constants.js
+js/workSheets/state.js
+js/workSheets/utils.js
+js/workSheets/storage.js
+js/workSheets/ui.js
+js/workSheets/calendar.js
+js/workSheets/forms.js
+js/workSheets/render.js
+js/workSheets/data.js
+js/workSheets/events.js
+js/workSheets/checkin.js
+js/workSheets/json.js
+js/workSheets/copy.js
+js/workSheets/clipboard.js
+js/workSheets/main.js  ← 最後
 ```
 
 新ファイルを追加するときは依存するファイルより後ろに置く。
@@ -70,22 +68,6 @@ color: var(--text);
 
 /* NG */
 background: #ffffff;
-```
-
----
-
-## 変数名のリネームをするとき
-
-`sed` や `replace_all` は以下2パターンで壊れるので手動確認が必要。
-
-```javascript
-// 1. オブジェクトリテラルのキー名（ドット付き変数名はキーにできない）
-return { checkedState: { ...AppState.checkedState } };
-//        ↑ キー名はそのまま。AppState.checkedState: にしてはいけない。
-
-// 2. ローカル変数のプロパティアクセス
-AppState.checkedState = { ...snapshot.checkedState };
-//                                    ↑ snapshot は AppState ではない。
 ```
 
 ---
@@ -112,9 +94,13 @@ AppState.checkedState = { ...snapshot.checkedState };
 
 変更後は以下を確認する。
 
-- タスクのチェック → リロード → 状態が保持されているか
-- リセット → 元に戻す（アンドゥ）
-- 共有リンクの生成・取り込み
-- ダークモード切り替え（3ページ）
-- カンバンビュー切り替え（詳細モード時のみ有効）
-- モバイル幅（700px以下）のハンバーガーメニュー
+- 出退勤記録の入力 → リロード → 状態が保持されているか
+- チェックイン/チェックアウトの記録
+- 社員用 / BP用のモード切り替え
+- 振替・代休・変則勤務・有休など勤務状態の登録
+- 月次サマリー（総勤務時間・残業・休暇取得数）の集計
+- JSON エクスポート / インポート
+- クリップボードへの書式付きコピー
+- イベント編集（除外日が編集対象月と異なる月でも、編集対象月のカレンダーが開くか）
+- ダークモード切り替え（index.html / work_sheet.html）
+- モバイル幅（700px以下）での表示崩れ
