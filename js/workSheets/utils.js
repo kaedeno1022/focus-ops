@@ -2,6 +2,24 @@
 // ユーティリティ関数
 // ============================================================
 
+function getFormEl(prefix, id) {
+  return document.getElementById(prefix ? `${prefix}-${id}` : id);
+}
+
+function matchesEventDate(ev, dateStr) {
+  if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(dateStr);
+  if (ev.dates) return ev.dates.includes(dateStr);
+  const start = ev.startDate || ev.date || null;
+  const end   = ev.endDate   || ev.date || null;
+  const excludes = ev.excludeDates
+    ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+  if (excludes.includes(dateStr)) return false;
+  if (start && dateStr < start) return false;
+  if (end && dateStr > end) return false;
+  return true;
+}
+
 function getWeekdayLabel(dateStr) {
   return dateStr ? `(${WEEKDAYS[new Date(dateStr).getDay()]})` : '';
 }
@@ -113,33 +131,5 @@ function calculateOvertime(weeklyData) {
 function getCurrentMonthValue() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function buildMonthLines(data, calcWorkMinutesFn, minutesToBpTimeFn, minutesToTimeFn, forBP = false) {
-  if (!data.length) return null;
-  const monthMap = {};
-  data.forEach(d => {
-    const dateStr = d.日付;
-    if (!dateStr) return;
-    const [y, m] = dateStr.split('-');
-    const key = `${y}-${m}`;
-    if (!monthMap[key]) monthMap[key] = [];
-    monthMap[key].push(d);
-  });
-  const lines = [];
-  Object.keys(monthMap).sort().forEach(monthKey => {
-    lines.push(`【${monthKey}】`);
-    const items = monthMap[monthKey];
-    items.sort((a, b) => new Date(a.日付) - new Date(b.日付));
-    items.forEach(d => {
-      const workMin = calcWorkMinutesFn(d);
-      const workDisplay = (forBP && workMin !== null)
-        ? minutesToBpTimeFn(workMin)
-        : (workMin !== null ? minutesToTimeFn(workMin) : '---');
-      lines.push(`${d.日付} ${d.作業内容} ${workDisplay}`);
-    });
-    lines.push('');
-  });
-  return lines.join('\n');
 }
 

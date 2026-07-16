@@ -22,17 +22,7 @@ function updateCheckinUI() {
 function getTodayEventContents() {
   const today = getTodayJST();
   if (!eventData?.length) return [];
-  return eventData.filter(ev => {
-    if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(today);
-    if (ev.dates) return ev.dates.includes(today);
-    const st  = ev.startDate || ev.date || null;
-    const ed  = ev.endDate   || ev.date || null;
-    const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
-    if (exc.includes(today)) return false;
-    if (st && today < st) return false;
-    if (ed && today > ed) return false;
-    return true;
-  }).map(ev => ev.content);
+  return eventData.filter(ev => matchesEventDate(ev, today)).map(ev => ev.content);
 }
 
 async function simpleCheckIn() {

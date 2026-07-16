@@ -10,7 +10,12 @@ function save() {
 function load() {
   const key = currentMode === 'bp' ? BP_STORAGE_KEY : STORAGE_KEY;
   const s = localStorage.getItem(key);
-  setData(s ? JSON.parse(s) : []);
+  try {
+    setData(s ? JSON.parse(s) : []);
+  } catch {
+    setData([]);
+    showToast('保存データの読み込みに失敗しました', 'error');
+  }
 }
 
 function sortData() {
@@ -23,6 +28,12 @@ function saveEventData() {
 
 function loadEventData() {
   const s = localStorage.getItem(EVENT_STORAGE_KEY);
-  if (s) setEventData(JSON.parse(s));
+  if (!s) return;
+  try {
+    setEventData(JSON.parse(s));
+  } catch {
+    setEventData([]);
+    showToast('イベントデータの読み込みに失敗しました', 'error');
+  }
 }
 

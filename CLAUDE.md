@@ -49,7 +49,6 @@ js/workSheets/events.js
 js/workSheets/checkin.js
 js/workSheets/json.js
 js/workSheets/copy.js
-js/workSheets/clipboard.js
 js/workSheets/main.js  ← 最後
 ```
 
@@ -100,7 +99,6 @@ background: #ffffff;
 - 振替・代休・変則勤務・有休など勤務状態の登録
 - 月次サマリー（総勤務時間・残業・休暇取得数）の集計
 - JSON エクスポート / インポート
-- クリップボードへの書式付きコピー
 - イベント編集（除外日が編集対象月と異なる月でも、編集対象月のカレンダーが開くか）
 - ダークモード切り替え（index.html / work_sheet.html）
 - モバイル幅（700px以下）での表示崩れ

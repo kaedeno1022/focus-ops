@@ -2,10 +2,6 @@
 // データCRUD操作
 // ============================================================
 
-function getFormEl(prefix, id) {
-  return document.getElementById(prefix ? `${prefix}-${id}` : id);
-}
-
 function validateWorkItem(prefix = '') {
   const dateVal    = getFormEl(prefix, 'date').value;
   const contentVal = getFormEl(prefix, 'content').value.trim();
@@ -146,21 +142,7 @@ async function importEventsToContents(eventData) {
   let count = 0;
   data.forEach(d => {
     if (!d.日付) return;
-    const matched = eventData.filter(ev => {
-      if (ev.alwaysShow) {
-        return !ev.dates || !ev.dates.includes(d.日付);
-      }
-      if (ev.dates) {
-        return ev.dates.includes(d.日付);
-      }
-      const st = ev.startDate || ev.date || null;
-      const ed = ev.endDate   || ev.date || null;
-      const exc = ev.excludeDates ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean) : [];
-      if (exc.includes(d.日付)) return false;
-      if (st && d.日付 < st) return false;
-      if (ed && d.日付 > ed) return false;
-      return true;
-    }).map(ev => ev.content);
+    const matched = eventData.filter(ev => matchesEventDate(ev, d.日付)).map(ev => ev.content);
     if (!matched.length) return;
     const existing = d.作業内容 ? d.作業内容.split(',').map(s => s.trim()) : [];
     let added = false;

@@ -2,10 +2,6 @@
 // フォーム制御
 // ============================================================
 
-function getFormEl(prefix, id) {
-  return document.getElementById(prefix ? `${prefix}-${id}` : id);
-}
-
 function controlTime(prefix = '') {
   if (currentMode === 'bp') return;
   const off   = OFF_STATUSES.includes(getFormEl(prefix, 'status').value);
@@ -87,23 +83,7 @@ function controlBreakDisplay(prefix = '') {
 
 function applyEventsToContentField(dateStr) {
   if (!dateStr || !eventData?.length) return;
-  const matched = eventData.filter(ev => {
-    if (ev.alwaysShow) {
-      return !ev.dates || !ev.dates.includes(dateStr);
-    }
-    if (ev.dates) {
-      return ev.dates.includes(dateStr);
-    }
-    const start    = ev.startDate || ev.date || null;
-    const end      = ev.endDate   || ev.date || null;
-    const excludes = ev.excludeDates
-      ? ev.excludeDates.split(',').map(s => s.trim()).filter(Boolean)
-      : [];
-    if (excludes.includes(dateStr)) return false;
-    if (start && dateStr < start)   return false;
-    if (end   && dateStr > end)     return false;
-    return true;
-  }).map(ev => ev.content);
+  const matched = eventData.filter(ev => matchesEventDate(ev, dateStr)).map(ev => ev.content);
   if (!matched.length) return;
 
   const contentEl = document.getElementById('content');

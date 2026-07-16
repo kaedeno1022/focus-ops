@@ -13,7 +13,6 @@
 - イベント登録（繰り返し予定の自動反映）
 - 月次サマリー（総勤務時間・残業・休暇取得数）
 - JSON エクスポート / インポート
-- クリップボードへの書式付きコピー
 - ダークモード対応
 
 ### 共通
@@ -57,7 +56,6 @@ focus-ops/
         ├── events.js
         ├── checkin.js
         ├── calendar.js
-        ├── clipboard.js
         ├── copy.js
         ├── json.js
         ├── ui.js
