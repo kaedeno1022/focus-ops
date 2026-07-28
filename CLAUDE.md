@@ -48,6 +48,7 @@ js/workSheets/data.js
 js/workSheets/events.js
 js/workSheets/checkin.js
 js/workSheets/json.js
+js/workSheets/excelImport.js
 js/workSheets/copy.js
 js/workSheets/main.js  ← 最後
 ```
