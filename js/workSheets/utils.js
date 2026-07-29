@@ -44,8 +44,9 @@ function roundToQuarter(timeStr, mode = 'nearest') {
   return minutesToTime(rounded);
 }
 
+// 日マタギ勤務かどうか。VBAは「開始 >= 終了」を日マタギとみなすため等号を含める
 function isTimeReversed(startStr, endStr) {
-  return !!startStr && !!endStr && timeToMinutes(endStr) < timeToMinutes(startStr);
+  return !!startStr && !!endStr && timeToMinutes(endStr) <= timeToMinutes(startStr);
 }
 
 function nowTimeStr() {

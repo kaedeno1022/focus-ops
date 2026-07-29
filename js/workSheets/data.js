@@ -9,21 +9,28 @@ function validateWorkItem(prefix = '') {
   const endEl      = getFormEl(prefix, 'end');
 
   if (!dateVal || !contentVal) { showToast('日付と内容は必須です', 'warning'); return false; }
-  if (!startEl.disabled && (!startEl.value || !endEl.value)) {
+
+  const statusVal = currentMode === 'bp' ? '' : getFormEl(prefix, 'status').value;
+  // 休業（研修）系はVBA側も時刻の有無を検査していないため必須にしない
+  const timeOptional = OPTIONAL_TIME_STATUSES.includes(statusVal);
+
+  if (!startEl.disabled && !timeOptional && (!startEl.value || !endEl.value)) {
     showToast('開始・終了時間を入力してください', 'warning'); return false;
   }
   if (currentMode === 'bp') return true;
 
-  const statusVal  = getFormEl(prefix, 'status').value;
-  const subVal     = getFormEl(prefix, 'substitute').value;
+  const subVal = getFormEl(prefix, 'substitute').value;
   if (SUBSTITUTE_VISIBLE_STATUSES.includes(statusVal) && !subVal) {
     showToast('振替代休対象日を入力してください', 'warning'); return false;
   }
-  const noReverseCheck = statusVal === '変則勤務' || statusVal === '振替出勤日';
-  if (!startEl.disabled && !noReverseCheck && startEl.value && endEl.value) {
-    if (timeToMinutes(endEl.value) < timeToMinutes(startEl.value)) {
-      showToast('開始時刻が終了時刻より後になっています。\n正しい時刻を入力してください。', 'error'); return false;
-    }
+
+  // 日マタギ（開始 >= 終了）は終了が翌9:00までなら勤務実績を問わず許容する
+  // VBA「関連チェック」の日マタギチェックに合わせる
+  if (!startEl.disabled && startEl.value && endEl.value &&
+      timeToMinutes(startEl.value) >= timeToMinutes(endEl.value) &&
+      timeToMinutes(endEl.value) > timeToMinutes(WORK_START_TIME)) {
+    showToast('作業終了時間が翌日の9:00以降の作業は、翌日の勤怠となります。', 'error');
+    return false;
   }
   return true;
 }
