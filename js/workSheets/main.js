@@ -191,6 +191,7 @@ window.exportJSON           = exportJSON;
 window.importJSON           = importJSON;
 window.exportEventJSON      = exportEventJSON;
 window.importEventJSON      = importEventJSON;
+window.writeToExcelSheet    = writeToExcelSheet;
 window.openCopy             = openCopy;
 window.closeModal           = closeModal;
 window.closeAllModals       = closeAllModals;
