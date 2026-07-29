@@ -76,47 +76,6 @@ function getTodayJST() {
   return jst.toISOString().slice(0, 10);
 }
 
-function getISOWeek(dateStr) {
-  const date = new Date(dateStr);
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-}
-
-function groupByWeek(dataArray) {
-  const weeks = {};
-  dataArray.forEach(d => {
-    if (!d.日付) return;
-    const week = getISOWeek(d.日付);
-    if (!weeks[week]) weeks[week] = [];
-    weeks[week].push(d);
-  });
-  return weeks;
-}
-
-function calculateOvertime(weeklyData) {
-  let totalOvertimeMin = 0;
-  Object.values(weeklyData).forEach(weekData => {
-    let weekTotalMin = 0;
-    let dailyOvertimeMin = 0;
-    weekData.forEach(d => {
-      const workMin = calcWorkMinutes(d);
-      if (workMin === null) return;
-      const dayOfWeek = new Date(d.日付).getDay();
-      if (dayOfWeek === 0) return;
-      weekTotalMin += workMin;
-      const dailyOvertime = Math.max(0, workMin - 8 * 60);
-      dailyOvertimeMin += dailyOvertime;
-    });
-    const weeklyOvertime = Math.max(0, weekTotalMin - 40 * 60 - dailyOvertimeMin);
-    totalOvertimeMin += dailyOvertimeMin + weeklyOvertime;
-  });
-  return totalOvertimeMin;
-}
-
 function getCurrentMonthValue() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

@@ -3,7 +3,8 @@
 //
 // Excel側マクロと集計結果を一致させるため、VBAの計算手順をそのまま移植している。
 // 元の関数名との対応:
-//   calcDaily()  ... Function 作業時間計 + Function 作業時間チェック の控除時間部分
+//   calcDaily()            ... Function 作業時間計 + Function 作業時間チェック の控除時間部分
+//   calcMonthlySummary()   ... Function summary計算
 // ============================================================
 
 const HOURS_PER_DAY  = 8;   // VBA con日法定労働時間（1日の法定労働時間）
@@ -33,6 +34,16 @@ const HALF_DAY_DEDUCTION_STATUSES = [
   '午前半休', '午前半休（計画）', '午後半休', '午後半休（計画）',
   '休業半日', '休業(研修)/午後半休', '午前半休/休業(研修)',
 ];
+
+// 年休を半日消化する勤務実績。実労働日数の按分に使う
+const HALF_LEAVE_STATUSES = ['午前半休', '午前半休（計画）', '午後半休', '午後半休（計画）'];
+
+// 4週4休の休日カウントから除外する勤務実績（VBA summary計算 の【法定休日】チェック）
+const NOT_HOLIDAY_STATUSES = [
+  '有休', '有休（計画）', '欠勤', '欠勤（生理休暇）', '特別休暇', 'プロジェクト休暇', '休職',
+];
+
+const MIN_HOLIDAYS_PER_4WEEKS = 4;  // VBA con4週4休
 
 // VBA Application.RoundUp(x, 2) 相当。小数第3位で切り上げる。
 // 浮動小数の誤差でひと桁余計に切り上がらないよう、比較前に丸めておく
@@ -145,4 +156,157 @@ function calcDaily(d) {
 function calcWorkMinutes(d) {
   if (!d.作業開始 || !d.作業終了) return null;
   return calcDaily(d).作業時間 * 60;
+}
+
+// 月内の週の区切りを返す。VBA summary計算 の 週開始年月日/週終了年月日
+// 最初の週は月初からその週の土曜まで、以降は日曜〜土曜。月をまたがない
+function buildWeekRanges(year, month) {
+  const lastDay      = new Date(year, month, 0).getDate();
+  const firstWeekday = new Date(year, month - 1, 1).getDay();  // 0=日
+  const ranges = [{ start: 1, end: Math.min(1 + (6 - firstWeekday), lastDay) }];
+  while (ranges[ranges.length - 1].end < lastDay) {
+    const start = ranges[ranges.length - 1].end + 1;
+    ranges.push({ start, end: Math.min(start + 6, lastDay) });
+  }
+  return ranges;
+}
+
+// 1か月分を集計する。month は 'YYYY-MM'
+function calcMonthlySummary(dataArray, month) {
+  const [year, mon] = month.split('-').map(Number);
+  const lastDay = new Date(year, mon, 0).getDate();
+
+  const byDay = new Map();
+  dataArray.forEach(d => {
+    if (d.日付 && d.日付.startsWith(month)) byDay.set(Number(d.日付.slice(8, 10)), d);
+  });
+
+  const s = {
+    実総作業時間: 0, 法定時間外労働時間: 0, 法定休日労働時間: 0, 深夜労働時間: 0,
+    不就労控除時間: 0, 所定外労働割増なし: 0, 所定外労働割増あり: 0,
+    休業日数: 0, 休業研修日数: 0,
+    労働日数: 0, 法定休日出勤日数: 0, 振替休日取得日数: 0, 代休取得日数: 0,
+    有休日数: 0, 計画年休日数: 0, 欠勤回数: 0, 生理休暇日数: 0, 休職日数: 0,
+    遅刻回数: 0, 早退回数: 0,
+    休職期間: [], 入社日: '', 退社日: '', 警告: [],
+  };
+
+  const weeks = buildWeekRanges(year, mon)
+    .map(r => ({ ...r, 労働時間週計: 0, 日法定外労働時間週計: 0 }));
+
+  let 休職継続中 = false;
+  let 休日カウント = 0;
+
+  for (let day = 1; day <= lastDay; day++) {
+    const weekday = WEEKDAYS[new Date(year, mon - 1, day).getDay()];
+    const d       = byDay.get(day);
+    const status  = d ? (d.勤務実績 || '') : '';
+    const daily   = d ? calcDaily(d) : null;
+
+    // 4週4休の休日カウント。実績が入っていない日も休日として数える
+    if ((!daily || daily.作業時間 === 0) && !NOT_HOLIDAY_STATUSES.includes(status)) 休日カウント++;
+
+    // 休職期間は休職以外の平日が現れた時点で途切れる（日曜は勤休区分が休日のため途切れない）
+    if (休職継続中 && status !== '休職' && weekday !== '日') 休職継続中 = false;
+
+    if (!daily) continue;
+
+    // 週別の労働時間集計。法定休日労働（日曜の休日出勤）は週40時間の判定に含めない
+    if (!(weekday === '日' && status === '休日出勤')) {
+      const w = weeks.find(w => day >= w.start && day <= w.end);
+      w.労働時間週計         += daily.作業時間 - daily.法定休日労働時間;
+      w.日法定外労働時間週計 += daily.日法定外時間;
+    }
+
+    s.実総作業時間       += daily.作業時間;
+    s.法定休日労働時間   += daily.法定休日労働時間;
+    s.深夜労働時間       += daily.深夜労働時間;
+    s.不就労控除時間     += daily.日控除時間;
+    s.所定外労働割増なし += daily.所定外労働割増なし;
+    s.所定外労働割増あり += daily.所定外労働割増あり;
+
+    const 遅刻早退 = d.遅刻早退 || '';
+    if (遅刻早退.includes('遅刻')) s.遅刻回数++;
+    if (遅刻早退.includes('早退')) s.早退回数++;
+
+    // 実労働日数。半休の日は0.5日として数える
+    if (daily.作業時間 !== 0)               s.労働日数 += 1;
+    if (HALF_LEAVE_STATUSES.includes(status)) s.労働日数 -= 0.5;
+
+    if (status.includes('入社日')) s.入社日 = String(day);
+    if (status.includes('退社日')) s.退社日 = String(day);
+
+    switch (status) {
+      case '振替休日':
+        s.振替休日取得日数++;
+        break;
+      case '代休':
+        s.代休取得日数++;
+        break;
+      case '休日出勤':
+        if (weekday === '日') s.法定休日出勤日数++;
+        break;
+      case '有休':
+        s.有休日数 += 1;
+        break;
+      case '有休（計画）':
+        s.有休日数 += 1;
+        s.計画年休日数 += 1;
+        break;
+      case '午前半休':
+      case '午後半休':
+        s.有休日数 += 0.5;
+        break;
+      case '午前半休（計画）':
+      case '午後半休（計画）':
+        s.有休日数 += 0.5;
+        s.計画年休日数 += 0.5;
+        break;
+      case '欠勤':
+        s.欠勤回数++;
+        break;
+      case '欠勤（生理休暇）':
+        s.欠勤回数++;
+        s.生理休暇日数++;
+        break;
+      case '休職':
+        s.休職日数++;
+        if (休職継続中) {
+          s.休職期間[s.休職期間.length - 1] = `${s.休職期間[s.休職期間.length - 1].split('-')[0]}-${day}`;
+        } else {
+          s.休職期間.push(`${day}-`);
+          休職継続中 = true;
+        }
+        break;
+      case '休業':
+        s.休業日数 += 1;
+        break;
+      case '休業半日':
+        s.休業日数 += 0.5;
+        break;
+      case '休業（研修）':
+        s.休業研修日数 += 1;
+        break;
+      case '休業（研修）半日':
+        s.休業研修日数 += 0.5;
+        break;
+      case '休業(研修)/午後半休':
+      case '午前半休/休業(研修)':
+        s.休業研修日数 += 0.5;
+        s.有休日数     += 0.5;
+        break;
+    }
+  }
+
+  // 法定時間外労働時間は、週40時間超と日8時間超の週合計のうち大きい方を週ごとに積む
+  s.法定時間外労働時間 = weeks.reduce((sum, w) => sum + Math.max(
+    Math.max(w.労働時間週計 - HOURS_PER_WEEK, 0),
+    w.日法定外労働時間週計
+  ), 0);
+
+  if (休日カウント < MIN_HOLIDAYS_PER_4WEEKS) {
+    s.警告.push('4週4日の休日が不足しています。作業確認表取込時、差し戻しとなる可能性があります。');
+  }
+
+  return s;
 }

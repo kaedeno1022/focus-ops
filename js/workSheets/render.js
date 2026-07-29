@@ -77,6 +77,31 @@ function render() {
   updateWorkSummary();
 }
 
+// サマリー1項目分のHTML。Excelの集計欄と突き合わせられるよう時間は小数2桁で表示する
+function summaryItem(label, value, wide = false) {
+  return `<div class="summary-item${wide ? ' summary-item-wide' : ''}">` +
+         `<span class="summary-label">${label}:</span>` +
+         `<span class="summary-value">${value}</span></div>`;
+}
+
+function summarySection(title, items) {
+  const body = items.filter(Boolean).join('');
+  return body ? `<div class="summary-section"><div class="summary-section-title">${title}</div>` +
+                `<div class="summary-grid">${body}</div></div>` : '';
+}
+
+// 15分調整差分（focus-ops独自の丸め機能の記録。Excel側には対応する項目がない）
+function roundDiffItem() {
+  const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
+  const target = selectedMonth
+    ? roundDiffs.filter(r => r.date && r.date.startsWith(selectedMonth))
+    : roundDiffs;
+  const totalMin = target.reduce((s, r) => s + r.diffMinutes, 0);
+  return summaryItem('15分調整差分',
+    `${formatHoursMinutes(totalMin)} <button class="btn-clear-diffs" onclick="clearRoundDiffs()">クリア</button>`,
+    true);
+}
+
 function updateWorkSummary() {
   const sumArea = document.getElementById('work-summary');
   sumArea.innerHTML = '';
@@ -91,38 +116,62 @@ function updateWorkSummary() {
   }
   sumArea.classList.remove('hidden');
 
+  const totalWorkHours = filteredData.reduce((sum, d) => {
+    const w = calcWorkMinutes(d);
+    return sum + (w !== null ? w / 60 : 0);
+  }, 0);
+
   if (currentMode === 'bp') {
-    const totalWorkMinutes = filteredData.reduce((sum, d) => {
-      const w = calcWorkMinutes(d);
-      return sum + (w !== null ? w : 0);
-    }, 0);
-    sumArea.innerHTML = `<div class="summary-item"><span class="summary-label">総作業時間:</span><span class="summary-value">${formatHoursMinutes(totalWorkMinutes)}</span></div>`;
+    sumArea.innerHTML = summaryItem('総作業時間', `${totalWorkHours.toFixed(2)} h`);
     return;
   }
 
-  const workDays  = filteredData.filter(d => d.作業開始 && d.作業終了);
-  const offDays   = filteredData.filter(d => OFF_STATUSES.includes(d.勤務実績));
-  let totalWorkMinutes = 0;
-  workDays.forEach(d => {
-    const w = calcWorkMinutes(d);
-    if (w !== null) totalWorkMinutes += w;
-  });
-
-  let roundDiffTotalMin = 0;
-  const roundDiffs = JSON.parse(localStorage.getItem(ROUND_DIFFS_KEY) || '[]');
-  if (roundDiffs.length) {
-    const filteredDiffs = selectedMonth
-      ? roundDiffs.filter(r => r.date && r.date.startsWith(selectedMonth))
-      : roundDiffs;
-    roundDiffTotalMin = filteredDiffs.reduce((s, r) => s + r.diffMinutes, 0);
+  // 週の区切りが月に依存するため、月を選んでいないときは総作業時間のみ表示する
+  if (!selectedMonth) {
+    sumArea.innerHTML = summarySection('時間集計', [
+      summaryItem('総作業時間', `${totalWorkHours.toFixed(2)} h`),
+      roundDiffItem(),
+    ]);
+    return;
   }
 
-  const overtimeMin = calculateOvertime(groupByWeek(workDays));
-  sumArea.innerHTML = `
-    <div class="summary-item"><span class="summary-label">総作業時間:</span><span class="summary-value">${formatHoursMinutes(totalWorkMinutes)}</span></div>
-    <div class="summary-item"><span class="summary-label">残業時間:</span><span class="summary-value">${formatHoursMinutes(overtimeMin)}</span></div>
-    <div class="summary-item"><span class="summary-label">休日取得:</span><span class="summary-value">${offDays.length}日</span></div>
-    <div class="summary-item summary-item-wide"><span class="summary-label">15分調整差分:</span><span class="summary-value">${formatHoursMinutes(roundDiffTotalMin)} <button class="btn-clear-diffs" onclick="clearRoundDiffs()">クリア</button></span></div>
-  `;
+  const s = calcMonthlySummary(filteredData, selectedMonth);
+  const h = v => `${v.toFixed(2)} h`;
+  const d = v => `${v}日`;
+
+  const timeItems = [
+    summaryItem('実総作業時間',     h(s.実総作業時間)),
+    summaryItem('法定時間外労働',   h(s.法定時間外労働時間)),
+    s.法定休日労働時間   ? summaryItem('法定休日労働',     h(s.法定休日労働時間))   : '',
+    s.深夜労働時間       ? summaryItem('深夜労働',         h(s.深夜労働時間))       : '',
+    s.不就労控除時間     ? summaryItem('不就労控除',       h(s.不就労控除時間))     : '',
+    s.所定外労働割増なし ? summaryItem('所定外労働(割増なし)', h(s.所定外労働割増なし)) : '',
+    s.所定外労働割増あり ? summaryItem('所定外労働(割増あり)', h(s.所定外労働割増あり)) : '',
+    roundDiffItem(),
+  ];
+
+  const dayItems = [
+    summaryItem('労働日数', d(s.労働日数)),
+    summaryItem('有休日数', d(s.有休日数)),
+    s.計画年休日数     ? summaryItem('うち計画年休',   d(s.計画年休日数))     : '',
+    s.法定休日出勤日数 ? summaryItem('法定休日出勤',   d(s.法定休日出勤日数)) : '',
+    s.振替休日取得日数 ? summaryItem('振替休日取得',   d(s.振替休日取得日数)) : '',
+    s.代休取得日数     ? summaryItem('代休取得',       d(s.代休取得日数))     : '',
+    s.欠勤回数         ? summaryItem('欠勤回数',       `${s.欠勤回数}回`)     : '',
+    s.生理休暇日数     ? summaryItem('生理休暇',       d(s.生理休暇日数))     : '',
+    s.遅刻回数         ? summaryItem('遅刻回数',       `${s.遅刻回数}回`)     : '',
+    s.早退回数         ? summaryItem('早退回数',       `${s.早退回数}回`)     : '',
+    s.休業日数         ? summaryItem('休業日数',       d(s.休業日数))         : '',
+    s.休業研修日数     ? summaryItem('休業(研修)日数', d(s.休業研修日数))     : '',
+    s.休職期間.length  ? summaryItem('休職期間', s.休職期間.join(', '))       : '',
+    s.入社日           ? summaryItem('入社日', `${s.入社日}日`)               : '',
+    s.退社日           ? summaryItem('退社日', `${s.退社日}日`)               : '',
+  ];
+
+  const warnings = s.警告.map(w => `<div class="summary-warning">⚠ ${w}</div>`).join('');
+
+  sumArea.innerHTML = summarySection('時間集計', timeItems) +
+                      summarySection('日数集計', dayItems) +
+                      warnings;
 }
 

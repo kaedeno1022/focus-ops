@@ -515,6 +515,34 @@ td:last-child { min-width: 150px; text-align: center; }
   font-size: .8em;
   padding: 4px 10px;
 }
+.summary-section + .summary-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.summary-section-title {
+  font-size: .78em;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px 24px;
+}
+.summary-grid .summary-item-wide {
+  grid-column: 1 / -1;
+}
+.summary-warning {
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--danger);
+  color: var(--danger);
+  font-size: .9em;
+  line-height: 1.5;
+}
 
 /* ===== Event Calendar ===== */
 .event-calendar {
