@@ -32,6 +32,15 @@ function validateWorkItem(prefix = '') {
     showToast('作業終了時間が翌日の9:00以降の作業は、翌日の勤怠となります。', 'error');
     return false;
   }
+
+  // 半休の時間帯・振替出勤の勤務時間・振替代休の対象日など、Excelマクロ側の関連チェック
+  // 編集中は日付を変更している可能性があるため、編集対象の行を添字で取り除いてから渡す
+  const others = (prefix === 'edit' && editIndex !== null)
+    ? data.filter((_, i) => i !== editIndex)
+    : data;
+  const entryError = validateDailyEntry(buildWorkItem(prefix), others);
+  if (entryError) { showToast(entryError, 'error'); return false; }
+
   return true;
 }
 

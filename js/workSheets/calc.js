@@ -5,6 +5,11 @@
 // 元の関数名との対応:
 //   calcDaily()            ... Function 作業時間計 + Function 作業時間チェック の控除時間部分
 //   calcMonthlySummary()   ... Function summary計算
+//   validateDailyEntry()   ... Function 関連チェック のうち1日分で判定できるもの
+//
+// VBAは「時間計算」ボタンで1か月分をまとめて検証するが、こちらは1日ずつ入力するため、
+// 月全体を見ないと判定できないチェック（振替の同週ペア、入退社日）は
+// 登録時に弾かず calcMonthlySummary() の警告として返している。
 // ============================================================
 
 const HOURS_PER_DAY  = 8;   // VBA con日法定労働時間（1日の法定労働時間）
@@ -158,6 +163,92 @@ function calcWorkMinutes(d) {
   return calcDaily(d).作業時間 * 60;
 }
 
+function previousDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
+}
+
+// 勤務実績・時刻・対象日・遅刻早退のいずれかが入力されているか
+// VBA 日毎時間計算 の入社日前／退社日後の判定に合わせ、事由（作業内容）は見ない
+function hasAttendanceInput(d) {
+  return !!(d.勤務実績 || d.作業開始 || d.作業終了 || d.振替代休対象日 || d.遅刻早退);
+}
+
+// 1日分の入力チェック。エラーメッセージを返す（問題なければ空文字）
+// allData には同月の他の日を含む全データを渡す。自分自身は日付で除外する
+function validateDailyEntry(item, allData = []) {
+  const status = item.勤務実績 || '';
+  const start  = item.作業開始 || '';
+  const end    = item.作業終了 || '';
+  const target = item.振替代休対象日 || '';
+  const others = allData.filter(d => d.日付 !== item.日付);
+
+  // 18:00以降の休憩は、18:00から休憩時間分を取り切れる勤務でなければ選択できない
+  const restHours = parseFloat(item['18時以降休憩'] || '0') || 0;
+  if (restHours > 0) {
+    if (!start || !end) return '作業開始・終了時間が未入力のため、休憩は選択できません。';
+    const startMin = timeToMinutes(start);
+    const endMin   = timeToMinutes(end) <= startMin
+      ? timeToMinutes(end) + MIDNIGHT_MIN
+      : timeToMinutes(end);
+    if (18 * 60 + restHours * 60 > endMin) return '18:00以降の休憩は取得できません。';
+  }
+
+  if ((status === '午前半休' || status === '午前半休（計画）') && start &&
+      timeToMinutes(start) < 14 * 60) {
+    return '午前半休は、9:00～14:00　です。';
+  }
+  if ((status === '午後半休' || status === '午後半休（計画）') && end &&
+      timeToMinutes(end) > 14 * 60) {
+    return '午後半休は、14:00～18:00　です。';
+  }
+
+  if (status === '振替出勤日' && start && end &&
+      calcDaily(item).作業時間 < HOURS_PER_DAY) {
+    return '振替出勤は<休日>と<通常の労働日>の入れ替えなので8時間勤務が必要です。';
+  }
+
+  // 前日の作業が0:00を越えている（＝終了時刻が始業時間より前）と有休は取得できない
+  if (status === '有休' || status === '有休（計画）') {
+    const prev = others.find(d => d.日付 === previousDate(item.日付));
+    if (prev && prev.作業終了 && prev.作業終了 < WORK_START_TIME) {
+      return '前日作業が0:00を超えると、有休の取得ができません。';
+    }
+  }
+
+  if (status === '振替休日') {
+    if (!target) return '＜振替休日の対象日＞が未入力です。';
+    if (target.slice(0, 7) !== item.日付.slice(0, 7)) {
+      return '振替出勤日/振替休日は同週内（日曜～土曜）に取得してください。';
+    }
+    const targetDay = others.find(d => d.日付 === target);
+    if (!targetDay || targetDay.勤務実績 !== '振替出勤日') {
+      return '振替休日の対象日が<振替出勤日>でありません。';
+    }
+  }
+
+  if (status === '代休') {
+    if (!target) return '＜代休の対象日＞が未入力です。';
+    // 対象日が同月内のときだけ内容を検証する（前月の休日出勤に対する代休は検証できない）
+    if (target.slice(0, 7) === item.日付.slice(0, 7)) {
+      const targetDay = others.find(d => d.日付 === target);
+      if (!targetDay || targetDay.勤務実績 !== '休日出勤') {
+        return '代休の対象日が<休日出勤日>でありません。';
+      }
+      if (target < item.日付 && calcDaily(targetDay).作業時間 < HOURS_PER_DAY) {
+        return `代休の対象日 ${target} の作業時間が8時間未満です。`;
+      }
+    }
+  }
+
+  if ((status === '振替休日' || status === '代休') && target &&
+      others.some(d => d.勤務実績 === status && d.振替代休対象日 === target)) {
+    return `${status}の対象日が重複しています。`;
+  }
+
+  return '';
+}
+
 // 月内の週の区切りを返す。VBA summary計算 の 週開始年月日/週終了年月日
 // 最初の週は月初からその週の土曜まで、以降は日曜〜土曜。月をまたがない
 function buildWeekRanges(year, month) {
@@ -196,6 +287,8 @@ function calcMonthlySummary(dataArray, month) {
 
   let 休職継続中 = false;
   let 休日カウント = 0;
+  const 入社日リスト = [];
+  const 退社日リスト = [];
 
   for (let day = 1; day <= lastDay; day++) {
     const weekday = WEEKDAYS[new Date(year, mon - 1, day).getDay()];
@@ -233,8 +326,8 @@ function calcMonthlySummary(dataArray, month) {
     if (daily.作業時間 !== 0)               s.労働日数 += 1;
     if (HALF_LEAVE_STATUSES.includes(status)) s.労働日数 -= 0.5;
 
-    if (status.includes('入社日')) s.入社日 = String(day);
-    if (status.includes('退社日')) s.退社日 = String(day);
+    if (status.includes('入社日')) 入社日リスト.push(day);
+    if (status.includes('退社日')) 退社日リスト.push(day);
 
     switch (status) {
       case '振替休日':
@@ -306,6 +399,41 @@ function calcMonthlySummary(dataArray, month) {
 
   if (休日カウント < MIN_HOLIDAYS_PER_4WEEKS) {
     s.警告.push('4週4日の休日が不足しています。作業確認表取込時、差し戻しとなる可能性があります。');
+  }
+
+  // 振替出勤日と振替休日は同じ週（日曜〜土曜）で同数でなければならない
+  weeks.forEach(w => {
+    let 振替出勤 = 0;
+    let 振替休日 = 0;
+    for (let day = w.start; day <= w.end; day++) {
+      const st = byDay.has(day) ? byDay.get(day).勤務実績 : '';
+      if (st === '振替出勤日') 振替出勤++;
+      if (st === '振替休日')   振替休日++;
+    }
+    if (振替出勤 !== 振替休日) {
+      s.警告.push(
+        `${w.start}日〜${w.end}日の週で振替出勤日と振替休日の数が一致していません。` +
+        '同週内（日曜～土曜）に取得してください。月の最終週の場合は、月末までに' +
+        '振替休日が取得できなければ振替出勤日を「休日出勤」にしてください。'
+      );
+    }
+  });
+
+  // 入社日・退社日
+  s.入社日 = 入社日リスト.length ? String(入社日リスト[0]) : '';
+  s.退社日 = 退社日リスト.length ? String(退社日リスト[0]) : '';
+  if (入社日リスト.length > 1) s.警告.push('入社日が複数の日に入力されています。');
+  if (退社日リスト.length > 1) s.警告.push('退社日が複数の日に入力されています。');
+  if (入社日リスト.length && 退社日リスト.length && 入社日リスト[0] >= 退社日リスト[0]) {
+    s.警告.push('入社日・退社日が不正です。');
+  }
+  if (入社日リスト.length &&
+      [...byDay].some(([day, d]) => day < 入社日リスト[0] && hasAttendanceInput(d))) {
+    s.警告.push('入社日より前の日に勤怠が入力されています。');
+  }
+  if (退社日リスト.length &&
+      [...byDay].some(([day, d]) => day > 退社日リスト[0] && hasAttendanceInput(d))) {
+    s.警告.push('退社日より後の日に勤怠が入力されています。');
   }
 
   return s;

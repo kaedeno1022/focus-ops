@@ -36,16 +36,11 @@ function updateSubstituteVisibility(prefix = '') {
 }
 
 function updateBreakOptions(prefix = '') {
-  const status   = getFormEl(prefix, 'status').value;
   const startVal = getFormEl(prefix, 'start').value || '00:00';
   const endVal   = getFormEl(prefix, 'end').value;
   const breakSel = getFormEl(prefix, 'break');
 
-  if (status === STATUS.FLEX || status === STATUS.SUBSTITUTE_WORK) {
-    breakSel.innerHTML = '<option value=""></option>' +
-      ['0.5','1.0','1.5','2.0'].map(v => `<option>${v}</option>`).join('');
-    return;
-  }
+  // 18:00から休憩時間分を取り切れる勤務でなければ選択させない（勤務実績によらずVBAと同じ制約）
   const reversed     = isTimeReversed(startVal, endVal);
   const effectiveEnd = reversed ? '24:00' : (endVal || '');
   const allowed      = [];
@@ -68,11 +63,10 @@ function controlBreakDisplay(prefix = '') {
   const startVal = getFormEl(prefix, 'start').value || '00:00';
   const endVal   = getFormEl(prefix, 'end').value;
 
-  const showAll  = status === STATUS.FLEX || status === STATUS.SUBSTITUTE_WORK;
   const off      = OFF_STATUSES.includes(status);
   const reversed = isTimeReversed(startVal, endVal);
 
-  if (showAll || reversed || (!off && endVal && endVal > '18:00')) {
+  if (reversed || (!off && endVal && endVal > '18:00')) {
     breakWrap.classList.remove('hidden');
     updateBreakOptions(prefix);
   } else {
