@@ -10,7 +10,49 @@
 | `work_sheet.html` | 作業表（勤怠記録）。メイン機能 |
 | `index.html` | ランディング。work_sheet.html への入り口 |
 
-`work_sheet.html` は `css/worksheet.css` のみを読む。`index.html` 用の `css/components.css` `css/modals.css` 等のクラスや変数は使えない。
+`work_sheet.html` は `css/worksheet.css` のみを読む。`index.html` 用の `css/variables.css` `css/index.css` のクラスや変数は使えない（両者はCSS変数体系が独立している）。
+
+記録したデータを外部へ送信しない。アクセス解析も入れない。データはブラウザの LocalStorage にのみ保存する。
+
+外部リソースの読み込みは、Excel書込のための JSZip（CDN）が唯一の例外。
+`excelImport.js` が必要になった時点で動的に読み込む方式であり、他の機能はオフラインで動く。
+新たに外部依存を増やすときは、この方式（遅延読み込み・失敗時は該当機能だけがエラーになる）に従う。
+
+---
+
+## 日時の扱い
+
+日時はすべて日本時間（JST）で扱う。端末のタイムゾーンに依存させない。
+
+- 現在日時は `jstNow()` を経由する。`new Date()` を直接使わない
+- `'YYYY-MM-DD'` の解釈は `parseDate()` を使う。`new Date('2026-08-01')` はUTC解釈になり曜日がずれる
+- 曜日は `getWeekday()` / `getWeekdayLabel()` を使う
+
+いずれも `js/workSheets/utils.js` にある。`tests/utils.test.js` が TZ を変えた別プロセスで一致を検証している。
+
+---
+
+## LocalStorage
+
+読み書きは `js/workSheets/storage.js` のヘルパーを経由する。容量超過やプライベートブラウジングで
+`setItem` が例外を投げても呼び出し側が止まらないよう、例外はここで捕まえる。
+
+| 用途 | 関数 |
+|------|------|
+| JSONとして保存する値 | `readJSON()` / `writeJSON()` |
+| 素の文字列（モード・日付） | `readString()` / `writeString()` |
+| 削除 | `removeStored()` |
+
+キー名は `constants.js` の定数を使い、リテラルを書かない。
+勤務データと15分調整差分は社員用/BP用で別キーなので、`dataKey()` / `roundDiffsKey()` を通す。
+
+---
+
+## メッセージの組み立て
+
+トースト・確認ダイアログのメッセージには作業内容やイベント名などのユーザー入力が載る。
+`innerHTML` を使うと入力した文字列がHTMLとして解釈されるため、`textContent` を使う。
+改行を含む場合は `ui.js` の `setMultilineText()` を使う。
 
 ---
 
@@ -39,6 +81,7 @@ theme.js               ← defer なし（flash防止のため同期ロード）
 js/workSheets/constants.js
 js/workSheets/state.js
 js/workSheets/utils.js
+js/workSheets/calc.js
 js/workSheets/storage.js
 js/workSheets/ui.js
 js/workSheets/calendar.js
@@ -98,10 +141,18 @@ background: #ffffff;
 
 - 出退勤記録の入力 → リロード → 状態が保持されているか
 - チェックイン/チェックアウトの記録
+- 出社したまま日付が変わった場合の警告表示と、退勤時刻を入力してその日で登録できるか
+- 出社記録の取り消し
 - 社員用 / BP用のモード切り替え
 - 振替・代休・変則勤務・有休など勤務状態の登録
-- 月次サマリー（総勤務時間・残業・休暇取得数）の集計
+- 月次サマリー（総勤務時間・残業・休暇取得数）の集計、集計のクリップボードコピー
+- 月間カレンダービュー（月移動、日付クリックで編集/入力開始）
+- 作業内容の入力補助（履歴サジェスト・前回の内容・文字数カウンタ）
+- 削除・全体クリア・コピー後の「元に戻す」
 - JSON エクスポート / インポート
+- Excel（.xlsm）書込（対象月のヘッダーと勤務データが入るか、罫線・図形・VBAが保持されるか）
 - イベント編集（除外日が編集対象月と異なる月でも、編集対象月のカレンダーが開くか）
+- イベントの日付未選択（全日程に反映される）
+- モーダルのキーボード操作（Escapeで閉じる、Tabがモーダル内で循環する）
 - ダークモード切り替え（index.html / work_sheet.html）
-- モバイル幅（700px以下）での表示崩れ
+- モバイル幅（700px以下）での表示崩れ（タブ5つ・カレンダービュー）

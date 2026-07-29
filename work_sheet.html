@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -67,25 +67,27 @@
 </nav>
 
 <!-- タブ -->
-<div class="tabs">
-  <button class="tab-btn active" data-tab="checkin-tab">出社・退勤</button>
-  <button class="tab-btn" data-tab="input-tab">作業表入力</button>
-  <button class="tab-btn" data-tab="list-tab">データ一覧</button>
-  <button class="tab-btn" data-tab="event-tab">イベント一覧</button>
+<div class="tabs" role="tablist">
+  <button class="tab-btn active" type="button" role="tab" aria-selected="true"  data-tab="checkin-tab">出社・退勤</button>
+  <button class="tab-btn"        type="button" role="tab" aria-selected="false" data-tab="input-tab">作業表入力</button>
+  <button class="tab-btn"        type="button" role="tab" aria-selected="false" data-tab="list-tab">データ一覧</button>
+  <button class="tab-btn"        type="button" role="tab" aria-selected="false" data-tab="calendar-tab">カレンダー</button>
+  <button class="tab-btn"        type="button" role="tab" aria-selected="false" data-tab="event-tab">イベント一覧</button>
 </div>
 
 <div class="app-container">
 
   <!-- 出社・退勤タブ -->
-  <div id="checkin-tab" class="tab-content active">
+  <div id="checkin-tab" class="tab-content active" role="tabpanel">
     <div class="section-title"><span class="icon">🏢</span> 出社・退勤</div>
     <div class="card checkin-card">
       <div class="checkin-header">
         <span id="checkin-status" class="checkin-status">未出社</span>
       </div>
+      <p id="checkin-warning" class="checkin-warning hidden"></p>
       <div class="checkin-row">
-        <button id="simple_in_btn"  class="checkin-btn in"  onclick="simpleCheckIn()">🏢 出社</button>
-        <button id="simple_out_btn" class="checkin-btn out" onclick="simpleCheckOut()">🏠 退勤</button>
+        <button id="simple_in_btn"  class="checkin-btn in"  type="button" onclick="simpleCheckIn()">🏢 出社</button>
+        <button id="simple_out_btn" class="checkin-btn out" type="button" onclick="simpleCheckOut()">🏠 退勤</button>
       </div>
       <div class="checkin-info">
         <div>
@@ -93,30 +95,33 @@
           <span id="simple_out_time" class="checkin-time"></span>
         </div>
         <div class="checkin-content-row">
-          <input type="text" id="simple_content" maxlength="27"
+          <input type="text" id="simple_content" maxlength="27" list="content-history"
                  placeholder="作業内容（最大27文字）" class="checkin-content" />
-          <button class="btn-secondary btn-sm" onclick="applyEventsToCheckin()" title="今日のイベントを内容に反映">📅</button>
+          <button class="btn-secondary btn-sm" type="button" onclick="applyEventsToCheckin()"
+                  title="今日のイベントを内容に反映">📅</button>
         </div>
-        <input type="time" id="manual_in_time" class="checkin-manual-in hidden" />
+        <div class="char-counter" id="simple-content-counter">0 / 27</div>
+        <button id="checkin-cancel-btn" class="btn-secondary btn-sm hidden" type="button"
+                onclick="cancelCheckIn()">出社記録を取り消す</button>
       </div>
       <p class="checkin-guide">出社ボタンで時刻を記録、退勤ボタンで内容とともに登録します</p>
     </div>
   </div>
 
   <!-- 作業表入力タブ -->
-  <div id="input-tab" class="tab-content">
+  <div id="input-tab" class="tab-content" role="tabpanel">
     <div class="section-title"><span class="icon">📝</span> 作業表入力</div>
     <div class="card">
       <div class="form-grid form-grid-3">
         <div class="form-item">
-          <label>日付</label>
+          <label for="date">日付</label>
           <div class="date-row">
             <input type="date" id="date">
             <span id="weekday" class="weekday-label"></span>
           </div>
         </div>
         <div class="form-item mode-employee-only">
-          <label>勤務実績</label>
+          <label for="status">勤務実績</label>
           <select id="status">
             <option value=""></option>
             <option>有休</option><option>午前半休</option><option>午後半休</option>
@@ -131,49 +136,66 @@
           </select>
         </div>
         <div class="form-item mode-employee-only">
-          <label>遅刻 / 早退</label>
+          <label for="late">遅刻 / 早退</label>
           <select id="late">
             <option value=""></option>
             <option>遅刻</option><option>早退</option><option>遅刻/早退</option>
           </select>
         </div>
         <div class="form-item grid-col-1">
-          <label>作業開始</label>
+          <label for="start">作業開始</label>
           <input type="time" id="start" value="09:00">
         </div>
         <div class="form-item grid-col-2">
-          <label>作業終了</label>
+          <label for="end">作業終了</label>
           <input type="time" id="end" value="18:00">
         </div>
         <div class="form-item grid-col-1 mode-employee-only">
-          <label>18時以降休憩</label>
+          <label for="break">18時以降休憩</label>
           <select id="break">
             <option value=""></option>
             <option>0.5</option><option>1.0</option><option>1.5</option><option>2.0</option>
           </select>
         </div>
         <div class="form-item grid-col-2 hidden mode-employee-only" id="substitute-wrap">
-          <label>振替代休対象日</label>
+          <label for="substitute">振替代休対象日</label>
           <div class="date-row">
             <input type="date" id="substitute">
             <span id="substitute-weekday" class="weekday-label"></span>
           </div>
         </div>
         <div class="form-item grid-col-span-3">
-          <label>内容 <span class="label-note">（最大27文字）</span></label>
-          <input type="text" id="content" maxlength="27">
+          <label for="content">内容 <span class="label-note">（最大27文字）</span></label>
+          <div class="content-row">
+            <input type="text" id="content" maxlength="27" list="content-history">
+            <button class="btn-secondary btn-sm" type="button" onclick="applyLastContent()"
+                    title="直近の作業内容を反映">↩ 前回の内容</button>
+          </div>
+          <div class="char-counter" id="content-counter">0 / 27</div>
         </div>
       </div>
       <div class="btn-row">
-        <button onclick="addData()">✔ 登録</button>
-        <button class="btn-secondary" onclick="clearForm()">↺ クリア</button>
+        <button type="button" onclick="addData()">✔ 登録</button>
+        <button class="btn-secondary" type="button" onclick="clearForm()">↺ クリア</button>
       </div>
     </div>
   </div>
 
   <!-- データ一覧タブ -->
-  <div id="list-tab" class="tab-content">
+  <div id="list-tab" class="tab-content" role="tabpanel">
     <div class="section-title"><span class="icon">📋</span> データ一覧</div>
+
+    <div id="backup-notice" class="card backup-notice hidden">
+      <div class="backup-notice-body">
+        <span class="backup-notice-icon">💾</span>
+        <p id="backup-notice-text"></p>
+      </div>
+      <div class="btn-row">
+        <button id="backup-notice-export" class="btn-secondary btn-sm" type="button">⬇ 今すぐJSON出力</button>
+        <button id="backup-notice-later"  class="btn-secondary btn-sm" type="button">あとで</button>
+      </div>
+    </div>
+
     <div class="card filter-card">
       <div class="filter-bar">
         <label class="filter-label" for="data-month-filter">📅 表示月:</label>
@@ -184,11 +206,7 @@
     <div class="card table-wrap">
       <table>
         <thead>
-          <tr id="list-thead-tr">
-            <th>日付</th><th>曜</th><th>実績</th>
-            <th>開始</th><th>終了</th><th>18時以降休憩</th>
-            <th>遅刻</th><th>振替</th><th>内容</th><th>操作</th>
-          </tr>
+          <tr id="list-thead-tr"></tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -204,27 +222,45 @@
     <div class="card">
       <div class="btn-row btn-row-grouped">
         <div class="btn-group">
-          <button class="btn-secondary" onclick="exportJSON()">⬇ JSON出力</button>
-          <button class="btn-secondary" onclick="importJSON()">⬆ JSON読込</button>
-          <button class="btn-secondary" onclick="writeToExcelSheet()">📊 Excel書込</button>
+          <button class="btn-secondary" type="button" onclick="exportJSON()">⬇ JSON出力</button>
+          <button class="btn-secondary" type="button" onclick="importJSON()">⬆ JSON読込</button>
+          <button class="btn-secondary" type="button" onclick="writeToExcelSheet()">📊 Excel書込</button>
         </div>
         <div class="btn-group">
-          <button class="btn-secondary" onclick="importEventsToContents()">📥 イベント取り込み</button>
-        </div>
-        <div class="btn-divider"></div>
-        <div class="btn-group">
-          <button class="btn-danger" onclick="clearAll()">🗑 全体クリア</button>
+          <button class="btn-secondary" type="button" onclick="importEventsToContents()">📥 イベント取り込み</button>
         </div>
         <div class="btn-divider"></div>
         <div class="btn-group">
-          <button class="btn-secondary" onclick="formatTimes()">⏱ 時間フォーマット整理</button>
+          <button class="btn-danger" type="button" onclick="clearAll()">🗑 全体クリア</button>
+        </div>
+        <div class="btn-divider"></div>
+        <div class="btn-group">
+          <button class="btn-secondary" type="button" onclick="formatTimes()">⏱ 時間フォーマット整理</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- カレンダータブ -->
+  <div id="calendar-tab" class="tab-content" role="tabpanel">
+    <div class="section-title"><span class="icon">🗓</span> カレンダー</div>
+    <div class="card">
+      <div class="calendar-view-bar">
+        <button id="calendar-prev"  class="btn-secondary btn-sm" type="button" aria-label="前の月">‹ 前月</button>
+        <span id="calendar-view-title" class="calendar-view-title"></span>
+        <button id="calendar-next"  class="btn-secondary btn-sm" type="button" aria-label="次の月">次月 ›</button>
+        <button id="calendar-today" class="btn-secondary btn-sm" type="button">今月</button>
+      </div>
+      <div id="calendar-view-stats" class="calendar-view-stats"></div>
+      <div id="calendar-view" class="calendar-view"></div>
+      <p class="calendar-view-guide">
+        日付をクリックすると、登録済みならその日の編集、未登録ならその日付で入力を開始します
+      </p>
+    </div>
+  </div>
+
   <!-- イベント一覧タブ -->
-  <div id="event-tab" class="tab-content">
+  <div id="event-tab" class="tab-content" role="tabpanel">
     <div class="section-title"><span class="icon">📅</span> イベント一覧</div>
     <div class="card filter-card">
       <div class="filter-bar">
@@ -243,7 +279,7 @@
           </label>
         </div>
         <div class="form-item grid-col-span-3" id="event-field-single-date">
-          <label id="event-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
+          <label id="event-calendar-label">日付選択 <span class="label-note">（未選択なら全日程に反映／複数日をクリック選択）</span></label>
           <div id="event-calendar" class="event-calendar"></div>
           <div class="date-selected-info">
             <div class="date-selected-label" id="selected-dates-label">選択中の日付:</div>
@@ -251,13 +287,13 @@
           </div>
         </div>
         <div class="form-item" id="event-field-content">
-          <label>内容 <span class="label-note">（例: 事業部会）</span></label>
+          <label for="event-content">内容 <span class="label-note">（例: 事業部会）</span></label>
           <input type="text" id="event-content" maxlength="32" placeholder="イベント内容">
         </div>
       </div>
       <div class="btn-row">
-        <button onclick="addEvent()">＋ 追加</button>
-        <button class="btn-secondary" onclick="clearEventForm()">↺ クリア</button>
+        <button type="button" onclick="addEvent()">＋ 追加</button>
+        <button class="btn-secondary" type="button" onclick="clearEventForm()">↺ クリア</button>
       </div>
     </div>
     <div class="card table-wrap">
@@ -268,45 +304,15 @@
         <tbody id="event-tbody"></tbody>
       </table>
     </div>
-
-    <!-- イベント編集モーダル -->
-    <div id="eventEditModal" class="hidden">
-      <div class="section-title"><span class="icon">📝</span> イベント編集</div>
-      <div class="form-grid form-grid-3">
-        <div class="form-item grid-col-span-3">
-          <label class="checkbox-row">
-            <input type="checkbox" id="event-edit-no-date" class="checkbox-inline">
-            <span>常時表示（除外日を下のカレンダーで選択）</span>
-          </label>
-        </div>
-        <div class="form-item grid-col-span-3" id="event-edit-field-single-date">
-          <label id="event-edit-calendar-label">日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span></label>
-          <div id="event-edit-calendar" class="event-calendar"></div>
-          <div class="date-selected-info">
-            <div class="date-selected-label" id="event-edit-selected-dates-label">選択中の日付:</div>
-            <div id="event-edit-selected-dates-display" class="date-selected-text">なし</div>
-          </div>
-        </div>
-        <div class="form-item" id="event-edit-field-content">
-          <label for="event-edit-content">内容</label>
-          <input type="text" id="event-edit-content" maxlength="32">
-        </div>
-
-      </div>
-      <div class="btn-row">
-        <button onclick="saveEditEvent()">✔ 更新</button>
-        <button class="btn-secondary" onclick="closeEditEventModal()">✕ 閉じる</button>
-      </div>
-    </div>
     <div class="card">
       <div class="btn-row btn-row-grouped">
         <div class="btn-group">
-          <button class="btn-secondary" onclick="exportEventJSON()">⬇ JSON出力</button>
-          <button class="btn-secondary" onclick="importEventJSON()">⬆ JSON読込</button>
+          <button class="btn-secondary" type="button" onclick="exportEventJSON()">⬇ JSON出力</button>
+          <button class="btn-secondary" type="button" onclick="importEventJSON()">⬆ JSON読込</button>
         </div>
         <div class="btn-divider"></div>
         <div class="btn-group">
-          <button class="btn-danger" onclick="clearAllEvents()">🗑 全体クリア</button>
+          <button class="btn-danger" type="button" onclick="clearAllEvents()">🗑 全体クリア</button>
         </div>
       </div>
     </div>
@@ -314,20 +320,25 @@
 
 </div><!-- /.app-container -->
 
+<!-- 作業内容の入力候補（過去の入力履歴） -->
+<datalist id="content-history"></datalist>
+
+<!-- モーダル -->
+<div id="overlay" class="hidden" onclick="closeAllModals()"></div>
+
 <!-- 編集モーダル -->
-<div id="overlay" class="hidden" onclick="closeEditModal(); closeModal(); closeEditEventModal();"></div>
-<div id="editModal" class="hidden">
-  <div class="section-title"><span class="icon">📝</span> 編集</div>
+<div id="editModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+  <div class="section-title" id="editModalTitle"><span class="icon">📝</span> 編集</div>
   <div class="form-grid form-grid-3">
     <div class="form-item">
-      <label>日付</label>
+      <label for="edit-date">日付</label>
       <div class="date-row">
         <input type="date" id="edit-date">
         <span id="edit-weekday" class="weekday-label"></span>
       </div>
     </div>
     <div class="form-item mode-employee-only">
-      <label>勤務実績</label>
+      <label for="edit-status">勤務実績</label>
       <select id="edit-status">
         <option value=""></option>
         <option>有休</option><option>午前半休</option><option>午後半休</option>
@@ -342,71 +353,105 @@
       </select>
     </div>
     <div class="form-item mode-employee-only">
-      <label>遅刻 / 早退</label>
+      <label for="edit-late">遅刻 / 早退</label>
       <select id="edit-late">
         <option value=""></option>
         <option>遅刻</option><option>早退</option><option>遅刻/早退</option>
       </select>
     </div>
     <div class="form-item grid-col-1">
-      <label>作業開始</label>
+      <label for="edit-start">作業開始</label>
       <input type="time" id="edit-start">
     </div>
     <div class="form-item grid-col-2">
-      <label>作業終了</label>
+      <label for="edit-end">作業終了</label>
       <input type="time" id="edit-end">
     </div>
     <div class="form-item grid-col-1 mode-employee-only">
-      <label>18時以降休憩</label>
+      <label for="edit-break">18時以降休憩</label>
       <select id="edit-break">
         <option value=""></option>
         <option>0.5</option><option>1.0</option><option>1.5</option><option>2.0</option>
       </select>
     </div>
     <div class="form-item grid-col-2 hidden mode-employee-only" id="edit-substitute-wrap">
-      <label>振替代休対象日</label>
+      <label for="edit-substitute">振替代休対象日</label>
       <div class="date-row">
         <input type="date" id="edit-substitute">
         <span id="edit-substitute-weekday" class="weekday-label"></span>
       </div>
     </div>
     <div class="form-item grid-col-span-3">
-      <label>内容 <span class="label-note">（最大27文字）</span></label>
-      <input type="text" id="edit-content" maxlength="27">
+      <label for="edit-content">内容 <span class="label-note">（最大27文字）</span></label>
+      <div class="content-row">
+        <input type="text" id="edit-content" maxlength="27" list="content-history">
+        <button class="btn-secondary btn-sm" type="button" onclick="applyLastContent('edit')"
+                title="直近の作業内容を反映">↩ 前回の内容</button>
+      </div>
+      <div class="char-counter" id="edit-content-counter">0 / 27</div>
     </div>
   </div>
   <div class="btn-row">
-    <button onclick="saveEditData()">✔ 更新</button>
-    <button class="btn-secondary" onclick="closeEditModal()">✕ 閉じる</button>
+    <button type="button" onclick="saveEditData()">✔ 更新</button>
+    <button class="btn-secondary" type="button" onclick="closeEditModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- イベント編集モーダル -->
+<div id="eventEditModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="eventEditModalTitle">
+  <div class="section-title" id="eventEditModalTitle"><span class="icon">📝</span> イベント編集</div>
+  <div class="form-grid form-grid-3">
+    <div class="form-item grid-col-span-3">
+      <label class="checkbox-row">
+        <input type="checkbox" id="event-edit-no-date" class="checkbox-inline">
+        <span>常時表示（除外日を下のカレンダーで選択）</span>
+      </label>
+    </div>
+    <div class="form-item grid-col-span-3" id="event-edit-field-single-date">
+      <label id="event-edit-calendar-label">日付選択 <span class="label-note">（未選択なら全日程に反映／複数日をクリック選択）</span></label>
+      <div id="event-edit-calendar" class="event-calendar"></div>
+      <div class="date-selected-info">
+        <div class="date-selected-label" id="event-edit-selected-dates-label">選択中の日付:</div>
+        <div id="event-edit-selected-dates-display" class="date-selected-text">なし</div>
+      </div>
+    </div>
+    <div class="form-item" id="event-edit-field-content">
+      <label for="event-edit-content">内容</label>
+      <input type="text" id="event-edit-content" maxlength="32">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button type="button" onclick="saveEditEvent()">✔ 更新</button>
+    <button class="btn-secondary" type="button" onclick="closeEditEventModal()">✕ 閉じる</button>
   </div>
 </div>
 
 <!-- コピーモーダル -->
-<div id="copyModal" class="hidden">
-  <h4>📅 コピー先をカレンダーから選択</h4>
+<div id="copyModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="copyModalTitle">
+  <h4 id="copyModalTitle">📅 コピー先をカレンダーから選択</h4>
   <div id="copyCalendar"></div>
   <div class="date-selected-info">
     <div class="date-selected-label">選択中の日付:</div>
     <div id="copy-selected-dates-display" class="date-selected-text">なし</div>
   </div>
   <div class="btn-row btn-row-mb">
-    <button class="btn-secondary btn-sm" onclick="selectWeekdays()">平日</button>
-    <button class="btn-secondary btn-sm" onclick="selectAll()">全選択</button>
-    <button class="btn-secondary btn-sm" onclick="clearChecks()">解除</button>
+    <button class="btn-secondary btn-sm" type="button" onclick="selectWeekdays()">平日</button>
+    <button class="btn-secondary btn-sm" type="button" onclick="selectAll()">全選択</button>
+    <button class="btn-secondary btn-sm" type="button" onclick="clearChecks()">解除</button>
   </div>
   <div class="btn-row">
-    <button onclick="executeCopy()">✔ コピー実行</button>
-    <button class="btn-secondary" onclick="closeModal()">✕ 閉じる</button>
+    <button type="button" onclick="executeCopy()">✔ コピー実行</button>
+    <button class="btn-secondary" type="button" onclick="closeModal()">✕ 閉じる</button>
   </div>
 </div>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toast-container"></div>
 
-
 <script src="js/workSheets/constants.js"></script>
 <script src="js/workSheets/state.js"></script>
 <script src="js/workSheets/utils.js"></script>
+<script src="js/workSheets/calc.js"></script>
 <script src="js/workSheets/storage.js"></script>
 <script src="js/workSheets/ui.js"></script>
 <script src="js/workSheets/calendar.js"></script>

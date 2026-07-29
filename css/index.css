@@ -160,19 +160,11 @@ body {
   font-size: 0.9rem;
 }
 
-.footer-links { margin-top: 8px; }
-
-.btn-text-link {
-  background: none;
-  border: none;
-  color: var(--neon);
-  cursor: pointer;
-  text-decoration: underline;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-  padding: 0;
+.footer-note {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  opacity: 0.85;
 }
-.btn-text-link:hover { color: var(--purple); }
 
 @keyframes fadeInDown {
   from {

@@ -1,14 +1,86 @@
 // ============================================================
 // ユーティリティ関数
+//
+// 日時はすべて日本時間（JST）で扱う。
+// 端末のタイムゾーンがJST以外でも「今日」「現在時刻」がずれないよう、
+// 現在日時の取得は jstNow() を経由し、日付文字列の解釈は parseDate() に統一する。
 // ============================================================
+
+const JST_OFFSET_MIN = 9 * 60;
+
+// 現在日時をJSTの壁時計として持つ Date を返す。
+// getFullYear() / getHours() などのローカル系APIでJSTの値が読める
+// （UTCへ変換すると二重にずれるため toISOString() には使わないこと）
+function jstNow() {
+  const now = new Date();
+  return new Date(now.getTime() + (JST_OFFSET_MIN + now.getTimezoneOffset()) * 60 * 1000);
+}
+
+// 'YYYY-MM-DD' を暦日として解釈する。
+// new Date('YYYY-MM-DD') はUTC解釈になり端末のタイムゾーンで曜日がずれるため使わない
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function toDateString(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getTodayJST() {
+  return toDateString(jstNow());
+}
+
+function getCurrentMonthValue() {
+  const now = jstNow();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function nowTimeStr() {
+  const now = jstNow();
+  return minutesToTime(now.getHours() * 60 + now.getMinutes());
+}
+
+function getWeekday(dateStr) {
+  const d = parseDate(dateStr);
+  return d ? WEEKDAYS[d.getDay()] : '';
+}
+
+function getWeekdayLabel(dateStr) {
+  const wd = getWeekday(dateStr);
+  return wd ? `(${wd})` : '';
+}
+
+// 'YYYY-MM' を「YYYY年M月」に整形する
+function formatMonthLabel(monthStr) {
+  if (!monthStr) return '';
+  const [y, m] = monthStr.split('-').map(Number);
+  if (!y || !m) return monthStr;
+  return `${y}年${m}月`;
+}
+
+// 'YYYY-MM-DD' を「M月D日(曜)」に整形する
+function formatDateLabel(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return dateStr || '';
+  return `${d.getMonth() + 1}月${d.getDate()}日${getWeekdayLabel(dateStr)}`;
+}
 
 function getFormEl(prefix, id) {
   return document.getElementById(prefix ? `${prefix}-${id}` : id);
 }
 
+// イベントがその日付に該当するか。
+// 日付未選択（dates が空配列）のイベントは全日程に該当させる
 function matchesEventDate(ev, dateStr) {
-  if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(dateStr);
-  if (ev.dates) return ev.dates.includes(dateStr);
+  const dates = Array.isArray(ev.dates) ? ev.dates : null;
+  if (ev.alwaysShow) return !dates || !dates.includes(dateStr);
+  if (dates) return dates.length === 0 || dates.includes(dateStr);
   const start = ev.startDate || ev.date || null;
   const end   = ev.endDate   || ev.date || null;
   const excludes = ev.excludeDates
@@ -18,10 +90,6 @@ function matchesEventDate(ev, dateStr) {
   if (start && dateStr < start) return false;
   if (end && dateStr > end) return false;
   return true;
-}
-
-function getWeekdayLabel(dateStr) {
-  return dateStr ? `(${WEEKDAYS[new Date(dateStr).getDay()]})` : '';
 }
 
 function timeToMinutes(timeStr) {
@@ -44,92 +112,17 @@ function roundToQuarter(timeStr, mode = 'nearest') {
   return minutesToTime(rounded);
 }
 
+// 日マタギ勤務かどうか。VBAは「開始 >= 終了」を日マタギとみなすため等号を含める
 function isTimeReversed(startStr, endStr) {
-  return !!startStr && !!endStr && timeToMinutes(endStr) < timeToMinutes(startStr);
-}
-
-function nowTimeStr() {
-  const now = new Date();
-  return minutesToTime(now.getHours() * 60 + now.getMinutes());
-}
-
-function minutesToBpTime(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}:${String(m).padStart(2, '0')}`;
+  return !!startStr && !!endStr && timeToMinutes(endStr) <= timeToMinutes(startStr);
 }
 
 function formatHoursMinutes(minutes) {
   const sign = minutes < 0 ? '-' : '';
-  const abs  = Math.abs(minutes);
+  // 作業時間は0.01時間（＝0.6分）単位で丸められるため、表示時に分へ寄せる
+  const abs  = Math.round(Math.abs(minutes));
   const h    = Math.floor(abs / 60);
   const m    = abs % 60;
   if (h === 0) return `${sign}${m}分`;
   return m > 0 ? `${sign}${h}時間${m}分` : `${sign}${h}時間`;
 }
-
-function calcWorkMinutes(d) {
-  if (!d.作業開始 || !d.作業終了) return null;
-  let start = timeToMinutes(d.作業開始);
-  let end   = timeToMinutes(d.作業終了);
-  if (end < start) end += 24 * 60;
-  const duration = end - start;
-  const noon = 12 * 60;
-  const afterNoon = 13 * 60;
-  const lunchBreak = (start < noon && end > afterNoon) ? 60 : 0;
-  const breakAfter18 = Math.round(parseFloat(d['18時以降休憩'] || '0') * 60);
-  return Math.max(0, duration - lunchBreak - breakAfter18);
-}
-
-function getTodayJST() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-  return jst.toISOString().slice(0, 10);
-}
-
-function getISOWeek(dateStr) {
-  const date = new Date(dateStr);
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-}
-
-function groupByWeek(dataArray) {
-  const weeks = {};
-  dataArray.forEach(d => {
-    if (!d.日付) return;
-    const week = getISOWeek(d.日付);
-    if (!weeks[week]) weeks[week] = [];
-    weeks[week].push(d);
-  });
-  return weeks;
-}
-
-function calculateOvertime(weeklyData) {
-  let totalOvertimeMin = 0;
-  Object.values(weeklyData).forEach(weekData => {
-    let weekTotalMin = 0;
-    let dailyOvertimeMin = 0;
-    weekData.forEach(d => {
-      const workMin = calcWorkMinutes(d);
-      if (workMin === null) return;
-      const dayOfWeek = new Date(d.日付).getDay();
-      if (dayOfWeek === 0) return;
-      weekTotalMin += workMin;
-      const dailyOvertime = Math.max(0, workMin - 8 * 60);
-      dailyOvertimeMin += dailyOvertime;
-    });
-    const weeklyOvertime = Math.max(0, weekTotalMin - 40 * 60 - dailyOvertimeMin);
-    totalOvertimeMin += dailyOvertimeMin + weeklyOvertime;
-  });
-  return totalOvertimeMin;
-}
-
-function getCurrentMonthValue() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-

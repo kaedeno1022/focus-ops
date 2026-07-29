@@ -2,16 +2,6 @@
 // メインエントリーポイント・初期化・window公開
 // ============================================================
 
-// CRUD
-
-// Events
-
-// JSON
-
-// Copy
-
-// Clipboard
-
 // ============================================================
 // モード切り替え
 // ============================================================
@@ -20,12 +10,6 @@ function closeModeDropdown() {
   const btn = document.getElementById('modeMenuBtn');
   if (dropdown) dropdown.hidden = true;
   if (btn) btn.setAttribute('aria-expanded', 'false');
-}
-
-function updateModeMenuButtonLabel(mode) {
-  const btn = document.getElementById('modeMenuBtn');
-  if (!btn) return;
-  btn.textContent = `モード: ${mode === 'bp' ? 'BP用' : '社員用'} ▾`;
 }
 
 function initModeMenu() {
@@ -47,11 +31,8 @@ function initModeMenu() {
   });
 }
 
-function switchMode(mode) {
-  setCurrentMode(mode);
-  localStorage.setItem(MODE_KEY, mode);
-  load(); render();
-
+// モードに応じた表示の切り替え。データの読み込みは行わない
+function applyModeUI(mode) {
   const employeeBtn = document.getElementById('mode-employee');
   const bpBtn = document.getElementById('mode-bp');
 
@@ -64,7 +45,8 @@ function switchMode(mode) {
     bpBtn.setAttribute('aria-pressed', mode === 'bp' ? 'true' : 'false');
   }
 
-  updateModeMenuButtonLabel(mode);
+  const btn = document.getElementById('modeMenuBtn');
+  if (btn) btn.textContent = `モード: ${mode === 'bp' ? 'BP用' : '社員用'} ▾`;
   closeModeDropdown();
 
   document.querySelectorAll('.mode-employee-only').forEach(el => el.classList.toggle('hidden', mode !== 'employee'));
@@ -72,6 +54,16 @@ function switchMode(mode) {
 
   controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
   controlTime('edit'); controlBreakDisplay('edit'); updateSubstituteVisibility('edit');
+}
+
+function switchMode(mode) {
+  setCurrentMode(mode);
+  writeString(MODE_KEY, mode);
+  // モードごとに保存先が別なので、取り消し用のスナップショットは持ち越さない
+  setUndoSnapshot(null);
+  load();
+  applyModeUI(mode);
+  render();
 }
 
 // ============================================================
@@ -113,6 +105,8 @@ function filterDataByMonth() {
   const el = document.getElementById('data-month-filter');
   if (!el) return;
   setSelectedMonth(el.value);
+  // カレンダービューも選択した月に追従させる
+  if (el.value) setCalendarViewMonth(el.value);
   render();
 }
 
@@ -125,24 +119,53 @@ function filterEventsByMonth() {
 }
 
 // ============================================================
-// 初期化
+// バックアップ案内
 // ============================================================
-function init() {
-  const saved = localStorage.getItem(MODE_KEY);
-  initModeMenu();
-  if (saved) setCurrentMode(saved);
-  switchMode(saved || 'employee');
-  loadEventData(); renderEventTable();
-  load(); render();
-  initTabs(); initInputForm(); initEditModalListeners();
-  controlTime(); controlBreakDisplay(); updateSubstituteVisibility();
-  updateCheckinUI();
-  setEventModeUI();
-  initMonthFilters();
+function initBackupNotice() {
+  const exportBtn = document.getElementById('backup-notice-export');
+  const laterBtn  = document.getElementById('backup-notice-later');
+  if (exportBtn) exportBtn.addEventListener('click', () => exportJSON());
+  if (laterBtn)  laterBtn.addEventListener('click', () => snoozeBackupNotice());
 }
 
 // ============================================================
-// window公開
+// 初期化
+// ============================================================
+function init() {
+  initModeMenu();
+  initTabs();
+  initInputForm();
+  initEditModalListeners();
+  initModalKeyboard();
+  initBackupNotice();
+  initCalendarViewControls();
+
+  const savedMode = readString(MODE_KEY);
+  setCurrentMode(savedMode === 'bp' ? 'bp' : 'employee');
+  applyModeUI(currentMode);
+
+  loadEventData();
+  load();
+  clearForm();
+
+  // 月フィルタの初期化から render() / renderEventTable() が走る
+  initMonthFilters();
+  initContentHelpers();
+  updateCheckinUI();
+  renderEventCalendar();
+}
+
+function initCalendarViewControls() {
+  const prevBtn  = document.getElementById('calendar-prev');
+  const nextBtn  = document.getElementById('calendar-next');
+  const todayBtn = document.getElementById('calendar-today');
+  if (prevBtn)  prevBtn.addEventListener('click',  () => shiftCalendarMonth(-1));
+  if (nextBtn)  nextBtn.addEventListener('click',  () => shiftCalendarMonth(1));
+  if (todayBtn) todayBtn.addEventListener('click', () => resetCalendarMonth());
+}
+
+// ============================================================
+// window公開（HTMLのonclickから呼ぶもの）
 // ============================================================
 window.addData              = addData;
 window.editRow              = editRow;
@@ -151,9 +174,9 @@ window.closeEditModal       = closeEditModal;
 window.del                  = del;
 window.clearAll             = clearAll;
 window.clearRoundDiffs      = clearRoundDiffs;
-const _importEventsToContentsImpl = importEventsToContents;
-window.importEventsToContents = () => _importEventsToContentsImpl(eventData);
+window.importEventsToContents = () => importEventsToContents(eventData);
 window.formatTimes          = formatTimes;
+window.copySummary          = copySummary;
 window.addEvent             = addEvent;
 window.clearEventForm       = clearEventForm;
 window.closeEditEventModal  = closeEditEventModal;
@@ -161,20 +184,21 @@ window.saveEditEvent        = saveEditEvent;
 window.clearAllEvents       = clearAllEvents;
 window.simpleCheckIn        = simpleCheckIn;
 window.simpleCheckOut       = simpleCheckOut;
+window.cancelCheckIn        = cancelCheckIn;
 window.applyEventsToCheckin = applyEventsToCheckin;
+window.applyLastContent     = applyLastContent;
 window.exportJSON           = exportJSON;
 window.importJSON           = importJSON;
 window.exportEventJSON      = exportEventJSON;
 window.importEventJSON      = importEventJSON;
+window.writeToExcelSheet    = writeToExcelSheet;
 window.openCopy             = openCopy;
 window.closeModal           = closeModal;
+window.closeAllModals       = closeAllModals;
 window.selectAll            = selectAll;
 window.clearChecks          = clearChecks;
 window.selectWeekdays       = selectWeekdays;
 window.executeCopy          = executeCopy;
 window.switchMode           = switchMode;
-window.filterDataByMonth    = filterDataByMonth;
-window.filterEventsByMonth  = filterEventsByMonth;
-window.renderEventCalendar  = renderEventCalendar;
 
 document.addEventListener('DOMContentLoaded', init);
