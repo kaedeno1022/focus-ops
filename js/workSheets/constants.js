@@ -1,18 +1,11 @@
 // ============================================================
 // 定数定義
 // ============================================================
-const STATUS = {
-  SUBSTITUTE_WORK: '振替出勤日',
-  SUBSTITUTE_OFF:  '振替休日',
-  FLEX:            '変則勤務',
-  COMPENSATORY:    '代休',
-};
 
-const SUBSTITUTE_VISIBLE_STATUSES = [
-  STATUS.COMPENSATORY,
-  STATUS.SUBSTITUTE_OFF,
-  STATUS.SUBSTITUTE_WORK
-];
+// 振替代休対象日の入力欄を表示する勤務実績
+// 勤務実績の比較は calc.js も含めて文字列リテラルで統一している
+// （Excelマクロの仕様と対照して読めるようにするため）
+const SUBSTITUTE_VISIBLE_STATUSES = ['代休', '振替休日', '振替出勤日'];
 
 // 時刻入力不可の勤務実績
 // VBA「関連チェック」で時刻・遅刻早退・対象日の入力があればエラーとなる状態に対応
@@ -33,6 +26,9 @@ const WORK_START_TIME = '09:00';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
+// 作業内容の最大文字数（Excel作業確認表の記入欄に合わせた制限）
+const CONTENT_MAX_LENGTH = 27;
+
 const TOAST_ICONS = {
   success: '✅',
   error: '❌',
@@ -40,10 +36,15 @@ const TOAST_ICONS = {
   info: 'ℹ️'
 };
 
-const STORAGE_KEY      = 'workData';
-const BP_STORAGE_KEY   = 'workData_bp';
-const MODE_KEY         = 'workMode';
-const EVENT_STORAGE_KEY = 'eventData';
-const CHECKIN_KEY      = 'simpleCheckIn';
-const ROUND_DIFFS_KEY  = 'roundDiffs';
+const STORAGE_KEY        = 'workData';
+const BP_STORAGE_KEY     = 'workData_bp';
+const MODE_KEY           = 'workMode';
+const EVENT_STORAGE_KEY  = 'eventData';
+const CHECKIN_KEY        = 'simpleCheckIn';
+const ROUND_DIFFS_KEY    = 'roundDiffs';
+const BP_ROUND_DIFFS_KEY = 'roundDiffs_bp';
+const LAST_EXPORT_KEY    = 'lastExportAt';
+const BACKUP_SNOOZE_KEY  = 'backupSnoozeUntil';
 
+// 最終エクスポートからこの日数が経つとバックアップを促す
+const BACKUP_REMIND_DAYS = 7;

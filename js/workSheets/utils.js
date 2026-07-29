@@ -1,14 +1,86 @@
 // ============================================================
 // ユーティリティ関数
+//
+// 日時はすべて日本時間（JST）で扱う。
+// 端末のタイムゾーンがJST以外でも「今日」「現在時刻」がずれないよう、
+// 現在日時の取得は jstNow() を経由し、日付文字列の解釈は parseDate() に統一する。
 // ============================================================
+
+const JST_OFFSET_MIN = 9 * 60;
+
+// 現在日時をJSTの壁時計として持つ Date を返す。
+// getFullYear() / getHours() などのローカル系APIでJSTの値が読める
+// （UTCへ変換すると二重にずれるため toISOString() には使わないこと）
+function jstNow() {
+  const now = new Date();
+  return new Date(now.getTime() + (JST_OFFSET_MIN + now.getTimezoneOffset()) * 60 * 1000);
+}
+
+// 'YYYY-MM-DD' を暦日として解釈する。
+// new Date('YYYY-MM-DD') はUTC解釈になり端末のタイムゾーンで曜日がずれるため使わない
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function toDateString(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getTodayJST() {
+  return toDateString(jstNow());
+}
+
+function getCurrentMonthValue() {
+  const now = jstNow();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function nowTimeStr() {
+  const now = jstNow();
+  return minutesToTime(now.getHours() * 60 + now.getMinutes());
+}
+
+function getWeekday(dateStr) {
+  const d = parseDate(dateStr);
+  return d ? WEEKDAYS[d.getDay()] : '';
+}
+
+function getWeekdayLabel(dateStr) {
+  const wd = getWeekday(dateStr);
+  return wd ? `(${wd})` : '';
+}
+
+// 'YYYY-MM' を「YYYY年M月」に整形する
+function formatMonthLabel(monthStr) {
+  if (!monthStr) return '';
+  const [y, m] = monthStr.split('-').map(Number);
+  if (!y || !m) return monthStr;
+  return `${y}年${m}月`;
+}
+
+// 'YYYY-MM-DD' を「M月D日(曜)」に整形する
+function formatDateLabel(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return dateStr || '';
+  return `${d.getMonth() + 1}月${d.getDate()}日${getWeekdayLabel(dateStr)}`;
+}
 
 function getFormEl(prefix, id) {
   return document.getElementById(prefix ? `${prefix}-${id}` : id);
 }
 
+// イベントがその日付に該当するか。
+// 日付未選択（dates が空配列）のイベントは全日程に該当させる
 function matchesEventDate(ev, dateStr) {
-  if (ev.alwaysShow) return !ev.dates || !ev.dates.includes(dateStr);
-  if (ev.dates) return ev.dates.includes(dateStr);
+  const dates = Array.isArray(ev.dates) ? ev.dates : null;
+  if (ev.alwaysShow) return !dates || !dates.includes(dateStr);
+  if (dates) return dates.length === 0 || dates.includes(dateStr);
   const start = ev.startDate || ev.date || null;
   const end   = ev.endDate   || ev.date || null;
   const excludes = ev.excludeDates
@@ -18,10 +90,6 @@ function matchesEventDate(ev, dateStr) {
   if (start && dateStr < start) return false;
   if (end && dateStr > end) return false;
   return true;
-}
-
-function getWeekdayLabel(dateStr) {
-  return dateStr ? `(${WEEKDAYS[new Date(dateStr).getDay()]})` : '';
 }
 
 function timeToMinutes(timeStr) {
@@ -49,17 +117,6 @@ function isTimeReversed(startStr, endStr) {
   return !!startStr && !!endStr && timeToMinutes(endStr) <= timeToMinutes(startStr);
 }
 
-function nowTimeStr() {
-  const now = new Date();
-  return minutesToTime(now.getHours() * 60 + now.getMinutes());
-}
-
-function minutesToBpTime(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}:${String(m).padStart(2, '0')}`;
-}
-
 function formatHoursMinutes(minutes) {
   const sign = minutes < 0 ? '-' : '';
   // 作業時間は0.01時間（＝0.6分）単位で丸められるため、表示時に分へ寄せる
@@ -69,15 +126,3 @@ function formatHoursMinutes(minutes) {
   if (h === 0) return `${sign}${m}分`;
   return m > 0 ? `${sign}${h}時間${m}分` : `${sign}${h}時間`;
 }
-
-function getTodayJST() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-  return jst.toISOString().slice(0, 10);
-}
-
-function getCurrentMonthValue() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-

@@ -15,49 +15,85 @@ function sortEventData() {
   });
 }
 
-function setEventModeUI() {
-  setTimeout(() => renderEventCalendar(), 0);
-}
-
 function addEvent() {
   const content = document.getElementById('event-content').value.trim();
   if (!content) { showToast('内容は必須です', 'warning'); return; }
 
   const alwaysShow = document.getElementById('event-no-date').checked;
-  const ev = { content, alwaysShow, dates: [...selectedDates] };
-  eventData.push(ev);
+  takeEventUndoSnapshot();
+  eventData.push({ content, alwaysShow, dates: [...selectedDates] });
   sortEventData();
   saveEventData(); renderEventTable(); clearEventForm();
-  showToast('イベントを追加しました', 'success');
+  showToast(
+    selectedDates.length === 0 && !alwaysShow
+      ? 'イベントを追加しました（日付未選択のため全日程に反映されます）'
+      : 'イベントを追加しました',
+    'success');
 }
 
 async function deleteEvent(i) {
   const ev = eventData[i];
   const content = ev?.content || 'このイベント';
-  if (!await showConfirm(`「${content}」を削除しますか？`)) return;
-  eventData.splice(i, 1); saveEventData(); renderEventTable();
-  showToast('削除しました', 'success');
+  if (!await showConfirm(`「${content}」を削除しますか？`, { danger: true })) return;
+  takeEventUndoSnapshot();
+  eventData.splice(i, 1);
+  saveEventData(); renderEventTable();
+  showToast('削除しました', 'success', 8000, undoAction());
 }
 
 function clearEventForm() {
   setSelectedDates([]);
   document.getElementById('event-content').value = '';
   document.getElementById('event-no-date').checked = false;
-  document.getElementById('event-calendar-label').innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
-  document.getElementById('selected-dates-label').textContent = '選択中の日付:';
+  updateEventDateLabels('');
   renderEventCalendar();
+}
+
+// イベント1件の日付表示・件数表示を組み立てる
+function eventDateSummary(ev) {
+  const maxDisplay = 3;
+
+  if (ev.alwaysShow) {
+    return {
+      dateText: '常時表示',
+      countText: ev.dates && ev.dates.length > 0 ? `除外: ${ev.dates.length}日` : '除外なし',
+      wrap: false,
+    };
+  }
+
+  if (Array.isArray(ev.dates)) {
+    if (ev.dates.length === 0) {
+      return { dateText: '全日程', countText: '日付未指定', wrap: false };
+    }
+    if (ev.dates.length <= maxDisplay) {
+      return { dateText: ev.dates.join(', '), countText: `${ev.dates.length}日`, wrap: false };
+    }
+    return {
+      dateText: `${ev.dates.slice(0, maxDisplay).join(', ')}, ...`,
+      countText: `${ev.dates.length}日`,
+      wrap: true,
+    };
+  }
+
+  const start = ev.startDate || ev.date || '';
+  const end   = ev.endDate   || ev.date || '';
+  const dateText = (start && end)
+    ? (start === end ? start : `${start} 〜 ${end}`)
+    : '';
+  return { dateText, countText: '(旧形式)', wrap: false };
 }
 
 function renderEventTable() {
   const tbody = document.getElementById('event-tbody');
-  tbody.innerHTML = '';
+  tbody.textContent = '';
   const frag = document.createDocumentFragment();
 
   const filteredEventData = selectedEventMonth
     ? eventData.filter(ev => {
         if (ev.alwaysShow) return true;
-        if (ev.dates) {
-          return ev.dates.some(d => d.startsWith(selectedEventMonth));
+        if (Array.isArray(ev.dates)) {
+          // 日付未指定は全日程に反映されるため、どの月でも表示する
+          return ev.dates.length === 0 || ev.dates.some(d => d.startsWith(selectedEventMonth));
         }
         const start = ev.startDate || ev.date || '';
         const end = ev.endDate || ev.date || '';
@@ -68,53 +104,30 @@ function renderEventTable() {
   filteredEventData.forEach(ev => {
     const actualIndex = eventData.indexOf(ev);
     const tr = document.createElement('tr');
+    const { dateText, countText, wrap } = eventDateSummary(ev);
 
-    const maxDisplay = 3;
-    let dateDisplay = '';
-    let countDisplay = '';
-
-    if (ev.alwaysShow) {
-      dateDisplay = '常時表示';
-      countDisplay = ev.dates && ev.dates.length > 0 ? `除外: ${ev.dates.length}日` : '除外なし';
-    } else if (ev.dates && Array.isArray(ev.dates)) {
-      if (ev.dates.length === 0) {
-        dateDisplay = '-'; countDisplay = '-';
-      } else if (ev.dates.length <= maxDisplay) {
-        dateDisplay = ev.dates.join(', ');
-        countDisplay = `${ev.dates.length}日`;
-      } else {
-        dateDisplay = `${ev.dates.slice(0, maxDisplay).join(', ')}, ...`;
-        countDisplay = `${ev.dates.length}日`;
-      }
-    } else {
-      const start = ev.startDate || ev.date || '';
-      const end   = ev.endDate   || ev.date || '';
-      if (start && end) {
-        dateDisplay = start === end ? start : `${start} 〜 ${end}`;
-      }
-      countDisplay = '(旧形式)';
-    }
-
-    [dateDisplay, countDisplay, ev.content].forEach((text, ci) => {
+    [['日付', dateText], ['件数', countText], ['内容', ev.content]].forEach(([label, text], ci) => {
       const td = document.createElement('td');
+      td.dataset.label = label;
       td.textContent = text || '';
-      if (ci === 0 && ev.dates && ev.dates.length > maxDisplay) {
-        td.style.whiteSpace = 'normal';
-        td.style.maxWidth = '200px';
-        td.style.fontSize = '.9em';
-      }
+      if (ci === 0 && wrap) td.classList.add('td-datelist');
       tr.appendChild(td);
     });
 
     const tdOp = document.createElement('td');
     tdOp.className = 'td-ops';
+    tdOp.dataset.label = '操作';
     const editBtn = document.createElement('button');
-    editBtn.textContent = '✏ 編集'; editBtn.className = 'btn-secondary btn-sm';
+    editBtn.type = 'button';
+    editBtn.textContent = '✏ 編集';
+    editBtn.className = 'btn-secondary btn-sm';
     editBtn.addEventListener('click', () => openEditEventModal(actualIndex));
-    const btn = document.createElement('button');
-    btn.textContent = '🗑 削除'; btn.className = 'btn-danger btn-sm';
-    btn.addEventListener('click', () => deleteEvent(actualIndex));
-    tdOp.appendChild(editBtn); tdOp.appendChild(btn);
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.textContent = '🗑 削除';
+    delBtn.className = 'btn-danger btn-sm';
+    delBtn.addEventListener('click', () => deleteEvent(actualIndex));
+    tdOp.append(editBtn, delBtn);
     tr.appendChild(tdOp);
     frag.appendChild(tr);
   });
@@ -125,65 +138,45 @@ function openEditEventModal(i) {
   setEditEventIndex(i);
   const ev = eventData[i];
 
-  setSelectedDates([]);
   document.getElementById('event-edit-content').value = ev.content || '';
+  document.getElementById('event-edit-no-date').checked = !!ev.alwaysShow;
 
-  if (ev.alwaysShow) {
-    document.getElementById('event-edit-no-date').checked = true;
-    document.getElementById('event-edit-calendar-label').innerHTML = '除外日選択 <span class="label-note">（除外する日付をクリック選択）</span>';
-    document.getElementById('event-edit-selected-dates-label').textContent = '除外中の日付:';
-    if (ev.dates && Array.isArray(ev.dates)) setSelectedDates([...ev.dates]);
-  } else if (ev.dates && Array.isArray(ev.dates)) {
-    document.getElementById('event-edit-no-date').checked = false;
-    document.getElementById('event-edit-calendar-label').innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
-    document.getElementById('event-edit-selected-dates-label').textContent = '選択中の日付:';
+  if (Array.isArray(ev.dates)) {
     setSelectedDates([...ev.dates]);
-  } else {
-    document.getElementById('event-edit-no-date').checked = false;
-    document.getElementById('event-edit-calendar-label').innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
-    document.getElementById('event-edit-selected-dates-label').textContent = '選択中の日付:';
+  } else if (!ev.alwaysShow) {
+    // 旧形式（開始日・終了日）はカレンダー選択に載せ替える
     const start = ev.startDate || ev.date || '';
     const end   = ev.endDate   || ev.date || '';
-    if (start && end) {
-      const dates = [start];
-      if (start !== end) dates.push(end);
-      setSelectedDates(dates);
-    }
+    const dates = [];
+    if (start) dates.push(start);
+    if (end && end !== start) dates.push(end);
+    setSelectedDates(dates);
+  } else {
+    setSelectedDates([]);
   }
+
+  updateEventDateLabels('edit');
 
   const primaryEventDate = ev.alwaysShow
     ? ''
     : (Array.isArray(ev.dates) && ev.dates.length > 0 ? ev.dates[0] : (ev.startDate || ev.date || ''));
   if (primaryEventDate) {
     setEditEventCalendarMonth(primaryEventDate.slice(0, 7));
-  } else if (selectedEventMonth) {
-    setEditEventCalendarMonth(selectedEventMonth);
   } else {
-    const now = new Date();
-    setEditEventCalendarMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+    setEditEventCalendarMonth(selectedEventMonth || getCurrentMonthValue());
   }
 
-  setTimeout(() => renderEditEventCalendar(), 0);
-  document.getElementById('overlay').classList.remove('hidden');
-  document.getElementById('eventEditModal').classList.remove('hidden');
-  document.getElementById('editModal').classList.add('hidden');
-  document.getElementById('copyModal').classList.add('hidden');
+  renderEditEventCalendar();
+  showModal('eventEditModal');
 }
 
 function closeEditEventModal() {
-  document.getElementById('eventEditModal').classList.add('hidden');
   setEditEventIndex(null);
   setSelectedDates([]);
   setEditEventCalendarMonth('');
   document.getElementById('event-edit-no-date').checked = false;
-  document.getElementById('event-edit-calendar-label').innerHTML = '日付選択 <span class="label-note">（カレンダーから複数日をクリック選択）</span>';
-  document.getElementById('event-edit-selected-dates-label').textContent = '選択中の日付:';
-  if (
-    document.getElementById('editModal').classList.contains('hidden') &&
-    document.getElementById('copyModal').classList.contains('hidden')
-  ) {
-    document.getElementById('overlay').classList.add('hidden');
-  }
+  updateEventDateLabels('edit');
+  hideModal('eventEditModal');
 }
 
 function saveEditEvent() {
@@ -192,41 +185,35 @@ function saveEditEvent() {
   if (!content) { showToast('内容は必須です', 'warning'); return; }
 
   const alwaysShow = document.getElementById('event-edit-no-date').checked;
-  const ev = { content, alwaysShow, dates: [...selectedDates] };
-  eventData[editEventIndex] = ev;
+  takeEventUndoSnapshot();
+  eventData[editEventIndex] = { content, alwaysShow, dates: [...selectedDates] };
   sortEventData();
   saveEventData(); renderEventTable();
   closeEditEventModal();
-  showToast('イベントを更新しました', 'success');
+  showToast('イベントを更新しました', 'success', 8000, undoAction());
 }
 
 async function clearAllEvents() {
   const confirmMsg = selectedEventMonth
-    ? `${selectedEventMonth}月のイベントデータを削除しますか？\nこの操作は取り消せません。`
-    : '全イベントデータを削除しますか？\nこの操作は取り消せません。';
+    ? `${formatMonthLabel(selectedEventMonth)}のイベントデータを削除しますか？`
+    : '全イベントデータを削除しますか？';
 
-  if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true })) return;
+  if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true, okLabel: '削除する' })) return;
+
+  takeEventUndoSnapshot();
 
   if (selectedEventMonth) {
     const beforeCount = eventData.length;
-    eventData.splice(0, eventData.length, ...eventData.filter(ev => {
-      if (ev.dates) {
-        return !ev.dates.some(d => d.startsWith(selectedEventMonth));
-      } else {
-        const start = ev.startDate || ev.date || '';
-        const end   = ev.endDate   || ev.date || '';
-        const matchesMonth = start.startsWith(selectedEventMonth) || end.startsWith(selectedEventMonth) ||
-               (start && end && start <= selectedEventMonth + '-31' && end >= selectedEventMonth + '-01');
-        return !matchesMonth;
-      }
-    }));
+    const kept = eventData.filter(ev => !eventMonths(ev).includes(selectedEventMonth));
+    eventData.length = 0;
+    eventData.push(...kept);
     const deletedCount = beforeCount - eventData.length;
     saveEventData(); renderEventTable();
-    showToast(`${selectedEventMonth}月のイベント ${deletedCount}件を削除しました`, 'success');
+    showToast(`${formatMonthLabel(selectedEventMonth)}のイベント ${deletedCount}件を削除しました`,
+      'success', 8000, undoAction());
   } else {
     eventData.length = 0;
     saveEventData(); renderEventTable();
-    showToast('全イベントを削除しました', 'success');
+    showToast('全イベントを削除しました', 'success', 8000, undoAction());
   }
 }
-

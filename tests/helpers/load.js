@@ -25,4 +25,10 @@ function evalIn(context, expression) {
   return vm.runInContext(expression, context);
 }
 
-module.exports = { loadScripts, evalIn };
+// vm コンテキスト内で作られた配列・オブジェクトは、テスト側とは別のプロトタイプを持つため
+// assert.deepStrictEqual が「中身は同じなのに不一致」になる。比較前にこれで詰め直す。
+function toPlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+module.exports = { loadScripts, evalIn, toPlain };
