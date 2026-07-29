@@ -42,7 +42,7 @@ focus-ops/
 │   ├── modals.css          # 設定モーダル・Cookie バナー（index.html用）
 │   ├── index.css           # ランディング専用
 │   └── worksheet.css       # 作業表専用（独立したCSS変数体系）
-└── js/
+├── js/
     ├── theme.js            # ダークモード管理
     ├── cookieConsent.js    # Cookie同意・プライバシーポリシー
     └── workSheets/         # 作業表ツール専用モジュール
@@ -59,7 +59,11 @@ focus-ops/
         ├── copy.js
         ├── json.js
         ├── ui.js
-        └── utils.js
+        ├── utils.js
+        └── calc.js         # 勤怠計算（Excelマクロの集計仕様に準拠）
+└── tests/                  # Node標準テストランナー用テスト
+    ├── helpers/load.js
+    └── calc.test.js
 ```
 
 ---
@@ -75,6 +79,16 @@ npx http-server
 ```
 
 `http://localhost:8000` をブラウザで開く。
+
+---
+
+## テスト
+
+勤怠計算のロジックは Node の標準テストランナーで検証する（追加パッケージ不要）。
+
+```bash
+node --test tests/*.test.js
+```
 
 ### WSL 環境での設定
 

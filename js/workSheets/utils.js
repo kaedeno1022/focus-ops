@@ -62,24 +62,12 @@ function minutesToBpTime(minutes) {
 
 function formatHoursMinutes(minutes) {
   const sign = minutes < 0 ? '-' : '';
-  const abs  = Math.abs(minutes);
+  // 作業時間は0.01時間（＝0.6分）単位で丸められるため、表示時に分へ寄せる
+  const abs  = Math.round(Math.abs(minutes));
   const h    = Math.floor(abs / 60);
   const m    = abs % 60;
   if (h === 0) return `${sign}${m}分`;
   return m > 0 ? `${sign}${h}時間${m}分` : `${sign}${h}時間`;
-}
-
-function calcWorkMinutes(d) {
-  if (!d.作業開始 || !d.作業終了) return null;
-  let start = timeToMinutes(d.作業開始);
-  let end   = timeToMinutes(d.作業終了);
-  if (end < start) end += 24 * 60;
-  const duration = end - start;
-  const noon = 12 * 60;
-  const afterNoon = 13 * 60;
-  const lunchBreak = (start < noon && end > afterNoon) ? 60 : 0;
-  const breakAfter18 = Math.round(parseFloat(d['18時以降休憩'] || '0') * 60);
-  return Math.max(0, duration - lunchBreak - breakAfter18);
 }
 
 function getTodayJST() {

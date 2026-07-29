@@ -39,6 +39,7 @@ theme.js               ← defer なし（flash防止のため同期ロード）
 js/workSheets/constants.js
 js/workSheets/state.js
 js/workSheets/utils.js
+js/workSheets/calc.js
 js/workSheets/storage.js
 js/workSheets/ui.js
 js/workSheets/calendar.js
