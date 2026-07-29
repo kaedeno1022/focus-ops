@@ -25,9 +25,26 @@
   --shadow: 0 4px 16px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
   --shadow-lg: 0 12px 40px rgba(0,0,0,.1), 0 4px 12px rgba(0,0,0,.05);
   --th-bg: #f1f5f9;
+  /* 暗い背景の上に置く文字用の色。面（ボタン背景）用の --primary / --danger とは別に持つ */
+  --primary-text: #7c3aed;
+  --danger-text: #dc2626;
+  --warning: #f59e0b;
+  --tab-bg: rgba(255,255,255,.5);
+  --tab-bg-hover: rgba(255,255,255,.75);
+  --btn-secondary-bg: #64748b;
+  --btn-secondary-hover: #475569;
+  --btn-neutral-hover: #cbd5e1;
+  --disabled-surface: #cbd5e1;
+  --disabled-surface-danger: #fecaca;
+  --badge-bg: #6d28d9;
+  --dropdown-hover: #f5f3ff;
+  --rule-border: #cbd5e1;
+  --rule-text: #475569;
+  --calendar-frame-bg: #f1f5f9;
   --checkin-bg: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
   --checkin-status-in: #dcfce7;
-  --checkin-status-out: #fee2e2;
+  --checkin-status-in-text: #15803d;
+  --checkin-status-in-border: #86efac;
   --transition: .2s cubic-bezier(.4,0,.2,1);
   --input-bg: #ffffff;
   --input-bg-disabled: #f8fafc;
@@ -47,10 +64,26 @@
   --text: #e2e8f0;
   --text-muted: #94a3b8;
   --text-light: #64748b;
-  --th-bg: #1e293b;
+  --th-bg: #243347;
+  --primary-text: #a78bfa;
+  --danger-text: #f87171;
+  --warning: #fbbf24;
+  --tab-bg: #152036;
+  --tab-bg-hover: #1c2942;
+  --btn-secondary-bg: #475569;
+  --btn-secondary-hover: #5b6b80;
+  --btn-neutral-hover: #475569;
+  --disabled-surface: #334155;
+  --disabled-surface-danger: #7f1d1d;
+  --badge-bg: #7c3aed;
+  --dropdown-hover: #2e1065;
+  --rule-border: #334155;
+  --rule-text: #94a3b8;
+  --calendar-frame-bg: #0f172a;
   --checkin-bg: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
   --checkin-status-in: #14532d;
-  --checkin-status-out: #450a0a;
+  --checkin-status-in-text: #86efac;
+  --checkin-status-in-border: #166534;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
   --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
   --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
@@ -72,10 +105,26 @@
     --text: #e2e8f0;
     --text-muted: #94a3b8;
     --text-light: #64748b;
-    --th-bg: #1e293b;
+    --th-bg: #243347;
+    --primary-text: #a78bfa;
+    --danger-text: #f87171;
+    --warning: #fbbf24;
+    --tab-bg: #152036;
+    --tab-bg-hover: #1c2942;
+    --btn-secondary-bg: #475569;
+    --btn-secondary-hover: #5b6b80;
+    --btn-neutral-hover: #475569;
+    --disabled-surface: #334155;
+    --disabled-surface-danger: #7f1d1d;
+    --badge-bg: #7c3aed;
+    --dropdown-hover: #2e1065;
+    --rule-border: #334155;
+    --rule-text: #94a3b8;
+    --calendar-frame-bg: #0f172a;
     --checkin-bg: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
     --checkin-status-in: #14532d;
-    --checkin-status-out: #450a0a;
+    --checkin-status-in-text: #86efac;
+    --checkin-status-in-border: #166534;
     --shadow-sm: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
     --shadow: 0 4px 16px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2);
     --shadow-lg: 0 12px 40px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
@@ -159,7 +208,7 @@ body {
 .tab-btn {
   flex: 1 1 0;
   padding: 13px 0;
-  background: rgba(255,255,255,.5);
+  background: var(--tab-bg);
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-bottom: none;
@@ -173,12 +222,12 @@ body {
   letter-spacing: .02em;
 }
 .tab-btn:hover:not(.active) {
-  background: rgba(255,255,255,.75);
-  color: var(--primary);
+  background: var(--tab-bg-hover);
+  color: var(--primary-text);
 }
 .tab-btn.active {
   background: var(--card-bg);
-  color: var(--primary);
+  color: var(--primary-text);
   border-color: var(--border);
   z-index: 2;
   box-shadow: 0 -2px 8px rgba(0,0,0,.03);
@@ -193,7 +242,7 @@ body {
   bottom: -1px;
   left: 0; right: 0;
   height: 3px;
-  background: var(--primary);
+  background: var(--primary-text);
   border-radius: 3px 3px 0 0;
 }
 .tab-content { display: none; animation: fadeIn .25s ease; }
@@ -247,8 +296,11 @@ body {
   transition: all var(--transition);
   letter-spacing: .04em;
 }
-.checkin-status.in  { background: var(--checkin-status-in);  color: #15803d; border-color: #86efac; }
-.checkin-status.out { background: var(--checkin-status-out); color: #dc2626; border-color: #fca5a5; }
+.checkin-status.in  {
+  background: var(--checkin-status-in);
+  color: var(--checkin-status-in-text);
+  border-color: var(--checkin-status-in-border);
+}
 .checkin-row { display: flex; gap: 16px; margin-bottom: 20px; }
 .checkin-btn {
   font-size: 1.05em; font-weight: 700;
@@ -262,16 +314,16 @@ body {
 .checkin-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow); }
 .checkin-btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
 .checkin-btn.in  { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
-.checkin-btn.in:disabled  { background: #cbd5e1; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-btn.in:disabled  { background: var(--disabled-surface); color: #fff; cursor: not-allowed; box-shadow: none; }
 .checkin-btn.out { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
-.checkin-btn.out:disabled { background: #fecaca; color: #fff; cursor: not-allowed; box-shadow: none; }
+.checkin-btn.out:disabled { background: var(--disabled-surface-danger); color: #fff; cursor: not-allowed; box-shadow: none; }
 .checkin-info {
   width: 100%;
   display: flex; flex-direction: column; align-items: center;
   gap: 10px; margin-bottom: 8px;
 }
-.checkin-time { font-size: .95em; color: var(--primary); font-weight: 600; margin-right: 12px; }
-.checkin-content, .checkin-manual-in {
+.checkin-time { font-size: .95em; color: var(--primary-text); font-weight: 600; margin-right: 12px; }
+.checkin-content {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
@@ -280,8 +332,7 @@ body {
 }
 .checkin-content    { width: 100%; max-width: 280px; }
 .checkin-content-row { display: flex; align-items: center; gap: 8px; width: 90%; max-width: 360px; }
-.checkin-manual-in  { width: 90%; max-width: 200px; }
-.checkin-content:focus, .checkin-manual-in:focus {
+.checkin-content:focus {
   border-color: var(--primary); outline: none;
   box-shadow: 0 0 0 3px rgba(59,130,246,.15);
 }
@@ -326,7 +377,7 @@ body {
 .form-item input:disabled { background: var(--input-bg-disabled); color: var(--input-disabled-text); cursor: not-allowed; }
 
 .date-row { display: flex; align-items: center; gap: 6px; }
-.weekday-label { font-size: .88em; color: var(--primary); font-weight: 600; }
+.weekday-label { font-size: .88em; color: var(--primary-text); font-weight: 600; }
 
 /* ===== Buttons ===== */
 button {
@@ -359,12 +410,12 @@ button:disabled {
 }
 
 .btn-secondary {
-  background: #64748b;
+  background: var(--btn-secondary-bg);
   color: #fff;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #475569;
+  background: var(--btn-secondary-hover);
 }
 
 .btn-danger {
@@ -384,7 +435,7 @@ button:disabled {
 .btn-secondary.active {
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.25);
 }
 
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
@@ -420,46 +471,27 @@ td {
   border-bottom: 1px solid var(--border);
   padding: 10px 8px; text-align: center; white-space: nowrap; color: var(--text);
 }
-/* BPモード: 列幅を適切に調整 */
-table.mode-bp tbody tr td:nth-child(1) { min-width: 100px; }  /* 日付 */
-table.mode-bp tbody tr td:nth-child(2) { min-width: 40px; }   /* 曜 */
-table.mode-bp tbody tr td:nth-child(3) { min-width: 70px; }   /* 開始 */
-table.mode-bp tbody tr td:nth-child(4) { min-width: 70px; }   /* 終了 */
-table.mode-bp tbody tr td:nth-child(5) {                       /* 内容 */
-  min-width: 150px; max-width: 300px; white-space: normal; text-align: left; 
+/* 列幅は data-label で指定する（列の並びを変えても崩れないように） */
+tbody td[data-label="日付"] { min-width: 100px; }
+tbody td[data-label="曜"]   { min-width: 40px; }
+tbody td[data-label="開始"],
+tbody td[data-label="終了"] { min-width: 70px; }
+tbody td[data-label="作業時間"] { min-width: 84px; font-variant-numeric: tabular-nums; }
+tbody td[data-label="内容"] {
+  min-width: 150px; max-width: 300px; white-space: normal; text-align: left;
 }
-table.mode-bp tbody tr td:nth-child(6) { min-width: 180px; }  /* 操作 */
+tbody td[data-label="操作"] { min-width: 180px; text-align: center; }
 
-/* 社員モード: 内容列 */
-table.mode-employee tbody tr td:nth-child(9) { 
-  min-width: 130px; max-width: 240px; white-space: normal; text-align: left; 
-}
-/* 操作列 */
-td:last-child { min-width: 150px; text-align: center; }
+/* 今日の行を目立たせる */
+tbody tr.is-today { background: var(--primary-light); }
+tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--primary-text); }
+
+/* イベント一覧で日付を折り返す列 */
+.td-datelist { white-space: normal; max-width: 200px; font-size: .9em; }
+
 .td-ops { display: flex; gap: 6px; justify-content: center; align-items: center; }
 .td-ops button { box-shadow: none; }
 .td-ops button:hover { box-shadow: var(--shadow-sm); }
-
-/* ===== Calendar Grid ===== */
-#calendar-grid {
-  display: grid; grid-template-columns: repeat(7, 40px); gap: 2px;
-  margin-bottom: 10px; background: var(--th-bg);
-  padding: 10px 6px; border-radius: var(--radius); border: 1px solid var(--border);
-}
-.calendar-header {
-  display: grid; grid-template-columns: repeat(7, 40px);
-  font-size: .82em; font-weight: 700; color: var(--text-muted);
-  margin-bottom: 2px; text-align: center; letter-spacing: .08em;
-  padding-left: 6px; text-transform: uppercase;
-}
-.calendar-cell { height: 38px; display: flex; align-items: center; justify-content: center; }
-.calendar-cell label {
-  width: 34px; height: 34px;
-  display: flex; justify-content: center; align-items: center;
-  border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); font-size: .9em;
-}
-.calendar-cell label:hover { background: var(--primary-light); }
-.calendar-cell input[type="checkbox"] { accent-color: var(--primary); }
 
 /* Copy Calendar Styles */
 .copy-calendar-title {
@@ -473,17 +505,17 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 /* ===== Work Summary ===== */
-.work-summary-grid {
+.summary-head {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.summary-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 28px;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
-.work-summary-sep {
-  width: 1px; height: 28px;
-  background: var(--border);
-}
-.work-summary-item,
 .summary-item {
   display: flex;
   align-items: center;
@@ -492,7 +524,6 @@ td:last-child { min-width: 150px; text-align: center; }
 .summary-item-wide {
   flex-basis: 100%;
 }
-.work-summary-label,
 .summary-label {
   font-size: .88em;
   color: var(--text-muted);
@@ -500,15 +531,11 @@ td:last-child { min-width: 150px; text-align: center; }
   letter-spacing: .02em;
   white-space: nowrap;
 }
-.work-summary-value,
 .summary-value {
   font-size: 1.15em;
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
-}
-.work-summary-overtime {
-  color: #ef4444;
 }
 .btn-clear-diffs {
   margin-left: 8px;
@@ -538,8 +565,8 @@ td:last-child { min-width: 150px; text-align: center; }
 .summary-warning {
   margin-top: 14px;
   padding: 8px 12px;
-  border-left: 3px solid var(--danger);
-  color: var(--danger);
+  border-left: 3px solid var(--danger-text);
+  color: var(--danger-text);
   font-size: .9em;
   line-height: 1.5;
 }
@@ -550,7 +577,7 @@ td:last-child { min-width: 150px; text-align: center; }
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
   padding: 12px;
-  background: var(--th-bg);
+  background: var(--calendar-frame-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   max-width: 450px;
@@ -615,7 +642,7 @@ td:last-child { min-width: 150px; text-align: center; }
 
 .btn-main {
   min-width: 136px;
-  border: 1px solid #5b21b6;
+  border: 1px solid var(--primary-dark);
   background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
   color: #fff;
   border-radius: 10px;
@@ -664,7 +691,7 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 .mode-dropdown-item:hover {
-  background: #f5f3ff;
+  background: var(--dropdown-hover);
 }
 
 .mode-item-label {
@@ -680,7 +707,7 @@ td:last-child { min-width: 150px; text-align: center; }
   line-height: 1;
   padding: 5px 8px;
   border-radius: 999px;
-  background: #6d28d9;
+  background: var(--badge-bg);
   color: #fff;
 }
 
@@ -816,28 +843,6 @@ td:last-child { min-width: 150px; text-align: center; }
   word-break: break-word;
 }
 
-.toast-close {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: transparent;
-  border: none;
-  color: var(--text-light);
-  cursor: pointer;
-  padding: 4px 6px;
-  font-size: .9em;
-  line-height: 1;
-  border-radius: 4px;
-  transition: all var(--transition);
-  box-shadow: none;
-}
-
-.toast-close:hover {
-  background: rgba(0,0,0,.05);
-  color: var(--text);
-  transform: none;
-}
-
 .toast-progress {
   position: absolute;
   bottom: 0;
@@ -871,11 +876,11 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 .toast.warning {
-  border-left-color: #f59e0b;
+  border-left-color: var(--warning);
 }
 
 .toast.warning .toast-progress {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .toast.error {
@@ -948,11 +953,11 @@ td:last-child { min-width: 150px; text-align: center; }
   font-size: 0.85em;
 }
 .date-selected-label { color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
-.date-selected-text { color: var(--primary); font-weight: 500; line-height: 1.6; }
+.date-selected-text { color: var(--primary-text); font-weight: 500; line-height: 1.6; }
 
 /* ===== Rule Card ===== */
-.rule-card { padding: 12px 20px; background: var(--th-bg); border: 1px solid #cbd5e1; }
-.rule-card-text { font-size: 0.88em; color: #64748b; line-height: 1.6; }
+.rule-card { padding: 12px 20px; background: var(--th-bg); border: 1px solid var(--rule-border); }
+.rule-card-text { font-size: 0.88em; color: var(--rule-text); line-height: 1.6; }
 
 /* ===== Checkbox Row ===== */
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
@@ -1007,7 +1012,205 @@ td:last-child { min-width: 150px; text-align: center; }
 }
 
 .confirm-cancel:hover {
-  background: #cbd5e1;
+  background: var(--btn-neutral-hover);
+}
+
+/* ===== モーダル表示中の背景スクロール抑止 ===== */
+body.no-scroll { overflow: hidden; }
+
+/* ===== トースト内のアクションボタン（元に戻す） ===== */
+.toast-action {
+  margin-top: 8px;
+  padding: 5px 12px;
+  font-size: .85em;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* ===== 文字数カウンタ ===== */
+.char-counter {
+  font-size: .78em;
+  color: var(--text-light);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.char-counter.is-limit { color: var(--danger-text); font-weight: 700; }
+
+/* ===== 内容入力行（入力欄＋前回の内容ボタン） ===== */
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.content-row input { flex: 1; min-width: 0; }
+.content-row button { flex-shrink: 0; white-space: nowrap; }
+
+/* ===== 未退勤の警告 ===== */
+.checkin-warning {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--warning);
+  background: var(--th-bg);
+  color: var(--text);
+  font-size: .88em;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 520px;
+}
+
+/* ===== バックアップの案内 ===== */
+.backup-notice {
+  padding: 16px 20px;
+  border-left: 4px solid var(--primary);
+}
+.backup-notice-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.backup-notice-icon { font-size: 1.5em; line-height: 1; flex-shrink: 0; }
+.backup-notice p {
+  margin: 0;
+  font-size: .9em;
+  line-height: 1.6;
+  color: var(--text);
+}
+.backup-notice .btn-row { margin-top: 12px; }
+
+/* ===== ダイアログ内の入力欄 ===== */
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.dialog-time-input {
+  padding: 8px 12px;
+  font-size: 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+  width: 140px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+.dialog-content-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+}
+.dialog-content-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+/* ===== 月間カレンダービュー ===== */
+.calendar-view-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.calendar-view-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 130px;
+  text-align: center;
+}
+.calendar-view-stats {
+  font-size: .86em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.calendar-view-guide {
+  font-size: .82em;
+  color: var(--text-light);
+  margin: 12px 0 0;
+}
+.calendar-view {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-head {
+  text-align: center;
+  font-size: .78em;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+}
+.cal-head.is-sun { color: var(--danger-text); }
+.cal-head.is-sat { color: var(--primary-text); }
+
+.cal-cell {
+  min-height: 78px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  overflow: hidden;
+}
+.cal-cell:hover:not(.is-empty) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.cal-cell.is-empty {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+.cal-cell.is-sun .cal-date { color: var(--danger-text); }
+.cal-cell.is-sat .cal-date { color: var(--primary-text); }
+.cal-cell.has-entry { background: var(--th-bg); }
+.cal-cell.is-today { border-color: var(--primary); border-width: 2px; }
+
+.cal-date {
+  font-size: .9em;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.cal-status {
+  font-size: .72em;
+  font-weight: 700;
+  color: var(--primary-text);
+  background: var(--primary-light);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cal-time {
+  font-size: .78em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.cal-content {
+  font-size: .7em;
+  color: var(--text-muted);
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* ===== Responsive ===== */
@@ -1019,8 +1222,9 @@ td:last-child { min-width: 150px; text-align: center; }
   .btn-main { width: 100%; }
   .mode-dropdown-wrap { width: 100%; }
   .mode-dropdown { left: 0; right: 0; min-width: 0; }
-  .tabs { padding: 0 8px; gap: 4px; }
-  .tab-btn { font-size: .88em; padding: 11px 0; }
+  .tabs { padding: 0 8px; gap: 3px; }
+  /* タブが5つ並ぶため、狭い画面では文字を詰める */
+  .tab-btn { font-size: .74em; padding: 10px 2px; letter-spacing: 0; }
   .form-grid, .form-grid-3 { gap: 12px 10px; grid-template-columns: 1fr 1fr; }
   .grid-col-span-3 { grid-column: span 2; }
   #editModal, #copyModal, #eventEditModal {
@@ -1072,6 +1276,17 @@ td:last-child { min-width: 150px; text-align: center; }
   }
   .table-wrap td.td-ops::before { display: none; }
   .table-wrap td.td-ops button { flex: 1; min-width: 80px; }
+
+  /* カレンダービューは狭い画面でも7列を維持し、セルを詰める */
+  .calendar-view { gap: 3px; }
+  .cal-cell { min-height: 58px; padding: 3px; }
+  .cal-date { font-size: .78em; margin-bottom: 1px; }
+  .cal-status { font-size: .6em; padding: 0 2px; }
+  .cal-time { font-size: .66em; }
+  .cal-content { display: none; }
+  .calendar-view-title { min-width: 0; flex: 1; font-size: .95rem; }
+  .content-row { flex-wrap: wrap; }
+  .content-row button { width: 100%; }
 }
 @media (max-width: 440px) {
   .form-grid, .form-grid-3 { grid-template-columns: 1fr; }

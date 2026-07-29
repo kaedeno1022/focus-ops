@@ -90,7 +90,7 @@ function calcDaily(d) {
   };
 
   const status  = d.勤務実績 || '';
-  const weekday = d.日付 ? WEEKDAYS[new Date(d.日付).getDay()] : '';
+  const weekday = getWeekday(d.日付);
 
   if (d.作業開始 && d.作業終了) {
     result.時刻入力あり = true;
@@ -164,8 +164,10 @@ function calcWorkMinutes(d) {
 }
 
 function previousDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
+  const d = parseDate(dateStr);
+  if (!d) return '';
+  d.setDate(d.getDate() - 1);
+  return toDateString(d);
 }
 
 // 勤務実績・時刻・対象日・遅刻早退のいずれかが入力されているか
