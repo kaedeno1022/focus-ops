@@ -106,7 +106,7 @@ function openCalendarDate(dateStr) {
 
   document.getElementById('date').value = dateStr;
   document.getElementById('weekday').textContent = getWeekdayLabel(dateStr);
-  applyEventsToContentField(dateStr);
+  applyEventContent('', { silent: true });
   activateTab('input-tab');
   showToast(`${formatDateLabel(dateStr)}の入力を開始します`, 'info', 2500);
 }

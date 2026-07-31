@@ -98,17 +98,33 @@ function controlBreakDisplay(prefix = '', notify = false) {
   }
 }
 
-function applyEventsToContentField(dateStr) {
-  if (!dateStr || !eventData?.length) return;
-  const matched = eventData.filter(ev => matchesEventDate(ev, dateStr)).map(ev => ev.content);
-  if (!matched.length) return;
+// イベントから内容を反映する。silent: true のときは未該当・変化なしのトーストを出さない（日付変更時の自動反映用）
+function applyEventContent(prefix = '', { silent = false } = {}) {
+  const dateVal = getFormEl(prefix, 'date').value;
+  if (!dateVal) {
+    if (!silent) showToast('日付を入力してください', 'warning');
+    return;
+  }
+  if (!eventData?.length) {
+    if (!silent) showToast('登録されているイベントがありません', 'info');
+    return;
+  }
 
-  const contentEl = document.getElementById('content');
+  const matched = eventData.filter(ev => matchesEventDate(ev, dateVal)).map(ev => ev.content);
+  if (!matched.length) {
+    if (!silent) showToast('この日付に該当するイベントがありません', 'info');
+    return;
+  }
+
+  const contentEl = getFormEl(prefix, 'content');
   const existing  = contentEl.value.trim();
   const parts     = existing ? existing.split(',').map(s => s.trim()) : [];
   let added = false;
   matched.forEach(c => { if (!parts.includes(c)) { parts.push(c); added = true; } });
-  if (!added) return;
+  if (!added) {
+    if (!silent) showToast('イベントの内容は反映済みです', 'info');
+    return;
+  }
 
   const joined = parts.join(',');
   contentEl.value = joined.slice(0, CONTENT_MAX_LENGTH);
@@ -116,7 +132,7 @@ function applyEventsToContentField(dateStr) {
   if (joined.length > CONTENT_MAX_LENGTH) {
     showToast(`イベントから内容を反映しましたが、${CONTENT_MAX_LENGTH}文字を超えたため切り詰めました`, 'warning', 4500);
   } else {
-    showToast('イベントから内容を自動反映しました', 'info', 2500);
+    showToast('イベントから内容を反映しました', 'success', 2500);
   }
 }
 
@@ -196,7 +212,7 @@ function initInputForm() {
   document.getElementById('date').addEventListener('change', () => {
     const dateVal = document.getElementById('date').value;
     document.getElementById('weekday').textContent = getWeekdayLabel(dateVal);
-    applyEventsToContentField(dateVal);
+    applyEventContent('', { silent: true });
   });
   document.getElementById('substitute').addEventListener('change', () => {
     document.getElementById('substitute-weekday').textContent = getWeekdayLabel(document.getElementById('substitute').value);

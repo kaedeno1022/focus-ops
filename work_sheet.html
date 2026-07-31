@@ -170,6 +170,8 @@
             <input type="text" id="content" maxlength="27" list="content-history">
             <button class="btn-secondary btn-sm" type="button" onclick="applyLastContent()"
                     title="直近の作業内容を反映">↩ 前回の内容</button>
+            <button class="btn-secondary btn-sm" type="button" onclick="applyEventContent()"
+                    title="この日付に該当するイベント内容を反映">📅 イベントから取得</button>
           </div>
           <div class="char-counter" id="content-counter">0 / 27</div>
         </div>
@@ -387,6 +389,8 @@
         <input type="text" id="edit-content" maxlength="27" list="content-history">
         <button class="btn-secondary btn-sm" type="button" onclick="applyLastContent('edit')"
                 title="直近の作業内容を反映">↩ 前回の内容</button>
+        <button class="btn-secondary btn-sm" type="button" onclick="applyEventContent('edit')"
+                title="この日付に該当するイベント内容を反映">📅 イベントから取得</button>
       </div>
       <div class="char-counter" id="edit-content-counter">0 / 27</div>
     </div>
