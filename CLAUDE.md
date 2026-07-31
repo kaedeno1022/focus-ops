@@ -13,10 +13,7 @@
 `work_sheet.html` は `css/worksheet.css` のみを読む。`index.html` 用の `css/variables.css` `css/index.css` のクラスや変数は使えない（両者はCSS変数体系が独立している）。
 
 記録したデータを外部へ送信しない。アクセス解析も入れない。データはブラウザの LocalStorage にのみ保存する。
-
-外部リソースの読み込みは、Excel書込のための JSZip（CDN）が唯一の例外。
-`excelImport.js` が必要になった時点で動的に読み込む方式であり、他の機能はオフラインで動く。
-新たに外部依存を増やすときは、この方式（遅延読み込み・失敗時は該当機能だけがエラーになる）に従う。
+外部リソースの読み込みは一切行わない。完全にオフラインで動く。
 
 ---
 
@@ -91,7 +88,6 @@ js/workSheets/data.js
 js/workSheets/events.js
 js/workSheets/checkin.js
 js/workSheets/json.js
-js/workSheets/excelImport.js
 js/workSheets/copy.js
 js/workSheets/main.js  ← 最後
 ```
@@ -150,7 +146,6 @@ background: #ffffff;
 - 作業内容の入力補助（履歴サジェスト・前回の内容・文字数カウンタ）
 - 削除・全体クリア・コピー後の「元に戻す」
 - JSON エクスポート / インポート
-- Excel（.xlsm）書込（対象月のヘッダーと勤務データが入るか、罫線・図形・VBAが保持されるか）
 - イベント編集（除外日が編集対象月と異なる月でも、編集対象月のカレンダーが開くか）
 - イベントの日付未選択（全日程に反映される）
 - モーダルのキーボード操作（Escapeで閉じる、Tabがモーダル内で循環する）
