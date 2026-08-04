@@ -92,6 +92,12 @@ function matchesEventDate(ev, dateStr) {
   return true;
 }
 
+// 日付を明示的に指定したイベント（常時表示ではなく dates を持つもの）のうち、
+// その日付に該当するものだけを返す。カレンダービューでの表示に使う
+function getDatedEventsForDay(events, dateStr) {
+  return events.filter(ev => !ev.alwaysShow && Array.isArray(ev.dates) && ev.dates.includes(dateStr));
+}
+
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const [h, m] = timeStr.split(':').map(Number);

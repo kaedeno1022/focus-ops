@@ -14,7 +14,7 @@ const {
   parseDate, toDateString, getWeekday, getWeekdayLabel,
   formatMonthLabel, formatDateLabel, formatHoursMinutes,
   timeToMinutes, minutesToTime, roundToQuarter, isTimeReversed,
-  matchesEventDate,
+  matchesEventDate, getDatedEventsForDay,
 } = ctx;
 
 // ============================================================
@@ -130,6 +130,40 @@ test('matchesEventDate — 旧形式（期間指定）も判定できる', () =>
 test('matchesEventDate — 旧形式の除外日は該当しない', () => {
   const ev = { startDate: '2026-08-03', endDate: '2026-08-05', excludeDates: '2026-08-04' };
   assert.strictEqual(matchesEventDate(ev, '2026-08-04'), false);
+});
+
+// ============================================================
+// カレンダービュー表示用のイベント抽出
+// ============================================================
+test('getDatedEventsForDay — 日付を指定したイベントのうち該当日のものだけ返す', () => {
+  const events = [
+    { content: 'A', dates: ['2026-08-03'] },
+    { content: 'B', dates: ['2026-08-04'] },
+  ];
+  assert.deepStrictEqual(getDatedEventsForDay(events, '2026-08-03'), [events[0]]);
+});
+
+test('getDatedEventsForDay — 同日に複数該当する場合は全件返す', () => {
+  const events = [
+    { content: 'A', dates: ['2026-08-03'] },
+    { content: 'B', dates: ['2026-08-03', '2026-08-04'] },
+  ];
+  assert.deepStrictEqual(getDatedEventsForDay(events, '2026-08-03'), events);
+});
+
+test('getDatedEventsForDay — 常時表示のイベントは含めない', () => {
+  const events = [{ content: 'A', alwaysShow: true, dates: [] }];
+  assert.deepStrictEqual(getDatedEventsForDay(events, '2026-08-03'), []);
+});
+
+test('getDatedEventsForDay — 日付未指定（dates が空配列）のイベントは含めない', () => {
+  const events = [{ content: 'A', dates: [] }];
+  assert.deepStrictEqual(getDatedEventsForDay(events, '2026-08-03'), []);
+});
+
+test('getDatedEventsForDay — 旧形式（dates を持たない）のイベントは含めない', () => {
+  const events = [{ content: 'A', startDate: '2026-08-01', endDate: '2026-08-31' }];
+  assert.deepStrictEqual(getDatedEventsForDay(events, '2026-08-03'), []);
 });
 
 // ============================================================

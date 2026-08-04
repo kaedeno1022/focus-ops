@@ -60,6 +60,14 @@ function renderCalendarView() {
     dateLine.textContent = String(day);
     cell.appendChild(dateLine);
 
+    getDatedEventsForDay(eventData, dateStr)
+      .forEach(ev => {
+        const eventLine = document.createElement('div');
+        eventLine.className = 'cal-event';
+        eventLine.textContent = ev.content;
+        cell.appendChild(eventLine);
+      });
+
     if (entry) {
       filledDays++;
       if (entry.勤務実績) {
