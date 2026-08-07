@@ -122,6 +122,38 @@ function roundDiffItem() {
     true);
 }
 
+// 残日数を表示する休暇の種類（focus-ops独自の機能。Excel側には対応する項目がない）
+const LEAVE_TYPES = [
+  { key: '有休',         label: '有休残日数',         weight: paidLeaveWeight },
+  { key: 'プロジェクト休暇', label: 'プロジェクト休暇残日数', weight: s => s === 'プロジェクト休暇' ? 1 : 0 },
+];
+
+function leaveRemainingItems() {
+  const baselines = loadLeaveBaselines();
+  return LEAVE_TYPES.map(t => {
+    const remaining = calcLeaveRemaining(data, baselines[t.key], t.weight);
+    const value = remaining === null ? '未設定' : `${Math.round(remaining * 2) / 2}日`;
+    return summaryItem(t.label,
+      `${value} <button class="btn-clear-diffs" onclick="openLeaveSettings('${t.key}')">設定</button>`,
+      true);
+  });
+}
+
+// 月をまたぐ任意の期間で、休暇の利用日数を確認する
+function checkLeaveUsage() {
+  const start = document.getElementById('leave-range-start').value;
+  const end = document.getElementById('leave-range-end').value;
+  const resultEl = document.getElementById('leave-range-result');
+  if (!start || !end) { showToast('開始日と終了日を入力してください', 'warning'); return; }
+  if (start > end) { showToast('開始日は終了日より前にしてください', 'warning'); return; }
+
+  const inRange = data.filter(d => d.日付 && d.日付 >= start && d.日付 <= end);
+  const text = LEAVE_TYPES
+    .map(t => `${t.key} ${inRange.reduce((sum, d) => sum + t.weight(d.勤務実績 || ''), 0)}日`)
+    .join(' / ');
+  resultEl.textContent = `${formatDateLabel(start)} 〜 ${formatDateLabel(end)}: ${text}`;
+}
+
 function summaryToolbar() {
   return '<div class="summary-toolbar">' +
          '<button type="button" class="btn-secondary btn-sm" onclick="copySummary()">📋 集計をコピー</button>' +
@@ -136,7 +168,9 @@ function updateWorkSummary() {
     ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
     : data;
 
-  if (!filteredData.length) {
+  // 月を選んでいれば未入力でも0の集計・休暇残日数を表示する。
+  // 全期間表示でデータが1件もないときだけ何も出さない
+  if (!selectedMonth && !filteredData.length) {
     sumArea.classList.add('hidden');
     return;
   }
@@ -233,10 +267,55 @@ function buildSummaryRows(filteredData) {
   return {
     sections: [
       { title: '時間集計', items: timeItems, extra: [roundDiffItem()] },
-      { title: '日数集計', items: dayItems },
+      { title: '日数集計', items: dayItems, extra: leaveRemainingItems() },
     ],
     警告: s.警告,
   };
+}
+
+// ============================================================
+// 休暇残日数の設定（有休・プロジェクト休暇で共通の1モーダルを使い回す）
+// ============================================================
+// 「今日時点の残日数」で基準日を毎回引き直す形でプリフィルする。
+// これにより初期設定も後からの付与追加も「表示されている数字に足して保存」の同じ操作になる
+function openLeaveSettings(key) {
+  setLeaveSettingsKey(key);
+  const type = LEAVE_TYPES.find(t => t.key === key);
+  const remaining = calcLeaveRemaining(data, loadLeaveBaselines()[key], type.weight);
+  document.getElementById('leaveModalTitle').textContent = `🏖 ${key}残日数の設定`;
+  document.getElementById('leave-baseline-date').value = getTodayJST();
+  document.getElementById('leave-baseline-days').value = remaining === null ? '' : Math.round(remaining * 2) / 2;
+  showModal('leaveModal');
+}
+
+function closeLeaveModal() {
+  hideModal('leaveModal');
+}
+
+function saveLeaveSettings() {
+  const dateVal = document.getElementById('leave-baseline-date').value;
+  const daysVal = document.getElementById('leave-baseline-days').value;
+  if (!dateVal || daysVal === '') { showToast('基準日と残日数を入力してください', 'warning'); return; }
+
+  const days = Number(daysVal);
+  if (Number.isNaN(days) || days < 0) { showToast('残日数は0以上の数値で入力してください', 'warning'); return; }
+
+  const baselines = loadLeaveBaselines();
+  baselines[leaveSettingsKey] = { date: dateVal, days };
+  saveLeaveBaselines(baselines);
+  closeLeaveModal();
+  render();
+  showToast('残日数を設定しました', 'success');
+}
+
+async function clearLeaveSettings() {
+  if (!await showConfirm('この残日数の設定を削除しますか？', { danger: true })) return;
+  const baselines = loadLeaveBaselines();
+  delete baselines[leaveSettingsKey];
+  saveLeaveBaselines(baselines);
+  closeLeaveModal();
+  render();
+  showToast('設定を削除しました', 'success');
 }
 
 // Excelの集計欄と突き合わせやすいよう、ラベルと値をタブ区切りでコピーする
@@ -244,7 +323,7 @@ async function copySummary() {
   const filteredData = selectedMonth
     ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
     : data;
-  if (!filteredData.length) { showToast('コピーする集計がありません', 'warning'); return; }
+  if (!selectedMonth && !filteredData.length) { showToast('コピーする集計がありません', 'warning'); return; }
 
   const rows = buildSummaryRows(filteredData);
   const lines = [selectedMonth ? formatMonthLabel(selectedMonth) : '全期間'];

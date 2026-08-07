@@ -2,15 +2,24 @@
 // カレンダーコピー機能
 // ============================================================
 
-function openCopy(i) {
-  setCopyBase(data[i]);
+// source は一覧の既存行の添字（コピー）か、フォーム入力中の下書き（複数日への新規一括登録）
+function openCopy(source) {
+  const isDraft = typeof source !== 'number';
+  setCopyBase(isDraft ? source : data[source]);
+  setCopyIsDraft(isDraft);
   setCopySelectedDates([]);
   renderCopyCalendar();
   showModal('copyModal');
 }
 
+function openCopyFromForm() {
+  if (!validateWorkItem()) return;
+  openCopy(buildWorkItem());
+}
+
 function closeModal() {
   setCopyBase(null);
+  setCopyIsDraft(false);
   setCopySelectedDates([]);
   hideModal('copyModal');
 }
@@ -56,10 +65,11 @@ async function executeCopy() {
     showToast('コピー先を選択してください', 'warning'); return;
   }
 
+  const verb = copyIsDraft ? '登録' : 'コピー';
   const dup = data.filter(d => copySelectedDates.includes(d.日付)).map(d => d.日付);
   const confirmMsg = dup.length
-    ? `${copySelectedDates.length}日分をコピーしますか？\n（${dup.length}件は既存データを上書きします）`
-    : `${copySelectedDates.length}日分をコピーしますか？`;
+    ? `${copySelectedDates.length}日分を${verb}しますか？\n（${dup.length}件は既存データを上書きします）`
+    : `${copySelectedDates.length}日分を${verb}しますか？`;
   if (!await showConfirm(confirmMsg)) return;
 
   takeUndoSnapshot();
@@ -72,15 +82,24 @@ async function executeCopy() {
 
   sortData(); save(); render();
   const count = copySelectedDates.length;
+  const wasDraft = copyIsDraft;
   closeModal();
+  if (wasDraft) clearForm();
   const msg = dup.length ? `（${dup.length}件は上書き更新）` : '';
-  showToast(`${count}日分のコピーが完了しました ${msg}`, 'success', 8000, undoAction());
+  showToast(`${count}日分の${verb}が完了しました ${msg}`, 'success', 8000, undoAction());
 }
 
 function renderCopyCalendar() {
   if (!copyBase) return;
   const cal = document.getElementById('copyCalendar');
   cal.textContent = '';
+
+  const titleEl = document.getElementById('copyModalTitle');
+  if (titleEl) {
+    titleEl.textContent = copyIsDraft
+      ? '📅 登録先をカレンダーから選択（複数日へ一括登録）'
+      : '📅 コピー先をカレンダーから選択';
+  }
 
   const monthValue = resolveMonth();
   const [y, m] = monthValue.split('-').map(Number);

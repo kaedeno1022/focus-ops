@@ -139,6 +139,7 @@ function init() {
   initModalKeyboard();
   initBackupNotice();
   initCalendarViewControls();
+  initLeaveRangeFilter();
 
   const savedMode = readString(MODE_KEY);
   setCurrentMode(savedMode === 'bp' ? 'bp' : 'employee');
@@ -153,6 +154,15 @@ function init() {
   initContentHelpers();
   updateCheckinUI();
   renderEventCalendar();
+}
+
+function initLeaveRangeFilter() {
+  const startEl = document.getElementById('leave-range-start');
+  const endEl = document.getElementById('leave-range-end');
+  if (!startEl || !endEl) return;
+  const today = getTodayJST();
+  startEl.value = today.slice(0, 8) + '01'; // 当月1日
+  endEl.value = today;
 }
 
 function initCalendarViewControls() {
@@ -193,6 +203,7 @@ window.exportEventJSON      = exportEventJSON;
 window.importEventJSON      = importEventJSON;
 window.applyEventContent    = applyEventContent;
 window.openCopy             = openCopy;
+window.openCopyFromForm     = openCopyFromForm;
 window.closeModal           = closeModal;
 window.closeAllModals       = closeAllModals;
 window.selectAll            = selectAll;
@@ -200,5 +211,10 @@ window.clearChecks          = clearChecks;
 window.selectWeekdays       = selectWeekdays;
 window.executeCopy          = executeCopy;
 window.switchMode           = switchMode;
+window.openLeaveSettings    = openLeaveSettings;
+window.closeLeaveModal      = closeLeaveModal;
+window.saveLeaveSettings    = saveLeaveSettings;
+window.clearLeaveSettings   = clearLeaveSettings;
+window.checkLeaveUsage      = checkLeaveUsage;
 
 document.addEventListener('DOMContentLoaded', init);

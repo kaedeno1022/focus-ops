@@ -737,7 +737,8 @@ tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--prima
 
 #editModal,
 #copyModal,
-#eventEditModal {
+#eventEditModal,
+#leaveModal {
   display: block;
   position: fixed;
   top: 50%;
@@ -763,7 +764,8 @@ tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--prima
   z-index: 102;
 }
 
-#copyModal h4 {
+#copyModal h4,
+#leaveModal h4 {
   margin: 0 0 16px 0;
   font-size: 1.15rem;
   color: var(--text);
@@ -772,6 +774,13 @@ tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--prima
 
 #copyModal .btn-row-mb {
   margin-bottom: 12px;
+}
+
+.modal-note {
+  font-size: .85em;
+  color: var(--text-light);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
 }
 
 /* ===== Toast Notifications ===== */
@@ -933,7 +942,8 @@ tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--prima
 
 /* ===== Filter Bar ===== */
 .filter-card { padding: 12px 20px; margin-bottom: 12px; }
-.filter-bar { display: flex; align-items: center; gap: 12px; }
+.filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.leave-range-result { margin-top: 10px; font-size: .9em; color: var(--text); }
 .filter-label { font-weight: 600; color: var(--text-muted); margin: 0; }
 .filter-select {
   padding: 6px 12px;
@@ -1242,7 +1252,7 @@ body.no-scroll { overflow: hidden; }
   .tab-btn { font-size: .74em; padding: 10px 2px; letter-spacing: 0; }
   .form-grid, .form-grid-3 { gap: 12px 10px; grid-template-columns: 1fr 1fr; }
   .grid-col-span-3 { grid-column: span 2; }
-  #editModal, #copyModal, #eventEditModal {
+  #editModal, #copyModal, #eventEditModal, #leaveModal {
     max-width: 95%;
     padding: 20px 16px;
   }

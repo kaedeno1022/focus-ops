@@ -101,3 +101,12 @@ function loadRoundDiffs() {
 function saveRoundDiffs(diffs) {
   return writeJSON(roundDiffsKey(), diffs);
 }
+
+// ---- 休暇残日数の基準値（有休・プロジェクト休暇） ----
+function loadLeaveBaselines() {
+  return readJSON(LEAVE_BASELINE_KEY, {});
+}
+
+function saveLeaveBaselines(baselines) {
+  return writeJSON(LEAVE_BASELINE_KEY, baselines);
+}

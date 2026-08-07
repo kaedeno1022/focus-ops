@@ -264,6 +264,24 @@ function buildWeekRanges(year, month) {
   return ranges;
 }
 
+// 有休として消化した日数の重み。calcMonthlySummary と有休残日数の計算で共通利用する
+function paidLeaveWeight(status) {
+  switch (status) {
+    case '有休':
+    case '有休（計画）':
+      return 1;
+    case '午前半休':
+    case '午後半休':
+    case '午前半休（計画）':
+    case '午後半休（計画）':
+    case '休業(研修)/午後半休':
+    case '午前半休/休業(研修)':
+      return 0.5;
+    default:
+      return 0;
+  }
+}
+
 // 1か月分を集計する。month は 'YYYY-MM'
 function calcMonthlySummary(dataArray, month) {
   const [year, mon] = month.split('-').map(Number);
@@ -342,19 +360,19 @@ function calcMonthlySummary(dataArray, month) {
         if (weekday === '日') s.法定休日出勤日数++;
         break;
       case '有休':
-        s.有休日数 += 1;
+        s.有休日数 += paidLeaveWeight(status);
         break;
       case '有休（計画）':
-        s.有休日数 += 1;
+        s.有休日数 += paidLeaveWeight(status);
         s.計画年休日数 += 1;
         break;
       case '午前半休':
       case '午後半休':
-        s.有休日数 += 0.5;
+        s.有休日数 += paidLeaveWeight(status);
         break;
       case '午前半休（計画）':
       case '午後半休（計画）':
-        s.有休日数 += 0.5;
+        s.有休日数 += paidLeaveWeight(status);
         s.計画年休日数 += 0.5;
         break;
       case '欠勤':
@@ -388,7 +406,7 @@ function calcMonthlySummary(dataArray, month) {
       case '休業(研修)/午後半休':
       case '午前半休/休業(研修)':
         s.休業研修日数 += 0.5;
-        s.有休日数     += 0.5;
+        s.有休日数     += paidLeaveWeight(status);
         break;
     }
   }
@@ -439,4 +457,17 @@ function calcMonthlySummary(dataArray, month) {
   }
 
   return s;
+}
+
+// 休暇残日数（focus-ops独自の機能。Excel側には対応する項目がない）
+// baseline: { date: '基準日(YYYY-MM-DD)', days: '基準日時点の残日数' } から、
+// 基準日より後の消化分（weightFnで判定）だけを差し引く。付与日数の計算・繰越はしない。
+// 未設定（baselineがnull）ならnullを返す
+function calcLeaveRemaining(dataArray, baseline, weightFn) {
+  if (!baseline || !baseline.date) return null;
+  const consumed = dataArray.reduce((sum, d) => {
+    if (!d.日付 || !(d.日付 > baseline.date)) return sum;
+    return sum + weightFn(d.勤務実績 || '');
+  }, 0);
+  return baseline.days - consumed;
 }

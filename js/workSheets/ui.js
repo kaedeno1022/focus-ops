@@ -174,7 +174,7 @@ function showConfirm(msg, { title = '確認', danger = false, okLabel = 'OK' } =
 // ============================================================
 // モーダル（編集・コピー・イベント編集）
 // ============================================================
-const MODAL_IDS = ['editModal', 'copyModal', 'eventEditModal'];
+const MODAL_IDS = ['editModal', 'copyModal', 'eventEditModal', 'leaveModal'];
 
 let modalReturnFocus = null;
 
@@ -224,6 +224,7 @@ function closeAllModals() {
   closeEditModal();
   closeModal();
   closeEditEventModal();
+  closeLeaveModal();
 }
 
 function initModalKeyboard() {

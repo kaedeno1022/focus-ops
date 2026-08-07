@@ -178,6 +178,7 @@
       </div>
       <div class="btn-row">
         <button type="button" onclick="addData()">✔ 登録</button>
+        <button class="btn-secondary" type="button" onclick="openCopyFromForm()">📅 複数日へ登録</button>
         <button class="btn-secondary" type="button" onclick="clearForm()">↺ クリア</button>
       </div>
     </div>
@@ -221,6 +222,16 @@
       </div>
     </div>
     <div id="work-summary" class="card hidden"></div>
+    <div class="card filter-card mode-employee-only">
+      <div class="filter-bar">
+        <label class="filter-label">🔍 休暇利用日数の確認:</label>
+        <input type="date" id="leave-range-start" class="filter-select">
+        <span class="filter-note">〜</span>
+        <input type="date" id="leave-range-end" class="filter-select">
+        <button type="button" class="btn-secondary btn-sm" onclick="checkLeaveUsage()">確認</button>
+      </div>
+      <div id="leave-range-result" class="leave-range-result"></div>
+    </div>
     <div class="card">
       <div class="btn-row btn-row-grouped">
         <div class="btn-group">
@@ -432,6 +443,10 @@
 <!-- コピーモーダル -->
 <div id="copyModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="copyModalTitle">
   <h4 id="copyModalTitle">📅 コピー先をカレンダーから選択</h4>
+  <p class="modal-note">
+    振替代休対象日や日またぎなど、曜日によって結果が変わる入力チェックは選択日ごとには行われません。
+    登録後は各日の内容を一覧で確認してください。
+  </p>
   <div id="copyCalendar"></div>
   <div class="date-selected-info">
     <div class="date-selected-label">選択中の日付:</div>
@@ -445,6 +460,30 @@
   <div class="btn-row">
     <button type="button" onclick="executeCopy()">✔ コピー実行</button>
     <button class="btn-secondary" type="button" onclick="closeModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- 休暇残日数設定モーダル（有休・プロジェクト休暇で共通） -->
+<div id="leaveModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="leaveModalTitle">
+  <h4 id="leaveModalTitle">🏖 残日数の設定</h4>
+  <p class="modal-note">
+    残日数欄には現在の残日数が自動で入っています。新しく付与された日数があれば、その分を足して保存してください。
+    以降の取得分は保存した日を基準に自動で差し引きます（付与日数の自動計算や繰越はしません）。
+  </p>
+  <div class="form-grid">
+    <div class="form-item">
+      <label for="leave-baseline-date">基準日</label>
+      <input type="date" id="leave-baseline-date">
+    </div>
+    <div class="form-item">
+      <label for="leave-baseline-days">基準日時点の残日数</label>
+      <input type="number" id="leave-baseline-days" min="0" step="0.5">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button type="button" onclick="saveLeaveSettings()">✔ 保存</button>
+    <button class="btn-secondary" type="button" onclick="clearLeaveSettings()">設定を削除</button>
+    <button class="btn-secondary" type="button" onclick="closeLeaveModal()">✕ 閉じる</button>
   </div>
 </div>
 

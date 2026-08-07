@@ -45,6 +45,7 @@ const ROUND_DIFFS_KEY    = 'roundDiffs';
 const BP_ROUND_DIFFS_KEY = 'roundDiffs_bp';
 const LAST_EXPORT_KEY    = 'lastExportAt';
 const BACKUP_SNOOZE_KEY  = 'backupSnoozeUntil';
+const LEAVE_BASELINE_KEY = 'leaveBaselines'; // { [勤務実績]: { date, days } }
 
 // 最終エクスポートからこの日数が経つとバックアップを促す
 const BACKUP_REMIND_DAYS = 7;

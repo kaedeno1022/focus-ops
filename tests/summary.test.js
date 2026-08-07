@@ -8,7 +8,7 @@ const assert = require('node:assert');
 const { loadScripts } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'calc.js']);
-const { calcMonthlySummary, buildWeekRanges } = ctx;
+const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight } = ctx;
 
 // 2026年8月: 1日=土, 2日=日, 3日=月 … 31日=月
 const MONTH = '2026-08';
@@ -189,4 +189,33 @@ test('対象月以外のデータは集計に含めない', () => {
     ...weekdays(['2026-07-03']),
   ];
   closeTo(calcMonthlySummary(data, MONTH).実総作業時間, 8);
+});
+
+test('休暇残日数 — 基準日より後の消化分だけ差し引く（有休）', () => {
+  const data = [
+    day('2026-07-31', { 勤務実績: '有休' }), // 基準日以前は差し引かない
+    day('2026-08-03', { 勤務実績: '有休' }),
+    day('2026-08-04', { 作業開始: '13:00', 作業終了: '18:00', 勤務実績: '午前半休' }),
+  ];
+  const remaining = calcLeaveRemaining(data, { date: '2026-07-31', days: 10 }, paidLeaveWeight);
+  closeTo(remaining, 8.5);
+});
+
+test('休暇残日数 — 基準日未設定ならnullを返す', () => {
+  const data = [day('2026-08-03', { 勤務実績: '有休' })];
+  assert.strictEqual(calcLeaveRemaining(data, null, paidLeaveWeight), null);
+});
+
+test('休暇残日数 — 消化がなければ基準日数のまま', () => {
+  const data = [day('2026-08-03', { 勤務実績: '出勤' })];
+  closeTo(calcLeaveRemaining(data, { date: '2026-08-01', days: 12 }, paidLeaveWeight), 12);
+});
+
+test('休暇残日数 — プロジェクト休暇は専用の重み関数で計算する', () => {
+  const projectLeaveWeight = s => s === 'プロジェクト休暇' ? 1 : 0;
+  const data = [
+    day('2026-08-03', { 勤務実績: 'プロジェクト休暇' }),
+    day('2026-08-04', { 勤務実績: '有休' }), // 有休は対象外
+  ];
+  closeTo(calcLeaveRemaining(data, { date: '2026-08-01', days: 5 }, projectLeaveWeight), 4);
 });
