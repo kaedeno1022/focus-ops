@@ -184,7 +184,7 @@ window.closeEditModal       = closeEditModal;
 window.del                  = del;
 window.clearAll             = clearAll;
 window.clearRoundDiffs      = clearRoundDiffs;
-window.importEventsToContents = () => importEventsToContents(eventData);
+window.importEventsToContents = importEventsToContents;
 window.formatTimes          = formatTimes;
 window.copySummary          = copySummary;
 window.addEvent             = addEvent;

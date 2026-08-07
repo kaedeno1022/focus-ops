@@ -210,14 +210,20 @@ function clearRoundDiffs() {
   showToast('調整差分をクリアしました', 'success');
 }
 
-async function importEventsToContents(eventList) {
+async function importEventsToContents(eventList = eventData) {
   if (!eventList?.length) { showToast('イベントデータがありません', 'warning'); return; }
-  if (!await showConfirm('各日付にイベント内容を反映しますか？\n既存の内容は上書きされません。')) return;
+
+  const targetData = selectedMonth
+    ? data.filter(d => d.日付 && d.日付.startsWith(selectedMonth))
+    : data;
+  const monthText = selectedMonth ? `${formatMonthLabel(selectedMonth)}の` : '';
+
+  if (!await showConfirm(`${monthText}各日付にイベント内容を反映しますか？\n既存の内容は上書きされません。`)) return;
 
   takeUndoSnapshot();
   let count = 0;
   let truncated = 0;
-  data.forEach(d => {
+  targetData.forEach(d => {
     if (!d.日付) return;
     const matched = eventList.filter(ev => matchesEventDate(ev, d.日付)).map(ev => ev.content);
     if (!matched.length) return;
@@ -233,13 +239,13 @@ async function importEventsToContents(eventList) {
 
   if (count === 0) {
     setUndoSnapshot(null);
-    showToast('反映する内容がありませんでした', 'info');
+    showToast(`${monthText}反映する内容がありませんでした`, 'info');
     return;
   }
 
   save(); render();
   const note = truncated ? `\n（${truncated}件は${CONTENT_MAX_LENGTH}文字を超えたため切り詰めました）` : '';
-  showToast(`${count}件にイベント内容を反映しました${note}`, 'success', 8000, undoAction());
+  showToast(`${monthText}${count}件にイベント内容を反映しました${note}`, 'success', 8000, undoAction());
 }
 
 // ============================================================
