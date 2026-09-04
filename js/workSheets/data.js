@@ -178,30 +178,36 @@ async function del(i) {
   showToast('削除しました', 'success', 8000, undoAction());
 }
 
+// 削除は月単位のみ。全期間の一括削除は用意しない
+// （取り消しはメモリ上の1回分だけで、リロードすると全履歴が復旧不能になるため）
 async function clearAll() {
-  const confirmMsg = selectedMonth
-    ? `${formatMonthLabel(selectedMonth)}のデータを削除しますか？`
-    : '全データを削除しますか？';
+  if (!selectedMonth) {
+    showToast('削除する月を選択してください', 'warning');
+    return;
+  }
+
+  const targets = data.filter(d => d.日付 && d.日付.startsWith(selectedMonth));
+  const monthLabel = formatMonthLabel(selectedMonth);
+  if (targets.length === 0) {
+    showToast(`${monthLabel}のデータはありません`, 'info');
+    return;
+  }
+
+  const range = `${targets[0].日付} 〜 ${targets[targets.length - 1].日付}`;
+  const confirmMsg = `${monthLabel}のデータ ${targets.length}件（${range}）を削除します。\n`
+    + '取り消せるのは直後の一度だけで、リロードすると戻せません。\n'
+    + 'バックアップが必要ならキャンセルして先にJSON出力すること。';
 
   if (!await showConfirm(confirmMsg, { title: '削除確認', danger: true, okLabel: '削除する' })) return;
 
   takeUndoSnapshot();
-
-  if (selectedMonth) {
-    const beforeCount = data.length;
-    const kept = data.filter(d => !d.日付 || !d.日付.startsWith(selectedMonth));
-    data.length = 0;
-    data.push(...kept);
-    const deletedCount = beforeCount - data.length;
-    save(); render();
-    showToast(`${formatMonthLabel(selectedMonth)}のデータ ${deletedCount}件を削除しました`, 'success', 8000, undoAction());
-  } else {
-    data.length = 0;
-    save();
-    removeStored(roundDiffsKey());
-    render();
-    showToast('全データを削除しました', 'success', 8000, undoAction());
-  }
+  const kept = data.filter(d => !d.日付 || !d.日付.startsWith(selectedMonth));
+  data.length = 0;
+  data.push(...kept);
+  // 消した月の15分調整差分が残るとサマリーに幽霊の差分が出るため、同時に落とす
+  saveRoundDiffs(loadRoundDiffs().filter(r => !r.date || !r.date.startsWith(selectedMonth)));
+  save(); render();
+  showToast(`${monthLabel}のデータ ${targets.length}件を削除しました`, 'success', 8000, undoAction());
 }
 
 function clearRoundDiffs() {
