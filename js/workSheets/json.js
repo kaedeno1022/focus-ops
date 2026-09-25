@@ -40,6 +40,33 @@ function pickObjects(list) {
   return list.filter(item => item && typeof item === 'object' && !Array.isArray(item));
 }
 
+// 取り込む勤務データを選り分ける。日付の形式が崩れていると別の月として扱われ、既存の月を差し替えずに二重登録になるため除外する。
+// ファイル内で日付が重複していれば先に出てきた行を残す
+function pickImportableWorkItems(list) {
+  const objects = pickObjects(list);
+  const seen = new Set();
+  const items = [];
+  let invalid = list.length - objects.length;
+  let duplicate = 0;
+  objects.forEach(d => {
+    if (typeof d.日付 !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d.日付)) { invalid++; return; }
+    if (seen.has(d.日付)) { duplicate++; return; }
+    seen.add(d.日付);
+    items.push(d);
+  });
+  return { items, invalid, duplicate };
+}
+
+// 差し替える月ごとの件数（既存 → 取り込み後）
+function summarizeMonthReplacement(existing, imported) {
+  const months = [...new Set(imported.map(d => d.日付.slice(0, 7)))].sort();
+  return months.map(month => ({
+    month,
+    before: existing.filter(d => d.日付 && d.日付.startsWith(month)).length,
+    after:  imported.filter(d => d.日付.startsWith(month)).length,
+  }));
+}
+
 // ---- 勤務データ ----
 function exportJSON() {
   const exportData = selectedMonth
@@ -58,14 +85,27 @@ function exportJSON() {
 }
 
 function importJSON() {
-  pickJSONFile(parsed => {
+  pickJSONFile(async parsed => {
     const raw = Array.isArray(parsed)
       ? parsed
       : Array.isArray(parsed?.勤務データ) ? parsed.勤務データ : null;
     if (!raw) { showToast('無効なJSONフォーマットです', 'error'); return; }
 
-    const imported = pickObjects(raw);
+    const { items: imported, invalid, duplicate } = pickImportableWorkItems(raw);
     if (imported.length === 0) { showToast('取り込めるデータがありませんでした', 'warning'); return; }
+
+    const lines = summarizeMonthReplacement(data, imported)
+      .map(r => `${formatMonthLabel(r.month)}: ${r.before}件 → ${r.after}件`);
+    if (invalid > 0)   lines.push(`日付の形式が不正な${invalid}件は除外します`);
+    if (duplicate > 0) lines.push(`日付が重複する${duplicate}件は除外します`);
+    // BP用の出力には勤務実績の列がないため、モードの取り違えを疑う
+    const modeLabel = currentMode === 'bp' ? 'BP用' : '社員用';
+    const looksBp = imported.every(d => !('勤務実績' in d));
+    if ((currentMode === 'bp') !== looksBp) {
+      lines.push(`⚠ ${modeLabel}以外のモードで出力したデータの可能性があります`);
+    }
+    const msg = `${modeLabel}のデータに次の月を差し替えます。\n${lines.join('\n')}`;
+    if (!await showConfirm(msg, { title: 'インポート確認', okLabel: '取り込む' })) return;
 
     takeUndoSnapshot();
     const merged = mergeByMonth(data, imported, workItemMonths);
@@ -73,9 +113,7 @@ function importJSON() {
     data.push(...merged);
     sortData(); save(); render();
 
-    const skipped = raw.length - imported.length;
-    const note = skipped > 0 ? `\n（形式が不正な${skipped}件は除外しました）` : '';
-    showToast(`JSONをインポートしました (${imported.length}件)${note}`, 'success', 8000, undoAction());
+    showToast(`JSONをインポートしました (${imported.length}件)`, 'success', 8000, undoAction());
   });
 }
 

@@ -8,7 +8,7 @@ const assert = require('node:assert');
 const { loadScripts, toPlain } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'json.js']);
-const { mergeByMonth, workItemMonths, eventMonths, pickObjects } = ctx;
+const { mergeByMonth, workItemMonths, eventMonths, pickObjects, pickImportableWorkItems, summarizeMonthReplacement } = ctx;
 
 // ============================================================
 // 月の列挙
@@ -100,4 +100,42 @@ test('pickObjects — オブジェクト以外を除外する', () => {
   const result = pickObjects([{ 日付: '2026-08-01' }, null, 'text', 42, [], undefined]);
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].日付, '2026-08-01');
+});
+
+// ============================================================
+// インポート対象の選り分け
+// ============================================================
+test('pickImportableWorkItems — 日付が YYYY-MM-DD でない行とオブジェクト以外を除外する', () => {
+  const { items, invalid, duplicate } = pickImportableWorkItems([
+    { 日付: '2026-08-01' },
+    { 日付: '2026/08/02' },
+    { 日付: '' },
+    { 作業内容: '日付なし' },
+    { 日付: 20260803 },
+    null,
+  ]);
+  assert.deepStrictEqual(toPlain(items).map(d => d.日付), ['2026-08-01']);
+  assert.strictEqual(invalid, 5);
+  assert.strictEqual(duplicate, 0);
+});
+
+test('pickImportableWorkItems — ファイル内で重複した日付は先の行を残す', () => {
+  const { items, duplicate } = pickImportableWorkItems([
+    { 日付: '2026-08-01', 作業内容: '先' },
+    { 日付: '2026-08-01', 作業内容: '後' },
+  ]);
+  assert.deepStrictEqual(toPlain(items).map(d => d.作業内容), ['先']);
+  assert.strictEqual(duplicate, 1);
+});
+
+test('summarizeMonthReplacement — 差し替える月ごとに既存件数と取り込み件数を返す', () => {
+  const existing = [
+    { 日付: '2026-07-01' },
+    { 日付: '2026-08-01' }, { 日付: '2026-08-02' },
+  ];
+  const imported = [{ 日付: '2026-09-01' }, { 日付: '2026-08-10' }];
+  assert.deepStrictEqual(toPlain(summarizeMonthReplacement(existing, imported)), [
+    { month: '2026-08', before: 2, after: 1 },
+    { month: '2026-09', before: 0, after: 1 },
+  ]);
 });
