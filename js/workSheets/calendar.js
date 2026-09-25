@@ -21,6 +21,7 @@ function renderCalendarView() {
   const daysInMonth = new Date(year, month, 0).getDate();
   const startDow    = new Date(year, month - 1, 1).getDay();
   const today       = getTodayJST();
+  const missing     = new Set(findMissingWeekdays(data, calendarViewMonth, today, loadMissingDismissed()));
 
   container.textContent = '';
 
@@ -91,6 +92,19 @@ function renderCalendarView() {
         cell.appendChild(content);
       }
       cell.title = 'クリックで編集';
+    } else if (missing.has(dateStr)) {
+      cell.classList.add('is-missing');
+      cell.title = '未入力の平日です。クリックでこの日の入力を開始';
+      const dismissBtn = document.createElement('button');
+      dismissBtn.type = 'button';
+      dismissBtn.className = 'cal-dismiss';
+      dismissBtn.textContent = '入力不要';
+      dismissBtn.title = '祝日・休みなど、入力しない日として扱う';
+      dismissBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        dismissMissingDate(dateStr);
+      });
+      cell.appendChild(dismissBtn);
     } else {
       cell.title = 'クリックでこの日の入力を開始';
     }
@@ -102,8 +116,22 @@ function renderCalendarView() {
   const statsEl = document.getElementById('calendar-view-stats');
   if (statsEl) {
     statsEl.textContent =
-      `入力済み ${filledDays}日 / 作業時間合計 ${formatHoursMinutes(totalMinutes)}`;
+      `入力済み ${filledDays}日 / 作業時間合計 ${formatHoursMinutes(totalMinutes)}` +
+      (missing.size ? ` / 未入力の平日 ${missing.size}日` : '');
   }
+}
+
+function dismissMissingDate(dateStr) {
+  const dismissed = loadMissingDismissed();
+  if (!saveMissingDismissed([...dismissed, dateStr])) return;
+  render();
+  showToast(`${formatDateLabel(dateStr)}を入力不要にしました`, 'success', 6000, {
+    label: '元に戻す',
+    onClick: () => {
+      saveMissingDismissed(loadMissingDismissed().filter(d => d !== dateStr));
+      render();
+    },
+  });
 }
 
 // カレンダーの日付をクリックしたときの動作。

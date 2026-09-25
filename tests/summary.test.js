@@ -5,10 +5,10 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadScripts } = require('./helpers/load');
+const { loadScripts, toPlain } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'calc.js']);
-const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight } = ctx;
+const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight, overtimeWarning, findMissingWeekdays } = ctx;
 
 // 2026年8月: 1日=土, 2日=日, 3日=月 … 31日=月
 const MONTH = '2026-08';
@@ -218,4 +218,69 @@ test('休暇残日数 — プロジェクト休暇は専用の重み関数で計
     day('2026-08-04', { 勤務実績: '有休' }), // 有休は対象外
   ];
   closeTo(calcLeaveRemaining(data, { date: '2026-08-01', days: 5 }, projectLeaveWeight), 4);
+});
+
+// ============================================================
+// 時間外労働の上限警告（focus-ops独自）
+// ============================================================
+test('overtimeWarning — 上限の8割（36h）以下なら警告しない', () => {
+  assert.strictEqual(overtimeWarning(0), '');
+  assert.strictEqual(overtimeWarning(36), '');
+});
+
+test('overtimeWarning — 36h超〜45hは上限への接近を知らせる', () => {
+  assert.match(overtimeWarning(36.25), /近づいています.*残り8\.75 h/);
+  assert.match(overtimeWarning(45), /近づいています.*残り0\.00 h/);
+});
+
+test('overtimeWarning — 45h超は上限超過を知らせる', () => {
+  assert.match(overtimeWarning(45.25), /上限を超えています（45\.25 h）/);
+});
+
+// ============================================================
+// 入力漏れの候補（focus-ops独自）
+// ============================================================
+test('findMissingWeekdays — 今日より前の平日で未入力の日だけを返す', () => {
+  // 2026-08-03(月)〜07(金)。今日は 08-06(木) なので 03〜05 が対象
+  const data = [{ 日付: '2026-08-04' }];
+  assert.deepStrictEqual(
+    toPlain(findMissingWeekdays(data, MONTH, '2026-08-06', [])),
+    ['2026-08-03', '2026-08-05']);
+});
+
+test('findMissingWeekdays — 土日と入力不要にした日は含めない', () => {
+  // 08-01(土)・08-02(日) は対象外。08-03 は入力不要にした
+  assert.deepStrictEqual(
+    toPlain(findMissingWeekdays([], MONTH, '2026-08-05', ['2026-08-03'])),
+    ['2026-08-04']);
+});
+
+test('findMissingWeekdays — 未来の月・月初が今日なら空', () => {
+  assert.deepStrictEqual(toPlain(findMissingWeekdays([], '2026-09', '2026-08-20', [])), []);
+  assert.deepStrictEqual(toPlain(findMissingWeekdays([], MONTH, '2026-08-01', [])), []);
+});
+
+test('findMissingWeekdays — 過去の月は月末まで判定する', () => {
+  assert.strictEqual(findMissingWeekdays([], MONTH, '2026-09-10', []).length, 21);
+});
+
+// ============================================================
+// 週別の内訳（focus-ops独自）
+// ============================================================
+test('週別 — 週ごとに労働時間・週40h超・日8h超と、採用した法定時間外を返す', () => {
+  // 第2週(2-8): 日曜の振替出勤8h＋平日9h×5 = 53h。週40h超13h、日8h超5h → 13h
+  // 第3週(9-15): 平日8h×4 = 32h で超過なし
+  const data = [
+    day('2026-08-02', { 作業開始: '09:00', 作業終了: '18:00', 勤務実績: '振替出勤日' }),
+    ...weekdays(['2026-08-03', '2026-08-04', '2026-08-05', '2026-08-06', '2026-08-07'],
+      { 作業終了: '19:00' }),
+    ...weekdays(['2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13']),
+  ];
+  const s = calcMonthlySummary(data, MONTH);
+  assert.strictEqual(s.週別.length, 6);
+  assert.deepStrictEqual(plain(s.週別[1]),
+    { start: 2, end: 8, 労働時間: 53, 週40時間超: 13, 日8時間超: 5, 法定時間外: 13 });
+  assert.deepStrictEqual(plain(s.週別[2]),
+    { start: 9, end: 15, 労働時間: 32, 週40時間超: 0, 日8時間超: 0, 法定時間外: 0 });
+  closeTo(s.法定時間外労働時間, 13);
 });

@@ -189,8 +189,15 @@ function updateWorkSummary() {
     .map(w => `<div class="summary-warning">⚠ ${escapeForSummary(w)}</div>`)
     .join('');
 
+  const missingCount = selectedMonth
+    ? findMissingWeekdays(data, selectedMonth, getTodayJST(), loadMissingDismissed()).length
+    : 0;
+  const missingNote = missingCount
+    ? `<div class="summary-missing">未入力の平日が ${missingCount}日 あります（カレンダーで確認・入力不要にできる）</div>`
+    : '';
+
   sumArea.innerHTML = `<div class="summary-head">${titleText}</div>` +
-                      summaryToolbar() + sections + warnings;
+                      summaryToolbar() + sections + missingNote + warnings;
 }
 
 // 警告文は calc.js が組み立てた固定文＋日付のみだが、
@@ -264,12 +271,19 @@ function buildSummaryRows(filteredData) {
     s.退社日           && { label: '退社日',         value: `${s.退社日}日` },
   ].filter(Boolean);
 
+  const weekItems = s.週別.map(w => ({
+    label: `${w.start}日〜${w.end}日`,
+    value: `労働 ${h(w.労働時間)} / 週40h超 ${h(w.週40時間超)} / 日8h超 ${h(w.日8時間超)} → ${h(w.法定時間外)}`,
+    wide: true,
+  }));
+
   return {
     sections: [
       { title: '時間集計', items: timeItems, extra: [roundDiffItem()] },
       { title: '日数集計', items: dayItems, extra: leaveRemainingItems() },
+      { title: '週別の法定時間外（週は月内で区切る）', items: weekItems },
     ],
-    警告: s.警告,
+    警告: [overtimeWarning(s.法定時間外労働時間), ...s.警告].filter(Boolean),
   };
 }
 
@@ -367,8 +381,8 @@ function updateBackupNotice() {
 
   if (textEl) {
     textEl.textContent = lastExport
-      ? `最後にJSON出力したのは ${formatDateLabel(lastExport)} です。データはこのブラウザにしか保存されていないため、バックアップを取ることをおすすめします。`
-      : 'データはこのブラウザにしか保存されていません。ブラウザのデータを消すと失われるため、JSON出力でバックアップを取ることをおすすめします。';
+      ? `最後に全体バックアップを取ったのは ${formatDateLabel(lastExport)} です。データはこのブラウザにしか保存されていないため、バックアップを取ることをおすすめします。`
+      : 'データはこのブラウザにしか保存されていません。ブラウザのデータを消すと失われるため、全体バックアップを取ることをおすすめします。';
   }
   notice.classList.remove('hidden');
 }

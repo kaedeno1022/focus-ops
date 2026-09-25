@@ -8,7 +8,7 @@ const assert = require('node:assert');
 const { loadScripts, toPlain } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'json.js']);
-const { mergeByMonth, workItemMonths, eventMonths, pickObjects } = ctx;
+const { mergeByMonth, workItemMonths, eventMonths, pickObjects, pickImportableWorkItems, summarizeMonthReplacement, validateBackup } = ctx;
 
 // ============================================================
 // 月の列挙
@@ -100,4 +100,75 @@ test('pickObjects — オブジェクト以外を除外する', () => {
   const result = pickObjects([{ 日付: '2026-08-01' }, null, 'text', 42, [], undefined]);
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].日付, '2026-08-01');
+});
+
+// ============================================================
+// インポート対象の選り分け
+// ============================================================
+test('pickImportableWorkItems — 日付が YYYY-MM-DD でない行とオブジェクト以外を除外する', () => {
+  const { items, invalid, duplicate } = pickImportableWorkItems([
+    { 日付: '2026-08-01' },
+    { 日付: '2026/08/02' },
+    { 日付: '' },
+    { 作業内容: '日付なし' },
+    { 日付: 20260803 },
+    { 日付: '2026-13-45' },
+    { 日付: '2026-02-30' },
+    null,
+  ]);
+  assert.deepStrictEqual(toPlain(items).map(d => d.日付), ['2026-08-01']);
+  assert.strictEqual(invalid, 7);
+  assert.strictEqual(duplicate, 0);
+});
+
+test('pickImportableWorkItems — ファイル内で重複した日付は先の行を残す', () => {
+  const { items, duplicate } = pickImportableWorkItems([
+    { 日付: '2026-08-01', 作業内容: '先' },
+    { 日付: '2026-08-01', 作業内容: '後' },
+  ]);
+  assert.deepStrictEqual(toPlain(items).map(d => d.作業内容), ['先']);
+  assert.strictEqual(duplicate, 1);
+});
+
+test('summarizeMonthReplacement — 差し替える月ごとに既存件数と取り込み件数を返す', () => {
+  const existing = [
+    { 日付: '2026-07-01' },
+    { 日付: '2026-08-01' }, { 日付: '2026-08-02' },
+  ];
+  const imported = [{ 日付: '2026-09-01' }, { 日付: '2026-08-10' }];
+  assert.deepStrictEqual(toPlain(summarizeMonthReplacement(existing, imported)), [
+    { month: '2026-08', before: 2, after: 1 },
+    { month: '2026-09', before: 0, after: 1 },
+  ]);
+});
+
+// ============================================================
+// 全体バックアップの検証
+// ============================================================
+const backup = values => ({ format: 'focus-ops-backup', version: 1, exportedAt: '2026-09-25 10:00', values });
+
+test('validateBackup — 正しい形式なら values を返す', () => {
+  const values = {
+    workData: [{ 日付: '2026-09-01' }], workData_bp: [], eventData: [],
+    roundDiffs: [], roundDiffs_bp: [], leaveBaselines: { 有休: { date: '2026-04-01', days: 10 } },
+  };
+  assert.deepStrictEqual(toPlain(validateBackup(backup(values))), values);
+});
+
+test('validateBackup — 一部のキーだけでも受け付ける', () => {
+  assert.ok(validateBackup(backup({ workData: [] })));
+});
+
+test('validateBackup — 形式名・バージョンが違えば拒否する', () => {
+  assert.strictEqual(validateBackup({ ...backup({}), format: 'other' }), null);
+  assert.strictEqual(validateBackup({ ...backup({}), version: 2 }), null);
+  assert.strictEqual(validateBackup([{ 日付: '2026-09-01' }]), null);
+  assert.strictEqual(validateBackup(null), null);
+});
+
+test('validateBackup — 未知のキーや形の合わない値が1つでもあれば全体を拒否する', () => {
+  assert.strictEqual(validateBackup(backup({ workData: [], unknown: [] })), null);
+  assert.strictEqual(validateBackup(backup({ workData: {} })), null);
+  assert.strictEqual(validateBackup(backup({ leaveBaselines: [] })), null);
+  assert.strictEqual(validateBackup(backup([])), null);
 });

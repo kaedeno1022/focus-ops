@@ -124,8 +124,61 @@ function filterEventsByMonth() {
 function initBackupNotice() {
   const exportBtn = document.getElementById('backup-notice-export');
   const laterBtn  = document.getElementById('backup-notice-later');
-  if (exportBtn) exportBtn.addEventListener('click', () => exportJSON());
+  if (exportBtn) exportBtn.addEventListener('click', () => exportFullBackup());
   if (laterBtn)  laterBtn.addEventListener('click', () => snoozeBackupNotice());
+}
+
+// ============================================================
+// 複数タブの同期
+// ============================================================
+// 各タブは起動時に読んだ配列を丸ごと書き戻すため、別タブの変更を取り込まないと黙って消してしまう
+function initStorageSync() {
+  // 退勤のように1操作で複数キーが書き換わるため、まとめて1回だけ読み直す
+  let reloadTimer = null;
+  window.addEventListener('storage', e => {
+    // 下書きは1文字ごとに書かれるので、入力欄だけを黙って追従させる
+    if (e.key === CHECKIN_DRAFT_KEY) { syncCheckinDraft(); return; }
+    const syncKeys = [dataKey(), roundDiffsKey(), EVENT_STORAGE_KEY, CHECKIN_KEY,
+      LEAVE_BASELINE_KEY, LAST_EXPORT_KEY, MISSING_DISMISSED_KEY];
+    // key が null なのは別タブで localStorage.clear() されたとき
+    if (e.key !== null && !syncKeys.includes(e.key)) return;
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(reloadFromStorage, 100);
+  });
+}
+
+function reloadFromStorage() {
+  // 確認ダイアログの後続処理は開いた時点の添字で書き込むため、閉じるまで読み直さない
+  if (document.querySelector('.confirm-overlay')) {
+    setTimeout(reloadFromStorage, 500);
+    return;
+  }
+  // モーダルは編集対象を配列の添字で持っているため、読み直した配列に対して保存すると別の行を上書きしうる
+  const hadModal = anyModalOpen();
+  if (hadModal) closeAllModals();
+  // 取り消すと別タブの変更ごと巻き戻るため、スナップショットは捨てる
+  setUndoSnapshot(null);
+
+  load();
+  loadEventData();
+  render();
+  renderEventTable();
+  renderEventCalendar();
+  updateCheckinUI();
+  syncCheckinDraft();
+
+  if (hadModal) {
+    showToast('別のタブでデータが更新されたため、編集中の画面を閉じて最新の内容を読み込みました', 'warning', 8000);
+  } else {
+    showToast('別のタブでの変更を読み込みました', 'info');
+  }
+}
+
+function syncCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (!contentEl || document.activeElement === contentEl) return;
+  contentEl.value = readString(CHECKIN_DRAFT_KEY);
+  updateContentCounters();
 }
 
 // ============================================================
@@ -135,6 +188,7 @@ function init() {
   initModeMenu();
   initTabs();
   initInputForm();
+  initSubmitShortcuts();
   initEditModalListeners();
   initModalKeyboard();
   initBackupNotice();
@@ -151,9 +205,11 @@ function init() {
 
   // 月フィルタの初期化から render() / renderEventTable() が走る
   initMonthFilters();
+  initCheckinDraft();
   initContentHelpers();
   updateCheckinUI();
   renderEventCalendar();
+  initStorageSync();
 }
 
 function initLeaveRangeFilter() {
@@ -195,9 +251,12 @@ window.clearAllEvents       = clearAllEvents;
 window.simpleCheckIn        = simpleCheckIn;
 window.simpleCheckOut       = simpleCheckOut;
 window.cancelCheckIn        = cancelCheckIn;
+window.editCheckInTime      = editCheckInTime;
 window.applyEventsToCheckin = applyEventsToCheckin;
 window.applyLastContent     = applyLastContent;
 window.exportJSON           = exportJSON;
+window.exportFullBackup     = exportFullBackup;
+window.restoreFullBackup    = restoreFullBackup;
 window.importJSON           = importJSON;
 window.exportEventJSON      = exportEventJSON;
 window.importEventJSON      = importEventJSON;

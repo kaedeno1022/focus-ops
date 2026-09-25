@@ -299,7 +299,7 @@ function calcMonthlySummary(dataArray, month) {
     労働日数: 0, 法定休日出勤日数: 0, 振替休日取得日数: 0, 代休取得日数: 0,
     有休日数: 0, 計画年休日数: 0, 欠勤回数: 0, 生理休暇日数: 0, 休職日数: 0,
     遅刻回数: 0, 早退回数: 0,
-    休職期間: [], 入社日: '', 退社日: '', 警告: [],
+    休職期間: [], 入社日: '', 退社日: '', 警告: [], 週別: [],
   };
 
   const weeks = buildWeekRanges(year, mon)
@@ -411,11 +411,17 @@ function calcMonthlySummary(dataArray, month) {
     }
   }
 
-  // 法定時間外労働時間は、週40時間超と日8時間超の週合計のうち大きい方を週ごとに積む
-  s.法定時間外労働時間 = weeks.reduce((sum, w) => sum + Math.max(
-    Math.max(w.労働時間週計 - HOURS_PER_WEEK, 0),
-    w.日法定外労働時間週計
-  ), 0);
+  // 法定時間外労働時間は、週40時間超と日8時間超の週合計のうち大きい方を週ごとに積む。
+  // どの週が効いているかを確かめられるよう、週ごとの内訳も返す（focus-ops独自。Excel側には対応する項目がない）
+  s.週別 = weeks.map(w => {
+    const 週40時間超 = Math.max(w.労働時間週計 - HOURS_PER_WEEK, 0);
+    return {
+      start: w.start, end: w.end,
+      労働時間: w.労働時間週計, 週40時間超, 日8時間超: w.日法定外労働時間週計,
+      法定時間外: Math.max(週40時間超, w.日法定外労働時間週計),
+    };
+  });
+  s.法定時間外労働時間 = s.週別.reduce((sum, w) => sum + w.法定時間外, 0);
 
   if (休日カウント < MIN_HOLIDAYS_PER_4WEEKS) {
     s.警告.push('4週4日の休日が不足しています。作業確認表取込時、差し戻しとなる可能性があります。');
@@ -470,4 +476,34 @@ function calcLeaveRemaining(dataArray, baseline, weightFn) {
     return sum + weightFn(d.勤務実績 || '');
   }, 0);
   return baseline.days - consumed;
+}
+
+// 法定時間外労働時間が月上限に近づいたら・超えたら出す警告文。該当しなければ空文字
+function overtimeWarning(hours) {
+  const limit = OVERTIME_LIMIT_HOURS;
+  if (hours > limit) {
+    return `法定時間外労働が月${limit}時間の上限を超えています（${hours.toFixed(2)} h）。`;
+  }
+  if (hours > limit * OVERTIME_NOTICE_RATIO) {
+    return `法定時間外労働が月${limit}時間の上限に近づいています（${hours.toFixed(2)} h、残り${(limit - hours).toFixed(2)} h）。`;
+  }
+  return '';
+}
+
+// 入力漏れの候補（今日より前の平日で、勤務データがなく、候補から外してもいない日）。
+// 祝日や会社独自の休みは判定できないため、利用者が dismissed に入れて外す
+function findMissingWeekdays(dataArray, month, today, dismissed) {
+  const [year, mon] = month.split('-').map(Number);
+  const lastDay = new Date(year, mon, 0).getDate();
+  const entered = new Set(dataArray.map(d => d.日付));
+  const skipped = new Set(dismissed);
+  const missing = [];
+  for (let day = 1; day <= lastDay; day++) {
+    const dateStr = `${month}-${String(day).padStart(2, '0')}`;
+    if (dateStr >= today) break;
+    const weekend = ['土', '日'].includes(getWeekday(dateStr));
+    if (weekend || entered.has(dateStr) || skipped.has(dateStr)) continue;
+    missing.push(dateStr);
+  }
+  return missing;
 }

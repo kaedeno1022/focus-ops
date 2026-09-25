@@ -110,8 +110,9 @@ function undoAction() {
 // 登録・編集・削除
 // ============================================================
 
-// 登録できたかを返す。呼び出し側（チェックアウト）が成否で分岐するため
-async function addData() {
+// 登録できたかを返す。呼び出し側（チェックアウト）が成否で分岐するため。
+// 退勤からの登録は、取り消しても消した出社記録と作業内容が戻らないため undoable: false で呼ぶ
+async function addData({ undoable = true } = {}) {
   if (!validateWorkItem()) return false;
   const item = buildWorkItem();
   const idx  = data.findIndex(d => d.日付 === item.日付);
@@ -126,7 +127,7 @@ async function addData() {
   sortData();
   if (!save()) return false;
   render(); clearForm();
-  showToast('登録が完了しました', 'success');
+  showToast('登録が完了しました', 'success', 8000, undoable ? undoAction() : null);
   return true;
 }
 

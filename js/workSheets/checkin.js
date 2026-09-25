@@ -14,6 +14,7 @@ function updateCheckinUI() {
   const outTimeEl = document.getElementById('simple_out_time');
   const warnEl    = document.getElementById('checkin-warning');
   const cancelBtn = document.getElementById('checkin-cancel-btn');
+  const editBtn   = document.getElementById('checkin-edit-btn');
 
   if (!info) {
     if (statusEl) {
@@ -24,6 +25,7 @@ function updateCheckinUI() {
     if (outTimeEl) outTimeEl.textContent = '';
     if (warnEl)    warnEl.classList.add('hidden');
     if (cancelBtn) cancelBtn.classList.add('hidden');
+    if (editBtn)   editBtn.classList.add('hidden');
     return;
   }
 
@@ -34,6 +36,7 @@ function updateCheckinUI() {
   if (inTimeEl)  inTimeEl.textContent  = `出社: ${info.startTime || '---'}`;
   if (outTimeEl) outTimeEl.textContent = '';
   if (cancelBtn) cancelBtn.classList.remove('hidden');
+  if (editBtn)   editBtn.classList.remove('hidden');
 
   // 日付が変わっているのに出社中のままなら、退勤の記録漏れとして知らせる
   if (warnEl) {
@@ -46,6 +49,19 @@ function updateCheckinUI() {
       warnEl.classList.add('hidden');
     }
   }
+}
+
+// 出社中に書いた作業内容がリロードやタブを閉じても消えないよう、入力のたびに保存する
+function initCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (!contentEl) return;
+  contentEl.value = readString(CHECKIN_DRAFT_KEY);
+  contentEl.addEventListener('input', saveCheckinDraft);
+}
+
+function saveCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (contentEl) writeString(CHECKIN_DRAFT_KEY, contentEl.value);
 }
 
 function getTodayEventContents() {
@@ -78,6 +94,20 @@ async function cancelCheckIn() {
   removeStored(CHECKIN_KEY);
   updateCheckinUI();
   showToast('出社記録を取り消しました', 'success');
+}
+
+// 出社ボタンを押し遅れたときに、取り消さずに出社時刻だけを直す
+async function editCheckInTime() {
+  const info = getCheckinInfo();
+  if (!info) { showToast('出社記録がありません', 'info'); return; }
+  const result = await showStartTimeEditDialog(info);
+  if (!result) return;
+  // ダイアログ表示中に別タブで退勤・取り消しされていれば、出社状態を復活させない
+  const latest = getCheckinInfo();
+  if (!latest) { updateCheckinUI(); showToast('出社記録がなくなっているため修正しませんでした', 'warning'); return; }
+  if (!writeJSON(CHECKIN_KEY, { ...latest, startTime: result.startTime })) return;
+  updateCheckinUI();
+  showToast(`出社時刻を ${result.startTime} に修正しました`, 'success');
 }
 
 // ============================================================
@@ -232,6 +262,77 @@ function showEndTimeDialog(info) {
   });
 }
 
+function showStartTimeEditDialog(info) {
+  return new Promise(resolve => {
+    const { overlay, dialog, body } = buildDialogShell({
+      icon: '🕘',
+      title: '出社時刻を修正',
+      message: `${formatDateLabel(info.date)} の出社時刻を入力してください。`,
+    });
+
+    const timeInput = document.createElement('input');
+    timeInput.type = 'time';
+    timeInput.className = 'dialog-time-input';
+    timeInput.value = info.startTime || '09:00';
+    body.appendChild(timeInput);
+
+    const { close, addButtons } = wireDialog(overlay, dialog, resolve);
+    addButtons('修正する', () => {
+      if (!timeInput.value) { showToast('出社時刻を入力してください', 'warning', 2500); return; }
+      if (info.date === getTodayJST() && timeInput.value > nowTimeStr()) {
+        showToast('現在時刻より後の時刻は指定できません', 'warning', 2500);
+        return;
+      }
+      close({ startTime: timeInput.value });
+    });
+
+    timeInput.focus();
+  });
+}
+
+// 残業した日・定時から外れた日だけ、18時以降休憩と遅刻/早退を退勤前に選ばせる。
+// 退勤は勤務時間だけで登録されるため、ここで聞かないと休憩なしで時間外労働が過大に集計される。
+// breakOptions は入力フォームの選択肢（updateBreakOptions で勤務時間から作ったもの）をそのまま使う
+function askCheckoutExtras(startTime, endTime, breakOptions) {
+  const offSchedule = startTime > WORK_START_TIME ||
+    (!isTimeReversed(startTime, endTime) && endTime < '18:00');
+  if (breakOptions.length === 0 && !offSchedule) return Promise.resolve({ break: '', late: '' });
+
+  return new Promise(resolve => {
+    const { overlay, dialog, body } = buildDialogShell({
+      icon: '🏠',
+      title: '退勤の確認',
+      message: `${startTime} 〜 ${endTime} で登録します。\n該当するものがあれば選んでください。`,
+    });
+
+    const buildSelectRow = (labelText, values) => {
+      const row = document.createElement('label');
+      row.className = 'dialog-select-row';
+      const select = document.createElement('select');
+      ['', ...values].forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v || 'なし';
+        select.appendChild(opt);
+      });
+      row.append(labelText, select);
+      body.appendChild(row);
+      return select;
+    };
+
+    const breakSel = breakOptions.length ? buildSelectRow('18時以降休憩', breakOptions) : null;
+    const lateSel  = offSchedule ? buildSelectRow('遅刻 / 早退', ['遅刻', '早退', '遅刻/早退']) : null;
+
+    const { close, addButtons } = wireDialog(overlay, dialog, resolve);
+    addButtons('退勤する', () => close({
+      break: breakSel ? breakSel.value : '',
+      late:  lateSel ? lateSel.value : '',
+    }));
+
+    (breakSel || lateSel).focus();
+  });
+}
+
 // ============================================================
 // 退勤処理
 // ============================================================
@@ -268,9 +369,21 @@ async function doCheckOut() {
   controlBreakDisplay();
   updateContentCounters();
 
+  if (currentMode !== 'bp') {
+    // 休憩欄が非表示のときは選択肢が作り直されず前回の内容が残っているため使わない
+    const breakSel = document.getElementById('break');
+    const breakOptions = breakSel.closest('.form-item').classList.contains('hidden')
+      ? []
+      : [...breakSel.options].map(o => o.value).filter(Boolean);
+    const extras = await askCheckoutExtras(info.startTime || WORK_START_TIME, endTime, breakOptions);
+    if (!extras) return;
+    document.getElementById('break').value = extras.break;
+    document.getElementById('late').value  = extras.late;
+  }
+
   // 登録が通ってから出社状態を消す。
   // 先に消すと、入力チェックで弾かれたときに出社時刻を失う
-  const registered = await addData();
+  const registered = await addData({ undoable: false });
   if (!registered) {
     showToast('登録できなかったため出社状態を維持しています。\n作業表入力タブで内容を修正してください。',
       'warning', 6000);
@@ -279,6 +392,7 @@ async function doCheckOut() {
   }
 
   removeStored(CHECKIN_KEY);
+  removeStored(CHECKIN_DRAFT_KEY);
   if (simpleContentEl) simpleContentEl.value = '';
   updateContentCounters();
   updateCheckinUI();
@@ -299,6 +413,7 @@ function applyEventsToCheckin() {
 
   const joined = matched.join(',');
   contentEl.value = joined.slice(0, CONTENT_MAX_LENGTH);
+  saveCheckinDraft();
   updateContentCounters();
   const truncated = joined.length > CONTENT_MAX_LENGTH;
   showToast(
