@@ -205,6 +205,25 @@ function initContentHelpers() {
   updateContentHistory();
 }
 
+// Ctrl+Enter（Macは⌘+Enter）で登録する。素の Enter は候補の確定や日本語変換の確定と衝突するため修飾キー付きにする
+function initSubmitShortcuts() {
+  const targets = [
+    { container: document.getElementById('input-tab'),      submit: addData },
+    { container: document.getElementById('editModal'),      submit: saveEditData },
+    { container: document.getElementById('simple_content'), submit: simpleCheckOut },
+  ];
+  targets.forEach(({ container, submit }) => {
+    if (!container) return;
+    container.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || !(e.ctrlKey || e.metaKey) || e.isComposing || e.repeat) return;
+      // 確認ダイアログの表示中は、そちらの Enter に任せる
+      if (document.querySelector('.confirm-overlay')) return;
+      e.preventDefault();
+      submit();
+    });
+  });
+}
+
 // ============================================================
 // 初期化
 // ============================================================

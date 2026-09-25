@@ -183,6 +183,7 @@ function init() {
   initModeMenu();
   initTabs();
   initInputForm();
+  initSubmitShortcuts();
   initEditModalListeners();
   initModalKeyboard();
   initBackupNotice();
