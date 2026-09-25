@@ -129,6 +129,54 @@ function initBackupNotice() {
 }
 
 // ============================================================
+// 複数タブの同期
+// ============================================================
+// 各タブは起動時に読んだ配列を丸ごと書き戻すため、別タブの変更を取り込まないと黙って消してしまう
+function initStorageSync() {
+  // 退勤のように1操作で複数キーが書き換わるため、まとめて1回だけ読み直す
+  let reloadTimer = null;
+  window.addEventListener('storage', e => {
+    // 下書きは1文字ごとに書かれるので、入力欄だけを黙って追従させる
+    if (e.key === CHECKIN_DRAFT_KEY) { syncCheckinDraft(); return; }
+    const syncKeys = [dataKey(), roundDiffsKey(), EVENT_STORAGE_KEY, CHECKIN_KEY,
+      LEAVE_BASELINE_KEY, LAST_EXPORT_KEY];
+    // key が null なのは別タブで localStorage.clear() されたとき
+    if (e.key !== null && !syncKeys.includes(e.key)) return;
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(reloadFromStorage, 100);
+  });
+}
+
+function reloadFromStorage() {
+  // モーダルは編集対象を配列の添字で持っているため、読み直した配列に対して保存すると別の行を上書きしうる
+  const hadModal = anyModalOpen();
+  if (hadModal) closeAllModals();
+  // 取り消すと別タブの変更ごと巻き戻るため、スナップショットは捨てる
+  setUndoSnapshot(null);
+
+  load();
+  loadEventData();
+  render();
+  renderEventTable();
+  renderEventCalendar();
+  updateCheckinUI();
+  syncCheckinDraft();
+
+  if (hadModal) {
+    showToast('別のタブでデータが更新されたため、編集中の画面を閉じて最新の内容を読み込みました', 'warning', 8000);
+  } else {
+    showToast('別のタブでの変更を読み込みました', 'info');
+  }
+}
+
+function syncCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (!contentEl || document.activeElement === contentEl) return;
+  contentEl.value = readString(CHECKIN_DRAFT_KEY);
+  updateContentCounters();
+}
+
+// ============================================================
 // 初期化
 // ============================================================
 function init() {
@@ -155,6 +203,7 @@ function init() {
   initContentHelpers();
   updateCheckinUI();
   renderEventCalendar();
+  initStorageSync();
 }
 
 function initLeaveRangeFilter() {
