@@ -48,6 +48,19 @@ function updateCheckinUI() {
   }
 }
 
+// 出社中に書いた作業内容がリロードやタブを閉じても消えないよう、入力のたびに保存する
+function initCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (!contentEl) return;
+  contentEl.value = readString(CHECKIN_DRAFT_KEY);
+  contentEl.addEventListener('input', saveCheckinDraft);
+}
+
+function saveCheckinDraft() {
+  const contentEl = document.getElementById('simple_content');
+  if (contentEl) writeString(CHECKIN_DRAFT_KEY, contentEl.value);
+}
+
 function getTodayEventContents() {
   const today = getTodayJST();
   if (!eventData?.length) return [];
@@ -279,6 +292,7 @@ async function doCheckOut() {
   }
 
   removeStored(CHECKIN_KEY);
+  removeStored(CHECKIN_DRAFT_KEY);
   if (simpleContentEl) simpleContentEl.value = '';
   updateContentCounters();
   updateCheckinUI();
@@ -299,6 +313,7 @@ function applyEventsToCheckin() {
 
   const joined = matched.join(',');
   contentEl.value = joined.slice(0, CONTENT_MAX_LENGTH);
+  saveCheckinDraft();
   updateContentCounters();
   const truncated = joined.length > CONTENT_MAX_LENGTH;
   showToast(

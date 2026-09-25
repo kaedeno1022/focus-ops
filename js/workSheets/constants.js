@@ -41,6 +41,7 @@ const BP_STORAGE_KEY     = 'workData_bp';
 const MODE_KEY           = 'workMode';
 const EVENT_STORAGE_KEY  = 'eventData';
 const CHECKIN_KEY        = 'simpleCheckIn';
+const CHECKIN_DRAFT_KEY  = 'simpleCheckInDraft'; // 退勤前に入力した作業内容
 const ROUND_DIFFS_KEY    = 'roundDiffs';
 const BP_ROUND_DIFFS_KEY = 'roundDiffs_bp';
 const LAST_EXPORT_KEY    = 'lastExportAt';

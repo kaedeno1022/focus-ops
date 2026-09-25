@@ -151,6 +151,7 @@ function init() {
 
   // 月フィルタの初期化から render() / renderEventTable() が走る
   initMonthFilters();
+  initCheckinDraft();
   initContentHelpers();
   updateCheckinUI();
   renderEventCalendar();
