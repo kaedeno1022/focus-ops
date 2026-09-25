@@ -189,8 +189,15 @@ function updateWorkSummary() {
     .map(w => `<div class="summary-warning">⚠ ${escapeForSummary(w)}</div>`)
     .join('');
 
+  const missingCount = selectedMonth
+    ? findMissingWeekdays(data, selectedMonth, getTodayJST(), loadMissingDismissed()).length
+    : 0;
+  const missingNote = missingCount
+    ? `<div class="summary-missing">未入力の平日が ${missingCount}日 あります（カレンダーで確認・入力不要にできる）</div>`
+    : '';
+
   sumArea.innerHTML = `<div class="summary-head">${titleText}</div>` +
-                      summaryToolbar() + sections + warnings;
+                      summaryToolbar() + sections + missingNote + warnings;
 }
 
 // 警告文は calc.js が組み立てた固定文＋日付のみだが、

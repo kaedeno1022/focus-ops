@@ -47,6 +47,7 @@ const BP_ROUND_DIFFS_KEY = 'roundDiffs_bp';
 const LAST_EXPORT_KEY    = 'lastExportAt';
 const BACKUP_SNOOZE_KEY  = 'backupSnoozeUntil';
 const LEAVE_BASELINE_KEY = 'leaveBaselines'; // { [勤務実績]: { date, days } }
+const MISSING_DISMISSED_KEY = 'missingDismissed'; // 入力漏れの候補から外した日付（YYYY-MM-DD）の配列
 
 // 時間外労働の月上限（36協定の原則。focus-ops独自の警告でExcel側には対応する項目がない）
 // 特別条項など会社ごとに違う場合はここだけ変える
@@ -56,7 +57,7 @@ const OVERTIME_NOTICE_RATIO = 0.8; // 上限のこの割合を超えたら注意
 // 全体バックアップに含めるキー。値が配列でないのは休暇残日数の基準値だけ
 const BACKUP_KEYS = [
   STORAGE_KEY, BP_STORAGE_KEY, EVENT_STORAGE_KEY,
-  ROUND_DIFFS_KEY, BP_ROUND_DIFFS_KEY, LEAVE_BASELINE_KEY,
+  ROUND_DIFFS_KEY, BP_ROUND_DIFFS_KEY, LEAVE_BASELINE_KEY, MISSING_DISMISSED_KEY,
 ];
 const BACKUP_FORMAT  = 'focus-ops-backup';
 const BACKUP_VERSION = 1;

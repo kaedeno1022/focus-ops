@@ -139,7 +139,7 @@ function initStorageSync() {
     // 下書きは1文字ごとに書かれるので、入力欄だけを黙って追従させる
     if (e.key === CHECKIN_DRAFT_KEY) { syncCheckinDraft(); return; }
     const syncKeys = [dataKey(), roundDiffsKey(), EVENT_STORAGE_KEY, CHECKIN_KEY,
-      LEAVE_BASELINE_KEY, LAST_EXPORT_KEY];
+      LEAVE_BASELINE_KEY, LAST_EXPORT_KEY, MISSING_DISMISSED_KEY];
     // key が null なのは別タブで localStorage.clear() されたとき
     if (e.key !== null && !syncKeys.includes(e.key)) return;
     clearTimeout(reloadTimer);

@@ -483,3 +483,21 @@ function overtimeWarning(hours) {
   }
   return '';
 }
+
+// 入力漏れの候補（今日より前の平日で、勤務データがなく、候補から外してもいない日）。
+// 祝日や会社独自の休みは判定できないため、利用者が dismissed に入れて外す
+function findMissingWeekdays(dataArray, month, today, dismissed) {
+  const [year, mon] = month.split('-').map(Number);
+  const lastDay = new Date(year, mon, 0).getDate();
+  const entered = new Set(dataArray.map(d => d.日付));
+  const skipped = new Set(dismissed);
+  const missing = [];
+  for (let day = 1; day <= lastDay; day++) {
+    const dateStr = `${month}-${String(day).padStart(2, '0')}`;
+    if (dateStr >= today) break;
+    const dow = new Date(year, mon - 1, day).getDay();
+    if (dow === 0 || dow === 6 || entered.has(dateStr) || skipped.has(dateStr)) continue;
+    missing.push(dateStr);
+  }
+  return missing;
+}

@@ -5,10 +5,10 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadScripts } = require('./helpers/load');
+const { loadScripts, toPlain } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'calc.js']);
-const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight, overtimeWarning } = ctx;
+const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight, overtimeWarning, findMissingWeekdays } = ctx;
 
 // 2026年8月: 1日=土, 2日=日, 3日=月 … 31日=月
 const MONTH = '2026-08';
@@ -235,4 +235,31 @@ test('overtimeWarning — 36h超〜45hは上限への接近を知らせる', () 
 
 test('overtimeWarning — 45h超は上限超過を知らせる', () => {
   assert.match(overtimeWarning(45.25), /上限を超えています（45\.25 h）/);
+});
+
+// ============================================================
+// 入力漏れの候補（focus-ops独自）
+// ============================================================
+test('findMissingWeekdays — 今日より前の平日で未入力の日だけを返す', () => {
+  // 2026-08-03(月)〜07(金)。今日は 08-06(木) なので 03〜05 が対象
+  const data = [{ 日付: '2026-08-04' }];
+  assert.deepStrictEqual(
+    toPlain(findMissingWeekdays(data, MONTH, '2026-08-06', [])),
+    ['2026-08-03', '2026-08-05']);
+});
+
+test('findMissingWeekdays — 土日と入力不要にした日は含めない', () => {
+  // 08-01(土)・08-02(日) は対象外。08-03 は入力不要にした
+  assert.deepStrictEqual(
+    toPlain(findMissingWeekdays([], MONTH, '2026-08-05', ['2026-08-03'])),
+    ['2026-08-04']);
+});
+
+test('findMissingWeekdays — 未来の月・月初が今日なら空', () => {
+  assert.deepStrictEqual(toPlain(findMissingWeekdays([], '2026-09', '2026-08-20', [])), []);
+  assert.deepStrictEqual(toPlain(findMissingWeekdays([], MONTH, '2026-08-01', [])), []);
+});
+
+test('findMissingWeekdays — 過去の月は月末まで判定する', () => {
+  assert.strictEqual(findMissingWeekdays([], MONTH, '2026-09-10', []).length, 21);
 });

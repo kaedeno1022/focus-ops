@@ -564,6 +564,11 @@ tbody tr.is-today td[data-label="日付"] { font-weight: 700; color: var(--prima
 .summary-grid .summary-item-wide {
   grid-column: 1 / -1;
 }
+.summary-missing {
+  margin-top: 14px;
+  font-size: .85em;
+  color: var(--text-muted);
+}
 .summary-warning {
   margin-top: 14px;
   padding: 8px 12px;
@@ -1191,6 +1196,20 @@ body.no-scroll { overflow: hidden; }
 .cal-cell.is-sat .cal-date { color: var(--primary-text); }
 .cal-cell.has-entry { background: var(--th-bg); }
 .cal-cell.is-today { border-color: var(--primary); border-width: 2px; }
+.cal-cell.is-missing { border-style: dashed; border-color: var(--warning); }
+.cal-dismiss {
+  display: block;
+  margin-top: 4px;
+  padding: 1px 6px;
+  font-size: .7em;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: none;
+  font-weight: 400;
+}
+.cal-dismiss:hover:not(:disabled) { color: var(--text); background: transparent; border-color: var(--text-muted); }
 
 .cal-date {
   font-size: .9em;
@@ -1310,6 +1329,7 @@ body.no-scroll { overflow: hidden; }
   .cal-time { font-size: .66em; }
   .cal-content { display: none; }
   .cal-event { display: none; }
+  .cal-dismiss { font-size: .58em; padding: 0 2px; white-space: nowrap; }
   .calendar-view-title { min-width: 0; flex: 1; font-size: .95rem; }
   .content-row { flex-wrap: wrap; }
   .content-row button { width: 100%; }

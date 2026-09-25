@@ -132,3 +132,12 @@ function loadLeaveBaselines() {
 function saveLeaveBaselines(baselines) {
   return writeJSON(LEAVE_BASELINE_KEY, baselines);
 }
+
+// ---- 入力漏れの候補から外した日付 ----
+function loadMissingDismissed() {
+  return readJSON(MISSING_DISMISSED_KEY, [], null, Array.isArray);
+}
+
+function saveMissingDismissed(dates) {
+  return writeJSON(MISSING_DISMISSED_KEY, dates);
+}
