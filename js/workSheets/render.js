@@ -269,7 +269,7 @@ function buildSummaryRows(filteredData) {
       { title: '時間集計', items: timeItems, extra: [roundDiffItem()] },
       { title: '日数集計', items: dayItems, extra: leaveRemainingItems() },
     ],
-    警告: s.警告,
+    警告: [overtimeWarning(s.法定時間外労働時間), ...s.警告].filter(Boolean),
   };
 }
 

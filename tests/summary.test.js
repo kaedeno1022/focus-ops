@@ -8,7 +8,7 @@ const assert = require('node:assert');
 const { loadScripts } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'calc.js']);
-const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight } = ctx;
+const { calcMonthlySummary, buildWeekRanges, calcLeaveRemaining, paidLeaveWeight, overtimeWarning } = ctx;
 
 // 2026年8月: 1日=土, 2日=日, 3日=月 … 31日=月
 const MONTH = '2026-08';
@@ -218,4 +218,21 @@ test('休暇残日数 — プロジェクト休暇は専用の重み関数で計
     day('2026-08-04', { 勤務実績: '有休' }), // 有休は対象外
   ];
   closeTo(calcLeaveRemaining(data, { date: '2026-08-01', days: 5 }, projectLeaveWeight), 4);
+});
+
+// ============================================================
+// 時間外労働の上限警告（focus-ops独自）
+// ============================================================
+test('overtimeWarning — 上限の8割（36h）以下なら警告しない', () => {
+  assert.strictEqual(overtimeWarning(0), '');
+  assert.strictEqual(overtimeWarning(36), '');
+});
+
+test('overtimeWarning — 36h超〜45hは上限への接近を知らせる', () => {
+  assert.match(overtimeWarning(36.25), /近づいています.*残り8\.75 h/);
+  assert.match(overtimeWarning(45), /近づいています.*残り0\.00 h/);
+});
+
+test('overtimeWarning — 45h超は上限超過を知らせる', () => {
+  assert.match(overtimeWarning(45.25), /上限を超えています（45\.25 h）/);
 });

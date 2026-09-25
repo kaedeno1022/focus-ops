@@ -471,3 +471,15 @@ function calcLeaveRemaining(dataArray, baseline, weightFn) {
   }, 0);
   return baseline.days - consumed;
 }
+
+// 法定時間外労働時間が月上限に近づいたら・超えたら出す警告文。該当しなければ空文字
+function overtimeWarning(hours) {
+  const limit = OVERTIME_LIMIT_HOURS;
+  if (hours > limit) {
+    return `法定時間外労働が月${limit}時間の上限を超えています（${hours.toFixed(2)} h）。`;
+  }
+  if (hours > limit * OVERTIME_NOTICE_RATIO) {
+    return `法定時間外労働が月${limit}時間の上限に近づいています（${hours.toFixed(2)} h、残り${(limit - hours).toFixed(2)} h）。`;
+  }
+  return '';
+}
