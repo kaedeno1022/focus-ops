@@ -77,10 +77,6 @@ function exportJSON() {
     ? `${formatMonthLabel(selectedMonth)} ${exportData.length}件`
     : `${exportData.length}件`;
   downloadJSON(exportData, filename);
-  // バックアップ案内の判定に使う
-  writeString(LAST_EXPORT_KEY, getTodayJST());
-  removeStored(BACKUP_SNOOZE_KEY);
-  updateBackupNotice();
   showToast(`JSONをエクスポートしました (${countText})`, 'success');
 }
 
@@ -150,6 +146,69 @@ function importEventJSON() {
     const skipped = parsed.length - imported.length;
     const note = skipped > 0 ? `\n（形式が不正な${skipped}件は除外しました）` : '';
     showToast(`イベントJSONをインポートしました (${imported.length}件)${note}`, 'success', 8000, undoAction());
+  });
+}
+
+// ---- 全体バックアップ ----
+// 勤務データ（社員用・BP用）・イベント・15分調整差分・休暇残日数の基準値をまとめて出す。
+// 月単位のJSON出力では調整差分や基準値が戻らないため、端末移行やデータ消失からの復旧はこちらを使う
+function buildFullBackup() {
+  const values = {};
+  BACKUP_KEYS.forEach(key => {
+    const value = readJSON(key, null);
+    if (value !== null) values[key] = value;
+  });
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: `${getTodayJST()} ${nowTimeStr()}`, values };
+}
+
+function exportFullBackup() {
+  downloadJSON(buildFullBackup(), `focus-ops-backup_${getTodayJST()}.json`);
+  // バックアップ案内は全体バックアップを取ったときだけ消す（月単位の出力では全データが守られないため）
+  writeString(LAST_EXPORT_KEY, getTodayJST());
+  removeStored(BACKUP_SNOOZE_KEY);
+  updateBackupNotice();
+  showToast('全体バックアップを出力しました', 'success');
+}
+
+// 復元できるバックアップなら values を返し、そうでなければ null を返す。
+// 一部のキーだけ書き込んで止まると整合が崩れるため、1つでも形が合わなければ全体を拒否する
+function validateBackup(parsed) {
+  if (parsed?.format !== BACKUP_FORMAT || parsed.version !== BACKUP_VERSION) return null;
+  const values = parsed.values;
+  if (!values || typeof values !== 'object' || Array.isArray(values)) return null;
+  const valid = Object.entries(values).every(([key, value]) => {
+    if (!BACKUP_KEYS.includes(key)) return false;
+    if (key === LEAVE_BASELINE_KEY) return value && typeof value === 'object' && !Array.isArray(value);
+    return Array.isArray(value);
+  });
+  return valid ? values : null;
+}
+
+function restoreFullBackup() {
+  pickJSONFile(async parsed => {
+    const values = validateBackup(parsed);
+    if (!values) { showToast('全体バックアップの形式ではありません', 'error'); return; }
+
+    const count = key => (Array.isArray(values[key]) ? values[key].length : 0);
+    const msg = `${parsed.exportedAt || '日時不明'} のバックアップで、現在のデータをすべて置き換えます。\n`
+      + `社員用 ${count(STORAGE_KEY)}件 / BP用 ${count(BP_STORAGE_KEY)}件 / イベント ${count(EVENT_STORAGE_KEY)}件\n`
+      + '置き換える前に、現在のデータを全体バックアップとしてダウンロードします。';
+    if (!await showConfirm(msg, { title: '復元確認', danger: true, okLabel: '復元する' })) return;
+
+    downloadJSON(buildFullBackup(), `focus-ops-backup_before-restore_${getTodayJST()}.json`);
+    // バックアップに含まれないキーは、バックアップ時点で空だったものとして消す
+    const failed = BACKUP_KEYS.filter(key => {
+      if (!(key in values)) { removeStored(key); return false; }
+      return !writeJSON(key, values[key]);
+    });
+
+    setUndoSnapshot(null);
+    load();
+    loadEventData();
+    render();
+    renderEventTable();
+    renderEventCalendar();
+    if (failed.length === 0) showToast('全体バックアップから復元しました', 'success');
   });
 }
 

@@ -8,7 +8,7 @@ const assert = require('node:assert');
 const { loadScripts, toPlain } = require('./helpers/load');
 
 const ctx = loadScripts(['constants.js', 'utils.js', 'json.js']);
-const { mergeByMonth, workItemMonths, eventMonths, pickObjects, pickImportableWorkItems, summarizeMonthReplacement } = ctx;
+const { mergeByMonth, workItemMonths, eventMonths, pickObjects, pickImportableWorkItems, summarizeMonthReplacement, validateBackup } = ctx;
 
 // ============================================================
 // 月の列挙
@@ -138,4 +138,35 @@ test('summarizeMonthReplacement — 差し替える月ごとに既存件数と�
     { month: '2026-08', before: 2, after: 1 },
     { month: '2026-09', before: 0, after: 1 },
   ]);
+});
+
+// ============================================================
+// 全体バックアップの検証
+// ============================================================
+const backup = values => ({ format: 'focus-ops-backup', version: 1, exportedAt: '2026-09-25 10:00', values });
+
+test('validateBackup — 正しい形式なら values を返す', () => {
+  const values = {
+    workData: [{ 日付: '2026-09-01' }], workData_bp: [], eventData: [],
+    roundDiffs: [], roundDiffs_bp: [], leaveBaselines: { 有休: { date: '2026-04-01', days: 10 } },
+  };
+  assert.deepStrictEqual(toPlain(validateBackup(backup(values))), values);
+});
+
+test('validateBackup — 一部のキーだけでも受け付ける', () => {
+  assert.ok(validateBackup(backup({ workData: [] })));
+});
+
+test('validateBackup — 形式名・バージョンが違えば拒否する', () => {
+  assert.strictEqual(validateBackup({ ...backup({}), format: 'other' }), null);
+  assert.strictEqual(validateBackup({ ...backup({}), version: 2 }), null);
+  assert.strictEqual(validateBackup([{ 日付: '2026-09-01' }]), null);
+  assert.strictEqual(validateBackup(null), null);
+});
+
+test('validateBackup — 未知のキーや形の合わない値が1つでもあれば全体を拒否する', () => {
+  assert.strictEqual(validateBackup(backup({ workData: [], unknown: [] })), null);
+  assert.strictEqual(validateBackup(backup({ workData: {} })), null);
+  assert.strictEqual(validateBackup(backup({ leaveBaselines: [] })), null);
+  assert.strictEqual(validateBackup(backup([])), null);
 });

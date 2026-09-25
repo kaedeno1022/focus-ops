@@ -124,7 +124,7 @@ function filterEventsByMonth() {
 function initBackupNotice() {
   const exportBtn = document.getElementById('backup-notice-export');
   const laterBtn  = document.getElementById('backup-notice-later');
-  if (exportBtn) exportBtn.addEventListener('click', () => exportJSON());
+  if (exportBtn) exportBtn.addEventListener('click', () => exportFullBackup());
   if (laterBtn)  laterBtn.addEventListener('click', () => snoozeBackupNotice());
 }
 
@@ -248,6 +248,8 @@ window.cancelCheckIn        = cancelCheckIn;
 window.applyEventsToCheckin = applyEventsToCheckin;
 window.applyLastContent     = applyLastContent;
 window.exportJSON           = exportJSON;
+window.exportFullBackup     = exportFullBackup;
+window.restoreFullBackup    = restoreFullBackup;
 window.importJSON           = importJSON;
 window.exportEventJSON      = exportEventJSON;
 window.importEventJSON      = importEventJSON;

@@ -48,5 +48,13 @@ const LAST_EXPORT_KEY    = 'lastExportAt';
 const BACKUP_SNOOZE_KEY  = 'backupSnoozeUntil';
 const LEAVE_BASELINE_KEY = 'leaveBaselines'; // { [勤務実績]: { date, days } }
 
+// 全体バックアップに含めるキー。値が配列でないのは休暇残日数の基準値だけ
+const BACKUP_KEYS = [
+  STORAGE_KEY, BP_STORAGE_KEY, EVENT_STORAGE_KEY,
+  ROUND_DIFFS_KEY, BP_ROUND_DIFFS_KEY, LEAVE_BASELINE_KEY,
+];
+const BACKUP_FORMAT  = 'focus-ops-backup';
+const BACKUP_VERSION = 1;
+
 // 最終エクスポートからこの日数が経つとバックアップを促す
 const BACKUP_REMIND_DAYS = 7;

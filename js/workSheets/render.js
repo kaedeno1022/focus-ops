@@ -367,8 +367,8 @@ function updateBackupNotice() {
 
   if (textEl) {
     textEl.textContent = lastExport
-      ? `最後にJSON出力したのは ${formatDateLabel(lastExport)} です。データはこのブラウザにしか保存されていないため、バックアップを取ることをおすすめします。`
-      : 'データはこのブラウザにしか保存されていません。ブラウザのデータを消すと失われるため、JSON出力でバックアップを取ることをおすすめします。';
+      ? `最後に全体バックアップを取ったのは ${formatDateLabel(lastExport)} です。データはこのブラウザにしか保存されていないため、バックアップを取ることをおすすめします。`
+      : 'データはこのブラウザにしか保存されていません。ブラウザのデータを消すと失われるため、全体バックアップを取ることをおすすめします。';
   }
   notice.classList.remove('hidden');
 }
