@@ -126,7 +126,7 @@ async function addData() {
   sortData();
   if (!save()) return false;
   render(); clearForm();
-  showToast('登録が完了しました', 'success');
+  showToast('登録が完了しました', 'success', 8000, undoAction());
   return true;
 }
 
