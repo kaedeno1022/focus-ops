@@ -271,10 +271,17 @@ function buildSummaryRows(filteredData) {
     s.退社日           && { label: '退社日',         value: `${s.退社日}日` },
   ].filter(Boolean);
 
+  const weekItems = s.週別.map(w => ({
+    label: `${w.start}日〜${w.end}日`,
+    value: `労働 ${h(w.労働時間)} / 週40h超 ${h(w.週40時間超)} / 日8h超 ${h(w.日8時間超)} → ${h(w.法定時間外)}`,
+    wide: true,
+  }));
+
   return {
     sections: [
       { title: '時間集計', items: timeItems, extra: [roundDiffItem()] },
       { title: '日数集計', items: dayItems, extra: leaveRemainingItems() },
+      { title: '週別の法定時間外（週は月内で区切る）', items: weekItems },
     ],
     警告: [overtimeWarning(s.法定時間外労働時間), ...s.警告].filter(Boolean),
   };
