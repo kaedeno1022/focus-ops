@@ -76,6 +76,9 @@ test('退避に失敗したキーは上書きせず false を返す', () => {
   ctx.readJSON('workData', []);
   assert.strictEqual(ctx.writeJSON('workData', []), false);
   assert.strictEqual(ctx.localStorage.getItem('workData'), 'broken');
+  // 削除もしない（復元などで元データを消さないため）
+  ctx.removeStored('workData');
+  assert.strictEqual(ctx.localStorage.getItem('workData'), 'broken');
   // 他のキーは影響を受けない
   assert.strictEqual(ctx.writeJSON('eventData', []), true);
 });

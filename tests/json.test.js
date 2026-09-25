@@ -112,10 +112,12 @@ test('pickImportableWorkItems — 日付が YYYY-MM-DD でない行とオブジ�
     { 日付: '' },
     { 作業内容: '日付なし' },
     { 日付: 20260803 },
+    { 日付: '2026-13-45' },
+    { 日付: '2026-02-30' },
     null,
   ]);
   assert.deepStrictEqual(toPlain(items).map(d => d.日付), ['2026-08-01']);
-  assert.strictEqual(invalid, 5);
+  assert.strictEqual(invalid, 7);
   assert.strictEqual(duplicate, 0);
 });
 

@@ -501,8 +501,8 @@ function findMissingWeekdays(dataArray, month, today, dismissed) {
   for (let day = 1; day <= lastDay; day++) {
     const dateStr = `${month}-${String(day).padStart(2, '0')}`;
     if (dateStr >= today) break;
-    const dow = new Date(year, mon - 1, day).getDay();
-    if (dow === 0 || dow === 6 || entered.has(dateStr) || skipped.has(dateStr)) continue;
+    const weekend = ['土', '日'].includes(getWeekday(dateStr));
+    if (weekend || entered.has(dateStr) || skipped.has(dateStr)) continue;
     missing.push(dateStr);
   }
   return missing;

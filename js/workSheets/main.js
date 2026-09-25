@@ -148,6 +148,11 @@ function initStorageSync() {
 }
 
 function reloadFromStorage() {
+  // 確認ダイアログの後続処理は開いた時点の添字で書き込むため、閉じるまで読み直さない
+  if (document.querySelector('.confirm-overlay')) {
+    setTimeout(reloadFromStorage, 500);
+    return;
+  }
   // モーダルは編集対象を配列の添字で持っているため、読み直した配列に対して保存すると別の行を上書きしうる
   const hadModal = anyModalOpen();
   if (hadModal) closeAllModals();

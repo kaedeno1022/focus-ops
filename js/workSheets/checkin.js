@@ -102,7 +102,10 @@ async function editCheckInTime() {
   if (!info) { showToast('出社記録がありません', 'info'); return; }
   const result = await showStartTimeEditDialog(info);
   if (!result) return;
-  if (!writeJSON(CHECKIN_KEY, { ...info, startTime: result.startTime })) return;
+  // ダイアログ表示中に別タブで退勤・取り消しされていれば、出社状態を復活させない
+  const latest = getCheckinInfo();
+  if (!latest) { updateCheckinUI(); showToast('出社記録がなくなっているため修正しませんでした', 'warning'); return; }
+  if (!writeJSON(CHECKIN_KEY, { ...latest, startTime: result.startTime })) return;
   updateCheckinUI();
   showToast(`出社時刻を ${result.startTime} に修正しました`, 'success');
 }
@@ -380,7 +383,7 @@ async function doCheckOut() {
 
   // 登録が通ってから出社状態を消す。
   // 先に消すと、入力チェックで弾かれたときに出社時刻を失う
-  const registered = await addData();
+  const registered = await addData({ undoable: false });
   if (!registered) {
     showToast('登録できなかったため出社状態を維持しています。\n作業表入力タブで内容を修正してください。',
       'warning', 6000);

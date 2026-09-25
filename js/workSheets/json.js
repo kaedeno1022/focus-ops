@@ -49,12 +49,19 @@ function pickImportableWorkItems(list) {
   let invalid = list.length - objects.length;
   let duplicate = 0;
   objects.forEach(d => {
-    if (typeof d.日付 !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d.日付)) { invalid++; return; }
+    if (!isValidDateString(d.日付)) { invalid++; return; }
     if (seen.has(d.日付)) { duplicate++; return; }
     seen.add(d.日付);
     items.push(d);
   });
   return { items, invalid, duplicate };
+}
+
+// 'YYYY-MM-DD' の形で、かつ実在する日付か（2026-13-45 のような値は Date が繰り上げるので往復で弾く）
+function isValidDateString(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = parseDate(value);
+  return parsed !== null && toDateString(parsed) === value;
 }
 
 // 差し替える月ごとの件数（既存 → 取り込み後）

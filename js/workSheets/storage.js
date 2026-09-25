@@ -58,6 +58,7 @@ function writeJSON(key, value) {
 }
 
 function removeStored(key) {
+  if (unwritableKeys.has(key)) return;
   try {
     localStorage.removeItem(key);
   } catch {
