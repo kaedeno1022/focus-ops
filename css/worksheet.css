@@ -1132,6 +1132,24 @@ body.no-scroll { overflow: hidden; }
   color: var(--text);
 }
 
+.dialog-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  font-size: .95em;
+  color: var(--text);
+}
+.dialog-select-row select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
 /* ===== 月間カレンダービュー ===== */
 .calendar-view-bar {
   display: flex;

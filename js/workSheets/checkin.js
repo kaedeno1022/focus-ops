@@ -287,6 +287,49 @@ function showStartTimeEditDialog(info) {
   });
 }
 
+// 残業した日・定時から外れた日だけ、18時以降休憩と遅刻/早退を退勤前に選ばせる。
+// 退勤は勤務時間だけで登録されるため、ここで聞かないと休憩なしで時間外労働が過大に集計される。
+// breakOptions は入力フォームの選択肢（updateBreakOptions で勤務時間から作ったもの）をそのまま使う
+function askCheckoutExtras(startTime, endTime, breakOptions) {
+  const offSchedule = startTime > WORK_START_TIME ||
+    (!isTimeReversed(startTime, endTime) && endTime < '18:00');
+  if (breakOptions.length === 0 && !offSchedule) return Promise.resolve({ break: '', late: '' });
+
+  return new Promise(resolve => {
+    const { overlay, dialog, body } = buildDialogShell({
+      icon: '🏠',
+      title: '退勤の確認',
+      message: `${startTime} 〜 ${endTime} で登録します。\n該当するものがあれば選んでください。`,
+    });
+
+    const buildSelectRow = (labelText, values) => {
+      const row = document.createElement('label');
+      row.className = 'dialog-select-row';
+      const select = document.createElement('select');
+      ['', ...values].forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v || 'なし';
+        select.appendChild(opt);
+      });
+      row.append(labelText, select);
+      body.appendChild(row);
+      return select;
+    };
+
+    const breakSel = breakOptions.length ? buildSelectRow('18時以降休憩', breakOptions) : null;
+    const lateSel  = offSchedule ? buildSelectRow('遅刻 / 早退', ['遅刻', '早退', '遅刻/早退']) : null;
+
+    const { close, addButtons } = wireDialog(overlay, dialog, resolve);
+    addButtons('退勤する', () => close({
+      break: breakSel ? breakSel.value : '',
+      late:  lateSel ? lateSel.value : '',
+    }));
+
+    (breakSel || lateSel).focus();
+  });
+}
+
 // ============================================================
 // 退勤処理
 // ============================================================
@@ -322,6 +365,18 @@ async function doCheckOut() {
   document.getElementById('weekday').textContent = getWeekdayLabel(dateStr);
   controlBreakDisplay();
   updateContentCounters();
+
+  if (currentMode !== 'bp') {
+    // 休憩欄が非表示のときは選択肢が作り直されず前回の内容が残っているため使わない
+    const breakSel = document.getElementById('break');
+    const breakOptions = breakSel.closest('.form-item').classList.contains('hidden')
+      ? []
+      : [...breakSel.options].map(o => o.value).filter(Boolean);
+    const extras = await askCheckoutExtras(info.startTime || WORK_START_TIME, endTime, breakOptions);
+    if (!extras) return;
+    document.getElementById('break').value = extras.break;
+    document.getElementById('late').value  = extras.late;
+  }
 
   // 登録が通ってから出社状態を消す。
   // 先に消すと、入力チェックで弾かれたときに出社時刻を失う
