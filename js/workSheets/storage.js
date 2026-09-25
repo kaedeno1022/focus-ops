@@ -6,7 +6,13 @@
 // 呼び出し側の処理が止まらないよう、ここで捕まえて false を返す。
 // ============================================================
 
-function readJSON(key, fallback, errorMsg) {
+// 退避済みのキー。描画のたびに読む値もあるため、1回のページ表示で何度も退避しないようにする
+const quarantinedKeys = new Set();
+// 壊れた生データを退避できなかったキー。上書きすると復旧手段がなくなるため書き込みを止める
+const unwritableKeys = new Set();
+
+// isValid を満たさない値もパース失敗と同じく壊れたデータとして扱う
+function readJSON(key, fallback, errorMsg, isValid = () => true) {
   let raw;
   try {
     raw = localStorage.getItem(key);
@@ -15,14 +21,33 @@ function readJSON(key, fallback, errorMsg) {
   }
   if (raw === null) return fallback;
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (isValid(parsed)) return parsed;
   } catch {
-    if (errorMsg) showToast(errorMsg, 'error');
-    return fallback;
+    // 下で退避する
+  }
+  quarantineRaw(key, raw);
+  if (errorMsg) showToast(errorMsg, 'error', 8000);
+  return fallback;
+}
+
+// 読めなかった生データを別キーへ退避する。次の保存で元のキーが上書きされても手で復旧できるようにするため
+function quarantineRaw(key, raw) {
+  if (quarantinedKeys.has(key)) return;
+  quarantinedKeys.add(key);
+  const backupKey = `${key}_corrupt_${getTodayJST()}_${nowTimeStr()}`;
+  try {
+    localStorage.setItem(backupKey, raw);
+  } catch {
+    unwritableKeys.add(key);
   }
 }
 
 function writeJSON(key, value) {
+  if (unwritableKeys.has(key)) {
+    showToast('保存データが壊れていて退避もできなかったため、上書きを止めています。\n開発者ツールで元データを確認してください。', 'error', 8000);
+    return false;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
@@ -68,8 +93,7 @@ function save() {
 }
 
 function load() {
-  const loaded = readJSON(dataKey(), [], '保存データの読み込みに失敗しました');
-  setData(Array.isArray(loaded) ? loaded : []);
+  setData(readJSON(dataKey(), [], '保存データの読み込みに失敗しました。\n元のデータは別キーに退避しました。', Array.isArray));
 }
 
 function sortData() {
@@ -83,8 +107,7 @@ function saveEventData() {
 }
 
 function loadEventData() {
-  const loaded = readJSON(EVENT_STORAGE_KEY, [], 'イベントデータの読み込みに失敗しました');
-  setEventData(Array.isArray(loaded) ? loaded : []);
+  setEventData(readJSON(EVENT_STORAGE_KEY, [], 'イベントデータの読み込みに失敗しました。\n元のデータは別キーに退避しました。', Array.isArray));
 }
 
 // ---- 15分調整差分 ----
@@ -94,8 +117,7 @@ function roundDiffsKey() {
 }
 
 function loadRoundDiffs() {
-  const loaded = readJSON(roundDiffsKey(), []);
-  return Array.isArray(loaded) ? loaded : [];
+  return readJSON(roundDiffsKey(), [], null, Array.isArray);
 }
 
 function saveRoundDiffs(diffs) {
