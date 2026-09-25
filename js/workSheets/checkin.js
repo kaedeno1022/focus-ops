@@ -14,6 +14,7 @@ function updateCheckinUI() {
   const outTimeEl = document.getElementById('simple_out_time');
   const warnEl    = document.getElementById('checkin-warning');
   const cancelBtn = document.getElementById('checkin-cancel-btn');
+  const editBtn   = document.getElementById('checkin-edit-btn');
 
   if (!info) {
     if (statusEl) {
@@ -24,6 +25,7 @@ function updateCheckinUI() {
     if (outTimeEl) outTimeEl.textContent = '';
     if (warnEl)    warnEl.classList.add('hidden');
     if (cancelBtn) cancelBtn.classList.add('hidden');
+    if (editBtn)   editBtn.classList.add('hidden');
     return;
   }
 
@@ -34,6 +36,7 @@ function updateCheckinUI() {
   if (inTimeEl)  inTimeEl.textContent  = `出社: ${info.startTime || '---'}`;
   if (outTimeEl) outTimeEl.textContent = '';
   if (cancelBtn) cancelBtn.classList.remove('hidden');
+  if (editBtn)   editBtn.classList.remove('hidden');
 
   // 日付が変わっているのに出社中のままなら、退勤の記録漏れとして知らせる
   if (warnEl) {
@@ -91,6 +94,17 @@ async function cancelCheckIn() {
   removeStored(CHECKIN_KEY);
   updateCheckinUI();
   showToast('出社記録を取り消しました', 'success');
+}
+
+// 出社ボタンを押し遅れたときに、取り消さずに出社時刻だけを直す
+async function editCheckInTime() {
+  const info = getCheckinInfo();
+  if (!info) { showToast('出社記録がありません', 'info'); return; }
+  const result = await showStartTimeEditDialog(info);
+  if (!result) return;
+  if (!writeJSON(CHECKIN_KEY, { ...info, startTime: result.startTime })) return;
+  updateCheckinUI();
+  showToast(`出社時刻を ${result.startTime} に修正しました`, 'success');
 }
 
 // ============================================================
@@ -239,6 +253,34 @@ function showEndTimeDialog(info) {
     addButtons('この日で登録', () => {
       if (!timeInput.value) { showToast('退勤時刻を入力してください', 'warning', 2500); return; }
       close({ endTime: timeInput.value });
+    });
+
+    timeInput.focus();
+  });
+}
+
+function showStartTimeEditDialog(info) {
+  return new Promise(resolve => {
+    const { overlay, dialog, body } = buildDialogShell({
+      icon: '🕘',
+      title: '出社時刻を修正',
+      message: `${formatDateLabel(info.date)} の出社時刻を入力してください。`,
+    });
+
+    const timeInput = document.createElement('input');
+    timeInput.type = 'time';
+    timeInput.className = 'dialog-time-input';
+    timeInput.value = info.startTime || '09:00';
+    body.appendChild(timeInput);
+
+    const { close, addButtons } = wireDialog(overlay, dialog, resolve);
+    addButtons('修正する', () => {
+      if (!timeInput.value) { showToast('出社時刻を入力してください', 'warning', 2500); return; }
+      if (info.date === getTodayJST() && timeInput.value > nowTimeStr()) {
+        showToast('現在時刻より後の時刻は指定できません', 'warning', 2500);
+        return;
+      }
+      close({ startTime: timeInput.value });
     });
 
     timeInput.focus();

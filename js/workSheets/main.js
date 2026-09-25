@@ -245,6 +245,7 @@ window.clearAllEvents       = clearAllEvents;
 window.simpleCheckIn        = simpleCheckIn;
 window.simpleCheckOut       = simpleCheckOut;
 window.cancelCheckIn        = cancelCheckIn;
+window.editCheckInTime      = editCheckInTime;
 window.applyEventsToCheckin = applyEventsToCheckin;
 window.applyLastContent     = applyLastContent;
 window.exportJSON           = exportJSON;
